@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -6,33 +8,59 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 
 interface AuthTabsProps {
-  onAuthSuccess: (data: { businessName: string; email: string }) => void;
+  onAuthSuccess: (data: { email: string; name?: string }) => void;
 }
 
 export function AuthTabs({ onAuthSuccess }: AuthTabsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     firstName: "",
     lastName: "",
-    businessName: "",
     signupEmail: "",
-    signupPassword: ""
+    signupPassword: "",
   });
 
   const handleSubmit = async (e: React.FormEvent, isSignup = false) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Pass the relevant data to parent component
-      onAuthSuccess({
-        businessName: isSignup ? formData.businessName : "Your Laundromat", // Default for login
-        email: isSignup ? formData.signupEmail : formData.email
+    setError(null);
+
+    try {
+      const endpoint = isSignup ? "/api/register" : "/api/login";
+      const body = isSignup
+        ? {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.signupEmail,
+            password: formData.signupPassword,
+          }
+        : {
+            email: formData.email,
+            password: formData.password,
+          };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-    }, 2000);
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+
+      onAuthSuccess({
+        email: data.user.email,
+        name: data.user.name,
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,7 +78,9 @@ export function AuthTabs({ onAuthSuccess }: AuthTabsProps) {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
+          {/* LOGIN */}
           <TabsContent value="login" className="space-y-4 mt-6">
+            {error && <p className="text-red-500">{error}</p>}
             <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -78,14 +108,11 @@ export function AuthTabs({ onAuthSuccess }: AuthTabsProps) {
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-            <div className="text-center">
-              <Button variant="link" className="text-sm">
-                Forgot your password?
-              </Button>
-            </div>
           </TabsContent>
 
+          {/* SIGNUP */}
           <TabsContent value="signup" className="space-y-4 mt-6">
+            {error && <p className="text-red-500">{error}</p>}
             <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -108,16 +135,6 @@ export function AuthTabs({ onAuthSuccess }: AuthTabsProps) {
                     required
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <Input
-                  id="businessName"
-                  value={formData.businessName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))}
-                  placeholder="Your Laundromat"
-                  required
-                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signupEmail">Email</Label>
