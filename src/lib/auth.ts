@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 
 export const verifyToken = (token: string) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET || "secret");
-  } catch {
+    const verified = jwt.verify(token, process.env.JWT_SECRET || "secret");
+    return verified as { userId: number; email: string; iat: number; exp: number };
+  } catch { 
     return null;
   }
 };

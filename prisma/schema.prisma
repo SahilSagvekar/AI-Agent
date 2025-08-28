@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,13 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id            Int      @id @default(autoincrement())
-  name          String?
-  email         String   @unique
-  password      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime @updatedAt
+  forms     FormData[]
 }
 
+model FormData {
+  id                  Int      @id @default(autoincrement())
+  userId              Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Business Info
+  businessName        String
+  address             String
+  phone               String
+  email               String?
+  website             String?
+  googleMapsUrl       String?
+
+  // Operating Hours
+  weekdayHours        String
+  weekendHours        String?
+  openOnHolidays      Boolean
+  holidayNote         String?
+  lastWashTime        String?
+
+  // Services
+  services            Json       // JSON array of strings
+
+  // Pricing Info
+  washerPrices        String
+  dryerPrices         String
+  washFoldRate        String?
+  dryCleaningPrices   String?
+  pickupDeliveryPricing String?
+  minimumCharges      String?
+  paymentMethods      Json       // JSON array of strings
+
+  // Machine Info
+  totalWashers        String
+  totalDryers         String?
+  machineOperationType String?
+  machinesModern      Boolean
+  largeMachines       Boolean
+
+  // Amenities
+  amenities           Json       // JSON array
+
+  // Questions
+  commonQuestions     Json       // JSON array
+  customQuestions     Json       // JSON array of objects
+
+  // Call Handling
+  callHandlingStyle   String
+  forwardingEnabled   Boolean
+  forwardingNumber    String?
+  forwardingHours     String?
+
+  // Language
+  languages           Json       // JSON array
+  autoDetectLanguage  Boolean
+
+  // Business Tone
+  businessTone        String
+  customPhrases       String?
+  businessIntro       String?
+
+  // Policies
+  lostFoundPolicy     String?
+  refundPolicy        String?
+  covidPolicies       String?
+  timeLimits          String?
+  unattendedPolicy    String?
+  additionalPolicies  String?
+
+  user User @relation(fields: [userId], references: [id])
+}

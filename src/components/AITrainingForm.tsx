@@ -146,15 +146,32 @@ export function AITrainingForm({ onComplete }: { onComplete: (data: FormData) =>
     return Math.round(((completed + serviceCheck + paymentCheck) / (requiredFields.length + 2)) * 100);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onComplete(formData);
-    }, 2000);
-  };
+  // Replace your handleSubmit definition with this:
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const response = await fetch("/api/form", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData), // Send entire form data!
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      onComplete(formData); // Existing callback, no UI changes
+    } else {
+      alert("Failed to save form data!");
+    }
+  } catch (err) {
+    alert("Network or server error!");
+  }
+  setIsSubmitting(false);
+};
+
+
 
   const addCustomQuestion = () => {
     setFormData(prev => ({
