@@ -8,84 +8,144 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
-  name      String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime @updatedAt
-  forms     FormData[]
-}
-
-model FormData {
-  id                  Int      @id @default(autoincrement())
-  userId              Int
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  // Business Info
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
+  password String
+  name     String?
   businessName        String
   address             String
   phone               String
-  email               String?
-  website             String?
+   website             String?
   googleMapsUrl       String?
 
-  // Operating Hours
-  weekdayHours        String
-  weekendHours        String?
-  openOnHolidays      Boolean
-  holidayNote         String?
-  lastWashTime        String?
+  laundromatLocations LaundromatLocation[]
+}
 
-  // Services
-  services            Json       // JSON array of strings
+model LaundromatLocation {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  locationName  String?
+  address       String
+  phone         String
+  email         String?
+  website       String?
+  googleMapsUrl String?
 
-  // Pricing Info
-  washerPrices        String
-  dryerPrices         String
-  washFoldRate        String?
-  dryCleaningPrices   String?
+  user           User          @relation(fields: [userId], references: [id])
+  operatingHours OperatingHours?
+  services       Services?
+  pricing        Pricing?
+  machineInfo    MachineInfo?
+  amenities      Amenities?
+  questions      Questions?
+  callHandling   CallHandling?
+  languageSettings LanguageSettings?
+  businessTone   BusinessTone?
+  policies       Policies?
+}
+
+model OperatingHours {
+  id             Int    @id @default(autoincrement())
+  locationId     Int    @unique
+  weekdayHours   String
+  weekendHours   String?
+  openOnHolidays Boolean
+  holidayNote    String?
+  lastWashTime   String?
+
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model Services {
+  id         Int    @id @default(autoincrement())
+  locationId Int    @unique
+  services   Json
+
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model Pricing {
+  id                   Int    @id @default(autoincrement())
+  locationId           Int    @unique
+  washerPrices         String
+  dryerPrices          String
+  washFoldRate         String?
+  dryCleaningPrices    String?
   pickupDeliveryPricing String?
-  minimumCharges      String?
-  paymentMethods      Json       // JSON array of strings
+  minimumCharges       String?
+  paymentMethods       Json
 
-  // Machine Info
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model MachineInfo {
+  id                  Int     @id @default(autoincrement())
+  locationId          Int     @unique
   totalWashers        String
   totalDryers         String?
   machineOperationType String?
   machinesModern      Boolean
   largeMachines       Boolean
 
-  // Amenities
-  amenities           Json       // JSON array
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
 
-  // Questions
-  commonQuestions     Json       // JSON array
-  customQuestions     Json       // JSON array of objects
+model Amenities {
+  id         Int    @id @default(autoincrement())
+  locationId Int    @unique
+  amenities  Json
 
-  // Call Handling
-  callHandlingStyle   String
-  forwardingEnabled   Boolean
-  forwardingNumber    String?
-  forwardingHours     String?
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
 
-  // Language
-  languages           Json       // JSON array
-  autoDetectLanguage  Boolean
+model Questions {
+  id              Int    @id @default(autoincrement())
+  locationId      Int    @unique
+  commonQuestions Json
+  customQuestions Json
 
-  // Business Tone
-  businessTone        String
-  customPhrases       String?
-  businessIntro       String?
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
 
-  // Policies
-  lostFoundPolicy     String?
-  refundPolicy        String?
-  covidPolicies       String?
-  timeLimits          String?
-  unattendedPolicy    String?
-  additionalPolicies  String?
+model CallHandling {
+  id                Int    @id @default(autoincrement())
+  locationId        Int    @unique
+  callHandlingStyle String
+  forwardingEnabled Boolean
+  forwardingNumber  String?
+  forwardingHours   String?
 
-  user User @relation(fields: [userId], references: [id])
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model LanguageSettings {
+  id                Int    @id @default(autoincrement())
+  locationId        Int    @unique
+  languages         Json
+  autoDetectLanguage Boolean
+
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model BusinessTone {
+  id            Int    @id @default(autoincrement())
+  locationId    Int    @unique
+  businessTone  String
+  customPhrases String?
+  businessIntro String?
+
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+}
+
+model Policies {
+  id                Int    @id @default(autoincrement())
+  locationId        Int    @unique
+  lostFoundPolicy   String?
+  refundPolicy      String?
+  covidPolicies     String?
+  timeLimits       String?
+  unattendedPolicy String?
+  additionalPolicies String?
+
+  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }

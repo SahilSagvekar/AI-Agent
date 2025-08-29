@@ -21,9 +21,9 @@ export async function POST(req: Request) {
     if (!passwordMatch) return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
 
     // Check if user already filled the form
-    const existingForm = await prisma.formData.findFirst({
-      where: { userId: user.id }
-    });
+    // const existingForm = await prisma.formData.findFirst({
+    //   where: { userId: user.id }
+    // });
 
     // Generate JWT
     const token = jwt.sign(
@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     );
 
     const response = NextResponse.json({
-      user: { id: user.id, email: user.email, role: user.role, name: user.name },
-      hasFilledForm: !!existingForm
+      token, user: { id: user.id, email: user.email, role: user.role, name: user.name },
+      // hasFilledForm: !!existingForm
     });
 
     response.cookies.set("authToken", token, {
