@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-
+import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json();
-    console.log(name, email, password);
+    // console.log(name, email, password);
 
     if (!name || !email || !password) {
       return NextResponse.json({ message: "All fields are required" }, { status: 400 });
@@ -27,7 +27,26 @@ export async function POST(req: Request) {
       data: { name, email, password: hashedPassword },
     });
 
-    return NextResponse.json({ user: { id: user.id, email: user.email, name: user.name } });
+    //generate token and set cookie
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "1h" }
+    );
+
+    const response = NextResponse.json({ message: "User registered successfully", user: { id: user.id, email: user.email, name: user.name }, token });
+    
+    response.cookies.set("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60,
+      path: "/",
+    });
+
+    return response;
+
+    // return NextResponse.json({ user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
     console.error("Register error:", err);
     return NextResponse.json({ message: "Server error" }, { status: 500 });

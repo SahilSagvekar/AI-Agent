@@ -145,7 +145,7 @@ const secret = process.env.JWT_SECRET || "secret";
 export async function POST(request: Request) {
   const user = await getUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "User Not Found" }, { status: 401 });
   }
 
   try {
@@ -267,6 +267,14 @@ export async function POST(request: Request) {
           policies: true,
         },
       });
+
+      const userData = prisma.user.update({
+         where: { id: existing.id },
+         data: {
+          businessName: flatData.businessName 
+         }
+      })
+
 
       return NextResponse.json(updated, { status: 200 });
     } else {

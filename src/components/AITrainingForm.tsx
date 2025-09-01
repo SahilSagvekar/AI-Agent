@@ -12,6 +12,9 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Clock, MapPin, Phone, DollarSign, Wrench, FileText, MessageCircle, Save, Settings, Languages, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+
 
 interface FormData {
   // Business Information
@@ -87,7 +90,7 @@ export function AITrainingForm({
   initialData?: Partial<FormData>;
   onComplete: (data: FormData) => void;
 }) {
-  
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("business");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -247,6 +250,8 @@ export function AITrainingForm({
   // Replace your handleSubmit definition with this:
 
 const handleSubmit = async (e: React.FormEvent) => {
+
+  
   e.preventDefault();
   setIsSubmitting(true);
 
@@ -264,6 +269,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (response.ok) {
       const result = await response.json();
       onComplete(formData); // Existing callback, no UI changes
+      router.push("/dashboard");
     } else {
       alert("Failed to save form data!");
     }
