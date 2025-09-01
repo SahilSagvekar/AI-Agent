@@ -201,7 +201,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                         {subscriptionData.status}
                       </Badge>
                     </div>
-                    <p className="text-sm">Next billing: {new Date(subscriptionData.nextBilling).toLocaleDateString()}</p>
+                    <p className="text-sm">Next billing: {new Date(subscriptionData.nextBilling).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
                     <p className="text-xs text-muted-foreground">
                       {subscriptionData.locations} location{subscriptionData.locations > 1 ? 's' : ''}
                     </p>
@@ -425,7 +425,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Next billing:</span>
-                        <span>{new Date(subscriptionData.nextBilling).toLocaleDateString()}</span>
+                        <span>{new Date(subscriptionData.nextBilling).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Locations:</span>
@@ -480,7 +480,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <TableBody>
                     {subscriptionData.billingHistory.map((bill) => (
                       <TableRow key={bill.invoice}>
-                        <TableCell>{new Date(bill.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(bill.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</TableCell>
                         <TableCell>${bill.amount}</TableCell>
                         <TableCell>
                           <Badge variant={bill.status === 'Paid' ? 'default' : 'secondary'}>

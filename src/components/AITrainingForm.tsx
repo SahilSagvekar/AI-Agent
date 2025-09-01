@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -79,56 +79,148 @@ interface FormData {
   additionalPolicies: string;
 }
 
-export function AITrainingForm({ onComplete }: { onComplete: (data: FormData) => void }) {
+
+export function AITrainingForm({
+  initialData,
+  onComplete,
+}: {
+  initialData?: Partial<FormData>;
+  onComplete: (data: FormData) => void;
+}) {
+  
   const [activeTab, setActiveTab] = useState("business");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    businessName: "",
-    address: "",
-    phone: "",
-    email: "",
-    website: "",
-    googleMapsUrl: "",
-    weekdayHours: "6:00 AM - 10:00 PM",
-    weekendHours: "7:00 AM - 9:00 PM",
-    openOnHolidays: false,
-    holidayNote: "",
-    lastWashTime: "1 hour before closing",
-    services: [],
-    washerPrices: "",
-    dryerPrices: "",
-    washFoldRate: "",
-    dryCleaningPrices: "",
-    pickupDeliveryPricing: "",
-    minimumCharges: "",
-    paymentMethods: [],
-    totalWashers: "",
-    totalDryers: "",
-    machineOperationType: "",
-    machinesModern: false,
-    largeMachines: false,
-    amenities: [],
-    commonQuestions: [],
-    customQuestions: [{ question: "", answer: "" }],
-    callHandlingStyle: "",
-    forwardingEnabled: false,
-    forwardingNumber: "",
-    forwardingHours: "",
-    languages: ["English"],
-    autoDetectLanguage: false,
-    businessTone: "",
-    customPhrases: "",
-    businessIntro: "",
-    lostFoundPolicy: "",
-    refundPolicy: "",
-    covidPolicies: "",
-    timeLimits: "",
-    unattendedPolicy: "",
-    additionalPolicies: ""
+    businessName: initialData?.businessName ?? "",
+    address: initialData?.address ?? "",
+    phone: initialData?.phone ?? "",
+    email: initialData?.email ?? "",
+    website: initialData?.website ?? "",
+    googleMapsUrl: initialData?.googleMapsUrl ?? "",
+    weekdayHours: initialData?.weekdayHours ?? "6:00 AM - 10:00 PM",
+    weekendHours: initialData?.weekendHours ?? "7:00 AM - 9:00 PM",
+    openOnHolidays: initialData?.openOnHolidays ?? false,
+    holidayNote: initialData?.holidayNote ?? "",
+    lastWashTime: initialData?.lastWashTime ?? "1 hour before closing",
+
+    services: Array.isArray(initialData?.services) ? initialData.services : [],
+    washerPrices: initialData?.washerPrices ?? "",
+    dryerPrices: initialData?.dryerPrices ?? "",
+    washFoldRate: initialData?.washFoldRate ?? "",
+    dryCleaningPrices: initialData?.dryCleaningPrices ?? "",
+    pickupDeliveryPricing: initialData?.pickupDeliveryPricing ?? "",
+    minimumCharges: initialData?.minimumCharges ?? "",
+    paymentMethods: Array.isArray(initialData?.paymentMethods) ? initialData.paymentMethods : [],
+
+    totalWashers: initialData?.totalWashers ?? "",
+    totalDryers: initialData?.totalDryers ?? "",
+    machineOperationType: initialData?.machineOperationType ?? "",
+    machinesModern: initialData?.machinesModern ?? false,
+    largeMachines: initialData?.largeMachines ?? false,
+
+    amenities: Array.isArray(initialData?.amenities) ? initialData.amenities : [],
+
+    commonQuestions: Array.isArray(initialData?.commonQuestions) ? initialData.commonQuestions : [],
+    customQuestions: Array.isArray(initialData?.customQuestions) ? initialData.customQuestions : [{ question: "", answer: "" }],
+
+    callHandlingStyle: initialData?.callHandlingStyle ?? "",
+    forwardingEnabled: initialData?.forwardingEnabled ?? false,
+    forwardingNumber: initialData?.forwardingNumber ?? "",
+    forwardingHours: initialData?.forwardingHours ?? "",
+
+    languages: Array.isArray(initialData?.languages) ? initialData.languages : ["English"],
+    autoDetectLanguage: initialData?.autoDetectLanguage ?? false,
+
+    businessTone: initialData?.businessTone ?? "",
+    customPhrases: initialData?.customPhrases ?? "",
+    businessIntro: initialData?.businessIntro ?? "",
+
+    lostFoundPolicy: initialData?.lostFoundPolicy ?? "",
+    refundPolicy: initialData?.refundPolicy ?? "",
+    covidPolicies: initialData?.covidPolicies ?? "",
+    timeLimits: initialData?.timeLimits ?? "",
+    unattendedPolicy: initialData?.unattendedPolicy ?? "",
+    additionalPolicies: initialData?.additionalPolicies ?? "",
   });
 
+  useEffect(() => {
+     console.log('initialData changed:', initialData);
+    if (initialData) {
+      setFormData({
+        businessName: initialData.businessName ?? "",
+        address: initialData.address ?? "",
+        phone: initialData.phone ?? "",
+        email: initialData.email ?? "",
+        website: initialData.website ?? "",
+        googleMapsUrl: initialData.googleMapsUrl ?? "",
+        weekdayHours: initialData.weekdayHours ?? "6:00 AM - 10:00 PM",
+        weekendHours: initialData.weekendHours ?? "7:00 AM - 9:00 PM",
+        openOnHolidays: initialData.openOnHolidays ?? false,
+        holidayNote: initialData.holidayNote ?? "",
+        lastWashTime: initialData.lastWashTime ?? "1 hour before closing",
+
+        services: Array.isArray(initialData.services) ? initialData.services : [],
+        washerPrices: initialData.washerPrices ?? "",
+        dryerPrices: initialData.dryerPrices ?? "",
+        washFoldRate: initialData.washFoldRate ?? "",
+        dryCleaningPrices: initialData.dryCleaningPrices ?? "",
+        pickupDeliveryPricing: initialData.pickupDeliveryPricing ?? "",
+        minimumCharges: initialData.minimumCharges ?? "",
+        paymentMethods: Array.isArray(initialData.paymentMethods) ? initialData.paymentMethods : [],
+
+        totalWashers: initialData.totalWashers ?? "",
+        totalDryers: initialData.totalDryers ?? "",
+        machineOperationType: initialData.machineOperationType ?? "",
+        machinesModern: initialData.machinesModern ?? false,
+        largeMachines: initialData.largeMachines ?? false,
+
+        amenities: Array.isArray(initialData.amenities) ? initialData.amenities : [],
+
+        commonQuestions: Array.isArray(initialData.commonQuestions) ? initialData.commonQuestions : [],
+        customQuestions: Array.isArray(initialData.customQuestions) ? initialData.customQuestions : [{ question: "", answer: "" }],
+
+        callHandlingStyle: initialData.callHandlingStyle ?? "",
+        forwardingEnabled: initialData.forwardingEnabled ?? false,
+        forwardingNumber: initialData.forwardingNumber ?? "",
+        forwardingHours: initialData.forwardingHours ?? "",
+
+        languages: Array.isArray(initialData.languages) ? initialData.languages : ["English"],
+        autoDetectLanguage: initialData.autoDetectLanguage ?? false,
+
+        businessTone: initialData.businessTone ?? "",
+        customPhrases: initialData.customPhrases ?? "",
+        businessIntro: initialData.businessIntro ?? "",
+
+        lostFoundPolicy: initialData.lostFoundPolicy ?? "",
+        refundPolicy: initialData.refundPolicy ?? "",
+        covidPolicies: initialData.covidPolicies ?? "",
+        timeLimits: initialData.timeLimits ?? "",
+        unattendedPolicy: initialData.unattendedPolicy ?? "",
+        additionalPolicies: initialData.additionalPolicies ?? "",
+      });
+    }
+  }, [initialData]);
+
   // Calculate form completion percentage
-  const calculateProgress = () => {
+  // const calculateProgress = () => {
+  //   const requiredFields = [
+  //     formData.businessName,
+  //     formData.address,
+  //     formData.phone,
+  //     formData.weekdayHours,
+  //     formData.washerPrices,
+  //     formData.dryerPrices,
+  //     formData.totalWashers,
+  //     formData.callHandlingStyle,
+  //     formData.businessTone
+  //   ];
+  //   const completed = requiredFields.filter(field => field.trim() !== "").length;
+  //   const serviceCheck = formData.services.length > 0 ? 1 : 0;
+  //   const paymentCheck = formData.paymentMethods.length > 0 ? 1 : 0;
+  //   return Math.round(((completed + serviceCheck + paymentCheck) / (requiredFields.length + 2)) * 100);
+  // };
+
+   const calculateProgress = () => {
     const requiredFields = [
       formData.businessName,
       formData.address,
@@ -140,11 +232,17 @@ export function AITrainingForm({ onComplete }: { onComplete: (data: FormData) =>
       formData.callHandlingStyle,
       formData.businessTone
     ];
-    const completed = requiredFields.filter(field => field.trim() !== "").length;
-    const serviceCheck = formData.services.length > 0 ? 1 : 0;
-    const paymentCheck = formData.paymentMethods.length > 0 ? 1 : 0;
+
+    const completed = requiredFields.filter(field =>
+      typeof field === "string" && field.trim() !== ""
+    ).length;
+
+    const serviceCheck = Array.isArray(formData.services) && formData.services.length > 0 ? 1 : 0;
+    const paymentCheck = Array.isArray(formData.paymentMethods) && formData.paymentMethods.length > 0 ? 1 : 0;
+
     return Math.round(((completed + serviceCheck + paymentCheck) / (requiredFields.length + 2)) * 100);
   };
+
 
   // Replace your handleSubmit definition with this:
 
@@ -152,9 +250,13 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
 
+  const method = initialData && initialData.id ? "PUT" : "POST";
+  const url = "/api/form"; // Or separate endpoints if you want
+
+
   try {
-    const response = await fetch("/api/form", {
-      method: "POST",
+    const response = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData), // Send entire form data!
     });
