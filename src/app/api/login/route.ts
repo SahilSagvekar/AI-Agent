@@ -27,13 +27,13 @@ export async function POST(req: Request) {
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET || "secret",
       { expiresIn: "1h" }
     );
 
     const response = NextResponse.json({
-      token, user: { id: user.id, email: user.email, role: user.role, name: user.name },
+      token, user: { id: user.id, email: user.email, name: user.name },
       // hasFilledForm: !!existingForm
     });
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const cookieStore = cookies(); // get cookies
+    const cookieStore = await cookies(); // get cookies
     const token = cookieStore.get("authToken")?.value;
 
     if (!token) return NextResponse.json({ user: null }, { status: 401 });

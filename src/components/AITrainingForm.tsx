@@ -255,7 +255,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
 
-  const method = initialData && initialData.id ? "PUT" : "POST";
+  const method = initialData && initialData ? "PUT" : "POST";
+  // const method = initialData && initialData.id ? "PUT" : "POST";
   const url = "/api/form"; // Or separate endpoints if you want
 
 

@@ -111,7 +111,7 @@ export default function App() {
               Sign in to your existing account or create a new account to get started with the AI laundromat assistant.
             </DialogDescription>
           </DialogHeader>
-          <AuthTabs onAuthSuccess={handleAuthSuccess} />
+          {/* <AuthTabs onAuthSuccess={handleAuthSuccess} /> */}
         </DialogContent>
       </Dialog>
     </div>

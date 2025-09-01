@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AITrainingForm } from "@/components/AITrainingForm";
 
-function flattenTrainingData(apiData) {
+function flattenTrainingData(apiData: any) {
   if (!apiData) return null;
 
   return {
@@ -65,7 +65,7 @@ function flattenTrainingData(apiData) {
 
 
 export default function TrainingPage() {
-    const [initialData, setInitialData] = useState(null);
+  const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 

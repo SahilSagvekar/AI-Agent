@@ -27,7 +27,7 @@ export default function DashboardPage() {
   return (
     <Dashboard
       businessName={userData.businessName}
-      email={userData.email}
+      // email={userData.email}
       onLogout={handleLogout}
       onEditTraining={handleEditTraining}
     />

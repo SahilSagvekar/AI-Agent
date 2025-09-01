@@ -27,12 +27,12 @@ export default function HomePage() {
 
   
   function handleLoginSuccess(user: { email: string; name?: string }) {
-    closeLogin(false);
+    closeLogin();
     router.push("/dashboard");
   }
 
   function handleRegisterSuccess(user: { email: string; name?: string }) {
-    closeLogin(false);
+    closeLogin();
     router.push("/training");
   }
 
