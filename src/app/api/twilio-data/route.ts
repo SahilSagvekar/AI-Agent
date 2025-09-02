@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import Twilio from "twilio";
+import { CallInstance } from 'twilio/lib/rest/api/v2010/account/call';
+import { MessageInstance } from 'twilio/lib/rest/api/v2010/account/message';
+
+
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID!;
 const authToken = process.env.TWILIO_AUTH_TOKEN!;
@@ -18,7 +22,7 @@ export async function GET(request: Request) {
     // then merge results. This can be optimized later.
 
     async function fetchCallsForNumbers(nums: string[]) {
-      const callsSet = new Map<string, Twilio.CallInstance>();
+      const callsSet = new Map<string, CallInstance>();
         
       for (const num of nums) {
         // Fetch calls where 'to' is this number
@@ -33,7 +37,7 @@ export async function GET(request: Request) {
     }
 
     async function fetchMessagesForNumbers(nums: string[]) {
-      const messagesSet = new Map<string, Twilio.MessageInstance>();
+      const messagesSet = new Map<string, MessageInstance>();
       for (const num of nums) {
         const toMessages = await client.messages.list({ to: num, limit: 20 });
         toMessages.forEach(msg => messagesSet.set(msg.sid, msg));

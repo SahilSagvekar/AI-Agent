@@ -28,12 +28,14 @@ export default function HomePage() {
   
   function handleLoginSuccess(user: { email: string; name?: string }) {
     closeLogin();
-    router.push("/dashboard");
+    // router.push("/dashboard");
+    router.push("/payment");
   }
 
   function handleRegisterSuccess(user: { email: string; name?: string }) {
     closeLogin();
-    router.push("/training");
+    // router.push("/training");
+    router.push("/payment");
   }
 
   return (
