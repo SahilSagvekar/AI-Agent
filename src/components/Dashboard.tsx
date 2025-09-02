@@ -8,7 +8,9 @@ import { Separator } from "./ui/separator";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
-import { Bot, Phone, MessageSquare, BarChart3, Settings, Users, Clock, CheckCircle, AlertCircle, CreditCard, Calendar, DollarSign, Download, Eye } from "lucide-react";
+import { CallHistory } from "./CallHistory";
+import { LocationEditor } from "./LocationEditor";
+import { Bot, Phone, MessageSquare, BarChart3, Settings, Users, Clock, CheckCircle, AlertCircle, CreditCard, Calendar, DollarSign, Download, Eye, MapPin, Edit } from "lucide-react";
 
 interface DashboardProps {
   businessName: string;
@@ -22,18 +24,20 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
     businessName: businessName,
     email: "contact@business.com"
   });
+  const [locationEditorOpen, setLocationEditorOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
 
   // Mock subscription data
   const subscriptionData = {
     plan: "Professional",
     status: "Active",
-    price: 300, // $250 base + $50 for 1 additional location
+    price: 220, // $175 base + $45 for 1 additional location
     locations: 2,
     nextBilling: "2024-02-15",
     billingHistory: [
-      { date: "2024-01-15", amount: 300, status: "Paid", invoice: "INV-001" },
-      { date: "2023-12-15", amount: 250, status: "Paid", invoice: "INV-002" },
-      { date: "2023-11-15", amount: 250, status: "Paid", invoice: "INV-003" }
+      { date: "2024-01-15", amount: 220, status: "Paid", invoice: "INV-001" },
+      { date: "2023-12-15", amount: 175, status: "Paid", invoice: "INV-002" },
+      { date: "2023-11-15", amount: 175, status: "Paid", invoice: "INV-003" }
     ],
     paymentMethod: {
       type: "Visa",
@@ -64,10 +68,34 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
     ]
   };
 
-  const phoneNumbers = [
-    { location: "Main Location", number: "+1 (555) 247-8901", status: "Active" },
-    { location: "Downtown Branch", number: "+1 (555) 247-8902", status: "Active" }
+  const locations = [
+    { 
+      id: "main", 
+      name: "Main Location", 
+      number: "+1 (555) 247-8901", 
+      status: "Active",
+      address: "123 Main St, City, State 12345",
+      lastUpdated: "2024-01-15"
+    },
+    { 
+      id: "downtown", 
+      name: "Downtown Branch", 
+      number: "+1 (555) 247-8902", 
+      status: "Active",
+      address: "456 Downtown Ave, City, State 12345", 
+      lastUpdated: "2024-01-12"
+    }
   ];
+
+  const handleEditLocation = (locationName: string) => {
+    setSelectedLocation(locationName);
+    setLocationEditorOpen(true);
+  };
+
+  const handleLocationSave = (data: any) => {
+    console.log("Location data saved:", data);
+    // Here you would typically save the data to your backend
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,7 +139,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="calls">Call History</TabsTrigger>
-            <TabsTrigger value="phones">Phone Numbers</TabsTrigger>
+            <TabsTrigger value="locations">Locations</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -189,7 +217,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                     </div>
                     <p className="text-2xl font-bold">${subscriptionData.price}/month</p>
                     <p className="text-xs text-muted-foreground">
-                      ${subscriptionData.locations === 1 ? '250 base' : '250 base + $50 per additional location'}
+                      ${subscriptionData.locations === 1 ? '175 base' : '175 base + $45 per additional location'}
                     </p>
                   </div>
 
@@ -201,7 +229,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                         {subscriptionData.status}
                       </Badge>
                     </div>
-                    <p className="text-sm">Next billing: {new Date(subscriptionData.nextBilling).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</p>
+                    <p className="text-sm">Next billing: {new Date(subscriptionData.nextBilling).toLocaleDateString()}</p>
                     <p className="text-xs text-muted-foreground">
                       {subscriptionData.locations} location{subscriptionData.locations > 1 ? 's' : ''}
                     </p>
@@ -345,50 +373,54 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
           </TabsContent>
 
           <TabsContent value="calls">
-            <Card>
-              <CardHeader>
-                <CardTitle>Call History</CardTitle>
-                <CardDescription>
-                  Complete log of customer interactions
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="h-96 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <Phone className="h-16 w-16 text-muted-foreground mx-auto" />
-                  <p className="text-muted-foreground">
-                    Detailed call history and transcripts will be available soon
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <CallHistory />
           </TabsContent>
 
-          <TabsContent value="phones" className="space-y-6">
+          <TabsContent value="locations" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Phone Numbers
+                  <MapPin className="h-5 w-5" />
+                  Locations
                 </CardTitle>
                 <CardDescription>
-                  AI assistant phone numbers assigned to your locations
+                  Manage your laundromat locations and their AI assistant training
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {phoneNumbers.map((phone, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <h4 className="font-medium">{phone.location}</h4>
-                        <p className="text-sm text-muted-foreground font-mono">{phone.number}</p>
+                  {locations.map((location) => (
+                    <div key={location.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-3">
+                          <h4 className="font-medium">{location.name}</h4>
+                          <Badge variant="outline" className="text-green-700 border-green-200">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                            {location.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{location.address}</p>
+                        <p className="text-sm text-muted-foreground font-mono">{location.number}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Last updated: {new Date(location.lastUpdated).toLocaleDateString()}
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-green-700 border-green-200">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                          {phone.status}
-                        </Badge>
-                        <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(phone.number)}>
-                          Copy
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleEditLocation(location.name)}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Location
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => navigator.clipboard.writeText(location.number)}
+                        >
+                          Copy Phone
                         </Button>
                       </div>
                     </div>
@@ -414,7 +446,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                       <h3 className="font-medium">{subscriptionData.plan} Plan</h3>
                       <p className="text-2xl font-bold">${subscriptionData.price}<span className="text-base font-normal text-muted-foreground">/month</span></p>
                       <p className="text-sm text-muted-foreground">
-                        Base: $250 + {subscriptionData.locations - 1} additional location(s) at $50 each
+                        Base: $175 + {subscriptionData.locations - 1} additional location(s) at $45 each
                       </p>
                     </div>
                     
@@ -425,7 +457,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Next billing:</span>
-                        <span>{new Date(subscriptionData.nextBilling).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
+                        <span>{new Date(subscriptionData.nextBilling).toLocaleDateString()}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Locations:</span>
@@ -451,7 +483,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
 
                     <div className="space-y-2">
                       <Button className="w-full">Upgrade Plan</Button>
-                      <Button variant="outline" className="w-full">Add Location (+$50/month)</Button>
+                      <Button variant="outline" className="w-full">Add Location (+$45/month)</Button>
                     </div>
                   </div>
                 </div>
@@ -480,7 +512,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <TableBody>
                     {subscriptionData.billingHistory.map((bill) => (
                       <TableRow key={bill.invoice}>
-                        <TableCell>{new Date(bill.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</TableCell>
+                        <TableCell>{new Date(bill.date).toLocaleDateString()}</TableCell>
                         <TableCell>${bill.amount}</TableCell>
                         <TableCell>
                           <Badge variant={bill.status === 'Paid' ? 'default' : 'secondary'}>
@@ -558,6 +590,14 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Location Editor Dialog */}
+      <LocationEditor
+        isOpen={locationEditorOpen}
+        onClose={() => setLocationEditorOpen(false)}
+        locationName={selectedLocation}
+        onSave={handleLocationSave}
+      />
     </div>
   );
 }
