@@ -3,9 +3,8 @@ import Stripe from 'stripe';
 import twilio from 'twilio';
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-08-16',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
 
 // Initialize Twilio client
 const twilioClient = twilio(
