@@ -24,14 +24,14 @@ export async function getUser() {
   return verifyToken(token);
 }
 
-export async function getUser2() {
-  const cookieStore =  cookies(); // Add await
-  const authCookie = cookieStore.get("authToken");
-  console.log("Auth Cookie:", authCookie);
-  const token = authCookie?.value;
-  console.log("token:", token);
+// export async function getUser2() {
+//   const cookieStore =  cookies(); // Add await
+//   const authCookie = cookieStore.get("authToken");
+//   console.log("Auth Cookie:", authCookie);
+//   const token = authCookie?.value;
+//   console.log("token:", token);
 
-  if (!token) return null;
+//   if (!token) return null;
 
-  return verifyToken(token);
-}
+//   return verifyToken(token);
+// }

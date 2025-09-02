@@ -11,6 +11,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 export async function POST(req: NextRequest) {
   try {
     const user = await getUser();
+
+     if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User not authenticated" },
+        { status: 401 }
+      );
+    }
     const { amount } = await req.json();
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
 // import Stripe from "stripe";
 // import { NextRequest, NextResponse } from "next/server";
 // import { PrismaClient } from "@prisma/client";
-// import { getUser2 } from "@/lib/auth";
+// import { getUser } from "@/lib/auth";
 
 // const prisma = new PrismaClient();
 
@@ -58,7 +65,7 @@ export async function POST(req: NextRequest) {
 
 // async function provisionTwilioNumber(userId: string) {
 
-//   const user = await getUser2();
+//   const user = await getUser();
 //   const preferredAreaCode  = await prisma.laundromatLocation.findFirst({
 //   where: { userId: user.userId },
 //   select: {
