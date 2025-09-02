@@ -15,8 +15,9 @@ model User {
   businessName        String?
   address             String?
   phone               String?
-   website             String?
+  website             String?
   googleMapsUrl       String?
+  firstPayment        Boolean?
 
   laundromatLocations LaundromatLocation[]
 }
@@ -28,6 +29,8 @@ model LaundromatLocation {
   businessName  String?
   address       String
   phone         String
+  areaCode      String?
+  twilioPhone   String?
   email         String?
   website       String?
   googleMapsUrl String?

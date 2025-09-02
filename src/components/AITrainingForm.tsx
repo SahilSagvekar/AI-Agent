@@ -21,6 +21,7 @@ interface FormData {
   businessName: string;
   address: string;
   phone: string;
+  areaCode: string;
   email: string;
   website: string;
   googleMapsUrl: string;
@@ -97,6 +98,7 @@ export function AITrainingForm({
     businessName: initialData?.businessName ?? "",
     address: initialData?.address ?? "",
     phone: initialData?.phone ?? "",
+    areaCode: initialData?.areaCode ?? "",
     email: initialData?.email ?? "",
     website: initialData?.website ?? "",
     googleMapsUrl: initialData?.googleMapsUrl ?? "",
@@ -147,12 +149,13 @@ export function AITrainingForm({
   });
 
   useEffect(() => {
-     console.log('initialData changed:', initialData);
+     console.log('initialData changed:', initialData?.areaCode);
     if (initialData) {
       setFormData({
         businessName: initialData.businessName ?? "",
         address: initialData.address ?? "",
         phone: initialData.phone ?? "",
+        areaCode: initialData?.areaCode ?? "",
         email: initialData.email ?? "",
         website: initialData.website ?? "",
         googleMapsUrl: initialData.googleMapsUrl ?? "",
@@ -460,7 +463,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="flex gap-4">
+
+                <div className="flex-1 space-y-2">
                   <Label htmlFor="address">Full Address *</Label>
                   <Input
                     id="address"
@@ -470,6 +475,47 @@ const handleSubmit = async (e: React.FormEvent) => {
                     required
                   />
                 </div>
+
+                <div className="w-24 space-y-2">
+                  <Label htmlFor="address">Area Code *</Label>
+                  <Input
+                    id="address"
+                    value={formData.areaCode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, areaCode: e.target.value }))}
+                    placeholder="415"
+                    required
+                  />
+                </div>
+                </div>
+
+                
+  {/* <div className="flex-1 space-y-2">
+    <Label htmlFor="address">Full Address *</Label>
+    <Input
+      id="address"
+      value={formData.address}
+      onChange={(e) =>
+        setFormData((prev) => ({ ...prev, address: e.target.value }))
+      }
+      placeholder="123 Main St, City, State 12345"
+      required
+    />
+  </div>
+
+  <div className="w-24 space-y-1">  {/* Fixed smaller width */}
+    {/* <Label htmlFor="areaCode">Area Code *</Label>
+    <Input
+      id="areaCode"
+      value={formData.areaCode}       // Use separate state field, not address
+      onChange={(e) =>
+        setFormData((prev) => ({ ...prev, areaCode: e.target.value }))
+      }
+      placeholder="415"
+      required
+    />
+  </div>  */}
+
+
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">

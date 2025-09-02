@@ -11,6 +11,7 @@ function flattenTrainingData(apiData: any) {
     businessName: apiData.locationName ?? "", // or fallback if null
     address: apiData.address ?? "",
     phone: apiData.phone ?? "",
+    areaCode: apiData.areaCode ?? "",
     email: apiData.email ?? "",
     website: apiData.website ?? "",
     googleMapsUrl: apiData.googleMapsUrl ?? "",

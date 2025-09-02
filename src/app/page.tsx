@@ -25,18 +25,50 @@ export default function HomePage() {
   //   router.push("/dashboard");
   // };
 
-  
-  function handleLoginSuccess(user: { email: string; name?: string }) {
-    closeLogin();
-    // router.push("/dashboard");
-    router.push("/payment");
-  }
+  async function getUserFirstPayment(email: string): Promise<boolean> {
+  const res = await fetch(`/api/user/payment-status?email=${encodeURIComponent(email)}`);
+  if (!res.ok) throw new Error("Failed to fetch payment status");
+  const data = await res.json();
+  return data.firstPayment === true;
+}
 
-  function handleRegisterSuccess(user: { email: string; name?: string }) {
-    closeLogin();
-    // router.push("/training");
+
+  
+  async function handleLoginSuccess(user: { email: string; name?: string }) {
+  closeLogin();
+
+  try {
+    const hasPaid = await getUserFirstPayment(user.email);
+
+    if (hasPaid) {
+      router.push("/dashboard");
+    } else {
+      router.push("/payment");
+    }
+  } catch (err) {
+    console.error("Error fetching payment status:", err);
+    // Default to payment page or show error
     router.push("/payment");
   }
+}
+
+async function handleRegisterSuccess(user: { email: string; name?: string }) {
+  closeLogin();
+
+  try {
+    const hasPaid = await getUserFirstPayment(user.email);
+
+    if (hasPaid) {
+      router.push("/dashboard");
+    } else {
+      router.push("/payment");
+    }
+  } catch (err) {
+    console.error("Error fetching payment status:", err);
+    router.push("/payment");
+  }
+}
+
 
   return (
     <div className="min-h-screen bg-background">

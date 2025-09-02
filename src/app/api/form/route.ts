@@ -176,6 +176,7 @@ export async function PUT(request: Request) {
         address: flatData.address,
         phone: flatData.phone,
         email: flatData.email,
+        areaCode: flatData.areaCode,
         website: flatData.website,
         googleMapsUrl: flatData.googleMapsUrl,
 
