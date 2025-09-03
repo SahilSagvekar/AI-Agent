@@ -10,14 +10,27 @@ import { Footer } from "@/components/Footer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AuthTabs } from "@/components/AuthTabs";
 
+
+type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact';
+
+interface UserData {
+  businessName: string;
+  email: string;
+}
+
 export default function HomePage() {
   const router = useRouter();
+  const [appState, setAppState] = useState<AppState>('landing');
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-
+  
+  const handleContact = () => {
+    setAppState('contact');
+  };
   
 
   const openLogin = () => setIsLoginOpen(true);
   const closeLogin = () => setIsLoginOpen(false);
+
 
   // const handleAuthSuccess = (userData: { email: string; name?: string }) => {
   //   closeLogin();
@@ -76,7 +89,7 @@ async function handleRegisterSuccess(user: { email: string; name?: string }) {
       <main>
         <HeroSection onGetStarted={openLogin} />
         <FeaturesSection />
-        <PricingSection onGetStarted={openLogin} />
+        <PricingSection onContact={handleContact} onGetStarted={openLogin} />
       </main>
       <Footer />
 
