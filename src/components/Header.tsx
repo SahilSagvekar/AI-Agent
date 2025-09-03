@@ -14,7 +14,7 @@ export function Header({ onLogin }: { onLogin: () => void }) {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">AI</span>
             </div>
-            <span className="font-semibold text-lg">LaundryBot</span>
+            <span className="font-semibold text-lg">ConnectAI</span>
           </div>
 
           <nav className="hidden md:flex items-center space-x-8">
