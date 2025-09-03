@@ -10,9 +10,10 @@ import { AuthTabs } from "@/components/AuthTabs";
 import { AITrainingForm } from "@/components/AITrainingForm";
 import { PhoneAssignment } from "@/components/PhoneAssignment";
 import { Dashboard } from "@/components/Dashboard";
+import { ContactUs } from "@/components/ContactUs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type AppState = 'landing' | 'training' | 'phone-assignment' | 'dashboard';
+type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact';
 
 interface UserData {
   businessName: string;
@@ -52,6 +53,13 @@ export default function App() {
     setAppState('training');
   };
 
+  const handleContact = () => {
+    setAppState('contact');
+  };
+  const handleBackToLanding = () => {
+    setAppState('landing');
+  };
+
   const handleLogout = () => {
     setUserData({ businessName: '', email: '' });
     setTrainingData(null);
@@ -64,6 +72,12 @@ export default function App() {
       <div className="min-h-screen bg-background">
         <AITrainingForm onComplete={handleTrainingComplete} />
       </div>
+    );
+  }
+
+  if (appState === 'contact') {
+    return (
+      <ContactUs onBack={handleBackToLanding} />
     );
   }
 
@@ -98,7 +112,7 @@ export default function App() {
           <FeaturesSection />
         </div>
         
-        <PricingSection onGetStarted={handleGetStarted} />
+        <PricingSection onContact={handleContact} onGetStarted={handleGetStarted} />
       </main>
 
       <Footer />
