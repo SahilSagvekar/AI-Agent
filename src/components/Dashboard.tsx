@@ -137,7 +137,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
             <TabsTrigger value="calls">Call History</TabsTrigger>
             <TabsTrigger value="locations">Locations</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
