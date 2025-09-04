@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -28,6 +28,8 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
   });
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
 
   // Mock subscription data
   const subscriptionData = {
@@ -70,34 +72,62 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
     ]
   };
 
-  const locations = [
-    { 
-      id: "main", 
-      name: "Main Location", 
-      number: "+1 (555) 247-8901", 
-      status: "Active",
-      address: "123 Main St, City, State 12345",
-      lastUpdated: "2024-01-15"
-    },
-    { 
-      id: "downtown", 
-      name: "Downtown Branch", 
-      number: "+1 (555) 247-8902", 
-      status: "Active",
-      address: "456 Downtown Ave, City, State 12345", 
-      lastUpdated: "2024-01-12"
+  // const locations = [
+  //   { 
+  //     id: "main", 
+  //     name: "Main Location", 
+  //     number: "+1 (555) 247-8901", 
+  //     status: "Active",
+  //     address: "123 Main St, City, State 12345",
+  //     lastUpdated: "2024-01-15"
+  //   },
+  //   { 
+  //     id: "downtown", 
+  //     name: "Downtown Branch", 
+  //     number: "+1 (555) 247-8902", 
+  //     status: "Active",
+  //     address: "456 Downtown Ave, City, State 12345", 
+  //     lastUpdated: "2024-01-12"
+  //   }
+  // ];
+
+  useEffect(() => {
+    async function fetchLocations() {
+      try {
+        const res = await fetch("/api/form");
+        if (res.ok) {
+          const data = await res.json();
+          setLocations(data);
+        } else {
+          setLocations([]); // or handle error appropriately
+        }
+      } catch (e) {
+        setLocations([]);
+      }
+      setLoadingLocations(false);
     }
-  ];
+
+    fetchLocations();
+  }, []);
 
   const handleEditLocation = (locationName: string) => {
     setSelectedLocation(locationName);
     setLocationEditorOpen(true);
   };
 
-  const handleLocationSave = (data: any) => {
-    
-    console.log("Location data saved:", data);
-    // Here you would typically save the data to your backend
+  const handleLocationSave = async(updatedData: any) => {
+    try {
+      const res = await fetch('api/form', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+      
+
+    } catch (error) {
+       console.error('Error in handleAddLocation:', error);
+      // alert('An unexpected error occurred.');
+    }
   };
 
   const handleAddLocation = async() => {
@@ -407,6 +437,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
             <CallHistory />
           </TabsContent>
 
+          {/* locations */}
           <TabsContent value="locations" className="space-y-6">
             <Card>
               <CardHeader>
@@ -424,14 +455,14 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                     <div key={location.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-medium">{location.name}</h4>
+                          <h4 className="font-medium">{location.locationName}</h4>
                           <Badge variant="outline" className="text-green-700 border-green-200">
                             <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                             {location.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{location.address}</p>
-                        <p className="text-sm text-muted-foreground font-mono">{location.number}</p>
+                        <p className="text-sm text-muted-foreground font-mono">{location.twilioPhone}</p>
                         <p className="text-xs text-muted-foreground">
                           Last updated: {new Date(location.lastUpdated).toLocaleDateString()}
                         </p>
@@ -440,7 +471,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          onClick={() => handleEditLocation(location.name)}
+                          onClick={() => handleEditLocation(location.locationName)}
                           className="flex items-center gap-1"
                         >
                           <Edit className="h-4 w-4" />
@@ -449,7 +480,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          onClick={() => navigator.clipboard.writeText(location.number)}
+                          onClick={() => navigator.clipboard.writeText(location.twilioPhone)}
                         >
                           Copy Phone
                         </Button>
