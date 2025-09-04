@@ -147,7 +147,7 @@ export function AITrainingForm({
     unattendedPolicy: initialData?.unattendedPolicy ?? "",
     additionalPolicies: initialData?.additionalPolicies ?? "",
   });
-
+  console.log('initialData' + initialData);
   useEffect(() => {
      console.log('initialData changed:', initialData?.areaCode);
     if (initialData) {
@@ -258,8 +258,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
 
-  const method = initialData && initialData ? "PUT" : "POST";
-  // const method = initialData && initialData.id ? "PUT" : "POST";
+  // const method = initialData && initialData ? "PUT" : "POST";
+  const method = "POST";
   const url = "/api/form"; // Or separate endpoints if you want
 
 

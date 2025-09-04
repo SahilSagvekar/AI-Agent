@@ -16,17 +16,17 @@ export async function POST(request: Request) {
     const flatData = await request.json();
 
     // Check if laundromat location exists for user
-    const existing = await prisma.laundromatLocation.findFirst({
-      where: { userId: user.userId },
-    });
+    // const existing = await prisma.laundromatLocation.findFirst({
+    //   where: { userId: user.userId },
+    // });
 
-    if (existing) {
-      // If already exists, respond with conflict or appropriate status
-      return NextResponse.json(
-        { error: "Laundromat location already exists, use PUT to update" },
-        { status: 409 }
-      );
-    }
+    // if (existing) {
+    //   // If already exists, respond with conflict or appropriate status
+    //   return NextResponse.json(
+    //     { error: "Laundromat location already exists, use PUT to update" },
+    //     { status: 409 }
+    //   );
+    // }
 
     // Create new laundromat location and nested relations
     const nestedData = {
@@ -303,7 +303,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await prisma.laundromatLocation.findFirst({
+    const data = await prisma.laundromatLocation.findMany({
       where: { userId: user.userId },
       include: {
         operatingHours: true,

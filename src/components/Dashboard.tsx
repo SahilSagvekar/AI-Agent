@@ -9,6 +9,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { CallHistory } from "./CallHistory";
+import { useRouter } from "next/navigation";
 import { LocationEditor } from "./LocationEditor";
 import { Bot, Phone, MessageSquare, BarChart3, Settings, Users, Clock, CheckCircle, AlertCircle, CreditCard, Calendar, DollarSign, Download, Eye, MapPin, Edit } from "lucide-react";
 
@@ -19,6 +20,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardProps) {
+   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [accountSettings, setAccountSettings] = useState({
     businessName: businessName,
@@ -93,9 +95,38 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
   };
 
   const handleLocationSave = (data: any) => {
+    
     console.log("Location data saved:", data);
     // Here you would typically save the data to your backend
   };
+
+  const handleAddLocation = async() => {
+    try {
+      const response = await fetch('/api/create-location-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if(response.ok){
+
+        router.push('/training');
+      }
+
+      // const data = await response.json();
+      // if (data.url) {
+      //   //redirect to stripe checkout url
+      //   window.location.href = data.url;
+      // } else {
+      //   console.error('Failed to get stripe url:', data.error);
+      //   alert('Error initiating payment session.')
+      // }
+
+    } catch (error) {
+       console.error('Error in handleAddLocation:', error);
+      // alert('An unexpected error occurred.');
+    }
+    
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -483,7 +514,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
 
                     <div className="space-y-2">
                       <Button className="w-full">Upgrade Plan</Button>
-                      <Button variant="outline" className="w-full">Add Location (+$45/month)</Button>
+                      <Button onClick={handleAddLocation} variant="outline" className="w-full">Add Location (+$45/month)</Button>
                     </div>
                   </div>
                 </div>
