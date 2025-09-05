@@ -18,6 +18,18 @@ export default function DashboardPage() {
     router.push("/training");
   };
 
+  const handleEditLocation = async(locationId: any) => {
+    const res = await fetch(`/api/form?id=${locationId}`);
+      if (!res.ok) throw new Error("Failed to fetch location data");
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push('/edit-training')
+      }
+
+    // router.push("/edit-training");
+  };
+
   // Handler for logout
   const handleLogout = () => {
     // Clear auth here (cookies/localStorage) if needed
@@ -30,6 +42,7 @@ export default function DashboardPage() {
       // email={userData.email}
       onLogout={handleLogout}
       onEditTraining={handleEditTraining}
+      // onEditLocation={handleEditLocation}
     />
   );
 }

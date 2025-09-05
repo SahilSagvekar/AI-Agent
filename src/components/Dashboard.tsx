@@ -118,25 +118,6 @@ export function Dashboard({
     ],
   };
 
-  // const locations = [
-  //   {
-  //     id: "main",
-  //     name: "Main Location",
-  //     number: "+1 (555) 247-8901",
-  //     status: "Active",
-  //     address: "123 Main St, City, State 12345",
-  //     lastUpdated: "2024-01-15"
-  //   },
-  //   {
-  //     id: "downtown",
-  //     name: "Downtown Branch",
-  //     number: "+1 (555) 247-8902",
-  //     status: "Active",
-  //     address: "456 Downtown Ave, City, State 12345",
-  //     lastUpdated: "2024-01-12"
-  //   }
-  // ];
-
   useEffect(() => {
     async function fetchLocations() {
       try {
@@ -160,6 +141,10 @@ export function Dashboard({
     setSelectedLocation(locationName);
     setLocationEditorOpen(true);
   };
+
+  const navigateToEditTraining = (locationId: any) => {
+      router.push(`/edit-training?locationId=${locationId}`);
+}
 
   const handleLocationSave = async (updatedData: any) => {
     try {
@@ -524,7 +509,7 @@ export function Dashboard({
                     Locations
                   </CardTitle>
 
-                  <Button className="text-sm px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button className="text-sm px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleAddLocation}>
                     <Settings className="h-4 w-4 mr-2" />
                     Add Location
                   </Button>
@@ -571,9 +556,7 @@ export function Dashboard({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            handleEditLocation(location.locationName)
-                          }
+                          onClick={() => navigateToEditTraining(location.id)}
                           className="flex items-center gap-1"
                         >
                           <Edit className="h-4 w-4" />
@@ -672,7 +655,8 @@ export function Dashboard({
                     </div>
 
                     <div className="space-y-2">
-                      <Button className="w-full">Add Location (+$85/month)</Button>
+                      <Button className="w-full">Add Phone Number (+$85/month)</Button>
+                      {/* Biling add location */}
                       <Button
                         onClick={handleAddLocation}
                         variant="outline"
@@ -817,6 +801,8 @@ export function Dashboard({
         locationName={selectedLocation}
         onSave={handleLocationSave}
       />
+
+      {/* <EditAITrainingForm initialData={initialData} onComplete={handleTrainingComplete} /> */}
     </div>
   );
 }

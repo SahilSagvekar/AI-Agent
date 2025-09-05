@@ -296,6 +296,40 @@ export async function PUT(request: Request) {
 }
 
 // GET handler: Fetch laundromat location and nested data for logged-in user
+// export async function GET(request: Request) {
+//   const user = await getUser();
+//   if (!user) {
+//     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//   }
+
+//   try {
+//     const data = await prisma.laundromatLocation.findMany({
+//       where: { userId: user.userId },
+//       include: {
+//         operatingHours: true,
+//         services: true,
+//         pricing: true,
+//         machineInfo: true,
+//         amenities: true,
+//         questions: true,
+//         callHandling: true,
+//         languageSettings: true,
+//         businessTone: true,
+//         policies: true,
+//       },
+//     });
+
+//     if (!data) {
+//       return NextResponse.json(null, { status: 404 });
+//     }
+
+//     return NextResponse.json(data);
+//   } catch (error) {
+//     console.error("GET error:", error);
+//     return NextResponse.json({ error: "Server error" }, { status: 500 });
+//   }
+// }
+
 export async function GET(request: Request) {
   const user = await getUser();
   if (!user) {
@@ -303,24 +337,53 @@ export async function GET(request: Request) {
   }
 
   try {
-    const data = await prisma.laundromatLocation.findMany({
-      where: { userId: user.userId },
-      include: {
-        operatingHours: true,
-        services: true,
-        pricing: true,
-        machineInfo: true,
-        amenities: true,
-        questions: true,
-        callHandling: true,
-        languageSettings: true,
-        businessTone: true,
-        policies: true,
-      },
-    });
+    const url = new URL(request.url);
+    const idParam = url.searchParams.get("id");
 
-    if (!data) {
-      return NextResponse.json(null, { status: 404 });
+    let data;
+    if (idParam) {
+      const id = parseInt(idParam, 10); // ✅ convert string -> number
+
+      if (isNaN(id)) {
+        return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+      }
+
+      data = await prisma.laundromatLocation.findFirst({
+        where: { userId: user.userId, id },
+        include: {
+          operatingHours: true,
+          services: true,
+          pricing: true,
+          machineInfo: true,
+          amenities: true,
+          questions: true,
+          callHandling: true,
+          languageSettings: true,
+          businessTone: true,
+          policies: true,
+        },
+      });
+
+      if (!data) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+    } else {
+      data = await prisma.laundromatLocation.findMany({
+        where: { userId: user.userId },
+        orderBy: { id: "asc" },
+        include: {
+          operatingHours: true,
+          services: true,
+          pricing: true,
+          machineInfo: true,
+          amenities: true,
+          questions: true,
+          callHandling: true,
+          languageSettings: true,
+          businessTone: true,
+          policies: true,
+        },
+      });
     }
 
     return NextResponse.json(data);

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect,  } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AITrainingForm } from "@/components/AITrainingForm";
 import { AudioLoader } from "@/components/OrbitingLoader";
+import { EditAITrainingForm } from "@/components/EditAITrainingForm";
 
 function flattenTrainingData(apiData: any) {
   if (!apiData) return null;
@@ -69,6 +70,9 @@ function flattenTrainingData(apiData: any) {
 export default function TrainingPage() {
   const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const locationId = searchParams.get("locationId");
   const router = useRouter();
 
   const [trainingData, setTrainingData] = useState(null);
@@ -76,7 +80,13 @@ export default function TrainingPage() {
 
     useEffect(() => {
     async function fetchTrainingData() {
-      const res = await fetch("/api/form");
+      if (!locationId) {
+        alert("Missing location ID");
+        router.push("/dashboard");
+        return;
+      }
+      const res = await fetch(`/api/form?id=${locationId}`);
+      console.log('res' + res);
       if (res.ok) {
         const apiData = await res.json();
         const flatData = flattenTrainingData(apiData);
@@ -85,7 +95,7 @@ export default function TrainingPage() {
       setLoading(false);
     }
   fetchTrainingData();
-  }, [router]);
+  }, [locationId, router]);
 
   function handleTrainingComplete(data: any) {
     setTrainingData(data);
@@ -101,7 +111,7 @@ export default function TrainingPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <AITrainingForm initialData={initialData} onComplete={handleTrainingComplete} />
+      <EditAITrainingForm initialData={initialData} onComplete={handleTrainingComplete} />
     </div>
   );
 }

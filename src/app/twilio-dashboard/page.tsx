@@ -1,6 +1,7 @@
 "use client"; // use React client component
 
 import { useEffect, useState } from "react";
+import { AudioLoader } from "@/components/OrbitingLoader";
 
 type Call = {
   from: string | null;
@@ -55,7 +56,8 @@ export default function TwilioDashboard() {
     fetchTwilioData();
   }, []);
 
-  if (loading) return <p>Loading Twilio Data...</p>;
+  // if (loading) return <p>Loading Twilio Data...</p>;
+   if (loading) return <AudioLoader text="Loading Twilio Data..." />;
   if (error) return <p>Error: {error}</p>;
 
   return (
