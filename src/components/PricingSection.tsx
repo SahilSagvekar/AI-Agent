@@ -1,14 +1,10 @@
 import { Check, Mail } from "lucide-react";
 import { Button } from "./ui/button";
-import { useRouter } from "next/navigation";
+import { useRedirect } from "@/utils/redirect";
 import Link from "next/link";
 
 export function PricingSection({ onGetStarted, onContact }: { onGetStarted: () => void; onContact: () => void }) {
-  const router = useRouter();
-
-  function redirect() {
-    router.push("/contact")
-  }
+  const { redirectDemo, redirectContact } = useRedirect();
 
   const features = [
     "24/7 AI-powered customer support",
@@ -122,7 +118,7 @@ export function PricingSection({ onGetStarted, onContact }: { onGetStarted: () =
               <div className="space-y-4">
                 <Button 
                   // onClick={onContact} 
-                  onClick={redirect}
+                  onClick={redirectContact}
                   variant="outline"
                   className="w-full border-[#7851A9] text-[#7851A9] hover:bg-[#7851A9] hover:text-white shadow-lg transition-all duration-300 hover:shadow-xl" 
                   size="lg"

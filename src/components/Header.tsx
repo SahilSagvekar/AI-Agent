@@ -1,10 +1,13 @@
 import { Button } from "./ui/button";
+import { useRedirect } from "@/utils/redirect";
 
 export function Header({ onLogin }: { onLogin: () => void }) {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     element?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const { redirectDemo, redirectContact } = useRedirect();
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
@@ -31,7 +34,13 @@ export function Header({ onLogin }: { onLogin: () => void }) {
               Pricing
             </button>
             <button 
-              onClick={() => scrollToSection('contact')} 
+              onClick={redirectDemo} 
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Demo
+            </button>
+            <button 
+              onClick={redirectContact} 
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Contact

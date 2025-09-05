@@ -262,7 +262,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
             </div>
 
             {/* Subscription Overview */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
@@ -308,7 +308,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Common Questions */}

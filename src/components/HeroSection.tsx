@@ -6,16 +6,16 @@ import image1 from '../assets/1.png'
 import image2 from '../assets/2.png'
 import image3 from '../assets/3.png'
 import image4 from '../assets/4.png'
-import { useRouter } from "next/navigation";
+import { useRedirect } from "@/utils/redirect";
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 export function HeroSection({ onGetStarted, onDemo }: { onGetStarted: () => void; onDemo?: () => void }) {
-  const router = useRouter();
+  const { redirectDemo, redirectContact } = useRedirect();
   
-  function redirect() {
-    router.push("/demo")
-  }
+  // function redirect() {
+  //   router.push("/demo")
+  // }
 
   
   return (
@@ -44,7 +44,7 @@ export function HeroSection({ onGetStarted, onDemo }: { onGetStarted: () => void
                 </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8" 
                 // onClick={onDemo}
-                onClick={redirect}>
+                onClick={redirectDemo}>
                   Watch Demo
                 </Button>
               </div>

@@ -1,4 +1,8 @@
-export function Footer({ onContact }: { onContact?: () => void }) {
+import { useRedirect } from "@/utils/redirect";
+
+export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onContact?: () => void; onPrivacyPolicy?: () => void; onTermsOfService?: () => void }) {
+  const { redirectContact, redirectDemo, redirectPrivacy, redirectTerms } = useRedirect();
+  
   return (
     <footer id="contact" className="py-16 px-4 border-t border-border">
       <div className="max-w-6xl mx-auto">
@@ -29,7 +33,7 @@ export function Footer({ onContact }: { onContact?: () => void }) {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <button 
-                  onClick={onContact}
+                  onClick={redirectContact}
                   className="hover:text-foreground transition-colors text-left"
                 >
                   Contact Us
@@ -44,8 +48,22 @@ export function Footer({ onContact }: { onContact?: () => void }) {
             <h4 className="font-medium">Company</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#" className="hover:text-foreground transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Privacy</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Terms</a></li>
+              <li>
+                <button 
+                  onClick={redirectPrivacy}
+                  className="hover:text-foreground transition-colors text-left"
+                >
+                  Privacy
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={redirectTerms}
+                  className="hover:text-foreground transition-colors text-left"
+                >
+                  Terms Of Service
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -55,8 +73,18 @@ export function Footer({ onContact }: { onContact?: () => void }) {
             © 2025 ConnectAI. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+            <button 
+              onClick={redirectPrivacy}
+              className="hover:text-foreground transition-colors"
+            >
+              Privacy Policy
+            </button>
+            <button 
+              onClick={redirectTerms}
+              className="hover:text-foreground transition-colors"
+            >
+              Terms of Service
+            </button>
           </div>
         </div>
       </div>

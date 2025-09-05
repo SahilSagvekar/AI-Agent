@@ -11,9 +11,11 @@ import { AITrainingForm } from "@/components/AITrainingForm";
 import { PhoneAssignment } from "@/components/PhoneAssignment";
 import { Dashboard } from "@/components/Dashboard";
 import { ContactUs } from "@/components/ContactUs";
+// import { PrivacyPolicy } from "@/components/";
+// import { TermsOfService } from "@/components/TermsOfService";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact';
+type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact' | 'privacy-policy' | 'terms-of-service';
 
 interface UserData {
   businessName: string;
@@ -57,13 +59,21 @@ export default function App() {
     setAppState('contact');
   };
   const handleBackToLanding = () => {
-    setAppState('landing');
+    setAppState('landing');0
   };
 
   const handleLogout = () => {
     setUserData({ businessName: '', email: '' });
     setTrainingData(null);
     setAppState('landing');
+  };
+
+   const handlePrivacyPolicy = () => {
+    setAppState('privacy-policy');
+  };
+
+  const handleTermsOfService = () => {
+    setAppState('terms-of-service');
   };
 
   // Render based on app state
@@ -100,6 +110,18 @@ export default function App() {
     );
   }
 
+  //   if (appState === 'privacy-policy') {
+  //   return (
+  //     <PrivacyPolicy onBack={handleBackToLanding} />
+  //   );
+  // }
+
+  // if (appState === 'terms-of-service') {
+  //   return (
+  //     <TermsOfService onBack={handleBackToLanding} />
+  //   );
+  // }
+
   // Default landing page
   return (
     <div className="min-h-screen bg-background">
@@ -115,7 +137,7 @@ export default function App() {
         <PricingSection onContact={handleContact} onGetStarted={handleGetStarted} />
       </main>
 
-      <Footer />
+      <Footer onContact={handleContact} onPrivacyPolicy={handlePrivacyPolicy} onTermsOfService={handleTermsOfService} />
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
