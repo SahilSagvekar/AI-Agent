@@ -155,10 +155,13 @@ export async function PUT(request: Request) {
 
   try {
     const flatData = await request.json();
+    
+
+    const id = parseInt(flatData.id, 10);
 
     // Find existing laundromat location for this user
     const existing = await prisma.laundromatLocation.findFirst({
-      where: { userId: user.userId },
+      where: { userId: user.userId, id },
     });
 
     if (!existing) {
