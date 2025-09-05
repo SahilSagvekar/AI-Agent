@@ -11,8 +11,6 @@ import { AITrainingForm } from "@/components/AITrainingForm";
 import { PhoneAssignment } from "@/components/PhoneAssignment";
 import { Dashboard } from "@/components/Dashboard";
 import { ContactUs } from "@/components/ContactUs";
-// import { PrivacyPolicy } from "@/components/";
-// import { TermsOfService } from "@/components/TermsOfService";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact' | 'privacy-policy' | 'terms-of-service';
@@ -59,7 +57,7 @@ export default function App() {
     setAppState('contact');
   };
   const handleBackToLanding = () => {
-    setAppState('landing');0
+    setAppState('landing');
   };
 
   const handleLogout = () => {
@@ -109,18 +107,6 @@ export default function App() {
       />
     );
   }
-
-  //   if (appState === 'privacy-policy') {
-  //   return (
-  //     <PrivacyPolicy onBack={handleBackToLanding} />
-  //   );
-  // }
-
-  // if (appState === 'terms-of-service') {
-  //   return (
-  //     <TermsOfService onBack={handleBackToLanding} />
-  //   );
-  // }
 
   // Default landing page
   return (

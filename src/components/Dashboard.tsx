@@ -1,17 +1,47 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Progress } from "./ui/progress";
 import { Separator } from "./ui/separator";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 import { CallHistory } from "./CallHistory";
 import { useRouter } from "next/navigation";
 import { LocationEditor } from "./LocationEditor";
-import { Bot, Phone, MessageSquare, BarChart3, Settings, Users, Clock, CheckCircle, AlertCircle, CreditCard, Calendar, DollarSign, Download, Eye, MapPin, Edit } from "lucide-react";
+import {
+  Bot,
+  Phone,
+  MessageSquare,
+  BarChart3,
+  Settings,
+  Users,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  CreditCard,
+  Calendar,
+  DollarSign,
+  Download,
+  Eye,
+  MapPin,
+  Edit,
+} from "lucide-react";
 
 interface DashboardProps {
   businessName: string;
@@ -19,12 +49,16 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardProps) {
-   const router = useRouter();
+export function Dashboard({
+  businessName,
+  onEditTraining,
+  onLogout,
+}: DashboardProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [accountSettings, setAccountSettings] = useState({
     businessName: businessName,
-    email: "contact@business.com"
+    email: "contact@business.com",
   });
   const [locationEditorOpen, setLocationEditorOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
@@ -41,13 +75,13 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
     billingHistory: [
       { date: "2024-01-15", amount: 220, status: "Paid", invoice: "INV-001" },
       { date: "2023-12-15", amount: 175, status: "Paid", invoice: "INV-002" },
-      { date: "2023-11-15", amount: 175, status: "Paid", invoice: "INV-003" }
+      { date: "2023-11-15", amount: 175, status: "Paid", invoice: "INV-003" },
     ],
     paymentMethod: {
       type: "Visa",
       last4: "4242",
-      expiry: "12/27"
-    }
+      expiry: "12/27",
+    },
   };
 
   // Mock data for demonstration
@@ -61,32 +95,44 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
       { question: "How much does a wash cost?", count: 18 },
       { question: "Do you have change machines?", count: 15 },
       { question: "Is the laundromat open 24/7?", count: 12 },
-      { question: "Can I pay with card?", count: 10 }
+      { question: "Can I pay with card?", count: 10 },
     ],
     recentCalls: [
       { time: "2:35 PM", question: "What time do you close?", resolved: true },
-      { time: "1:42 PM", question: "Machine #3 ate my quarters", resolved: true },
+      {
+        time: "1:42 PM",
+        question: "Machine #3 ate my quarters",
+        resolved: true,
+      },
       { time: "12:18 PM", question: "Do you have WiFi?", resolved: true },
-      { time: "11:55 AM", question: "How much for large load?", resolved: true },
-      { time: "11:22 AM", question: "Can I leave clothes overnight?", resolved: false }
-    ]
+      {
+        time: "11:55 AM",
+        question: "How much for large load?",
+        resolved: true,
+      },
+      {
+        time: "11:22 AM",
+        question: "Can I leave clothes overnight?",
+        resolved: false,
+      },
+    ],
   };
 
   // const locations = [
-  //   { 
-  //     id: "main", 
-  //     name: "Main Location", 
-  //     number: "+1 (555) 247-8901", 
+  //   {
+  //     id: "main",
+  //     name: "Main Location",
+  //     number: "+1 (555) 247-8901",
   //     status: "Active",
   //     address: "123 Main St, City, State 12345",
   //     lastUpdated: "2024-01-15"
   //   },
-  //   { 
-  //     id: "downtown", 
-  //     name: "Downtown Branch", 
-  //     number: "+1 (555) 247-8902", 
+  //   {
+  //     id: "downtown",
+  //     name: "Downtown Branch",
+  //     number: "+1 (555) 247-8902",
   //     status: "Active",
-  //     address: "456 Downtown Ave, City, State 12345", 
+  //     address: "456 Downtown Ave, City, State 12345",
   //     lastUpdated: "2024-01-12"
   //   }
   // ];
@@ -115,31 +161,28 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
     setLocationEditorOpen(true);
   };
 
-  const handleLocationSave = async(updatedData: any) => {
+  const handleLocationSave = async (updatedData: any) => {
     try {
-      const res = await fetch('api/form', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData)
+      const res = await fetch("api/form", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
       });
-      
-
     } catch (error) {
-       console.error('Error in handleAddLocation:', error);
+      console.error("Error in handleAddLocation:", error);
       // alert('An unexpected error occurred.');
     }
   };
 
-  const handleAddLocation = async() => {
+  const handleAddLocation = async () => {
     try {
-      const response = await fetch('/api/create-location-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/create-location-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
 
-      if(response.ok){
-
-        router.push('/training');
+      if (response.ok) {
+        router.push("/training");
       }
 
       // const data = await response.json();
@@ -150,13 +193,11 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
       //   console.error('Failed to get stripe url:', data.error);
       //   alert('Error initiating payment session.')
       // }
-
     } catch (error) {
-       console.error('Error in handleAddLocation:', error);
+      console.error("Error in handleAddLocation:", error);
       // alert('An unexpected error occurred.');
     }
-    
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -170,10 +211,12 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
               </div>
               <div>
                 <h1 className="text-xl font-semibold">{businessName}</h1>
-                <p className="text-sm text-muted-foreground">AI Assistant Dashboard</p>
+                <p className="text-sm text-muted-foreground">
+                  AI Assistant Dashboard
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Badge variant="outline" className="flex items-center gap-1">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -195,7 +238,11 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
       </header>
 
       <div className="max-w-7xl mx-auto p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
@@ -240,7 +287,9 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.avgResponseTime}</div>
+                  <div className="text-2xl font-bold">
+                    {stats.avgResponseTime}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Lightning fast
                   </p>
@@ -253,7 +302,9 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.satisfactionRate}%</div>
+                  <div className="text-2xl font-bold">
+                    {stats.satisfactionRate}%
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Customer rating
                   </p>
@@ -322,7 +373,10 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <CardContent>
                   <div className="space-y-4">
                     {stats.commonQuestions.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center"
+                      >
                         <span className="text-sm">{item.question}</span>
                         <Badge variant="secondary">{item.count}</Badge>
                       </div>
@@ -342,7 +396,10 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <CardContent>
                   <div className="space-y-4">
                     {stats.recentCalls.map((call, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex items-center space-x-3">
                           {call.resolved ? (
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -350,11 +407,17 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                             <AlertCircle className="h-4 w-4 text-yellow-500" />
                           )}
                           <div>
-                            <p className="text-sm font-medium">{call.question}</p>
-                            <p className="text-xs text-muted-foreground">{call.time}</p>
+                            <p className="text-sm font-medium">
+                              {call.question}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {call.time}
+                            </p>
                           </div>
                         </div>
-                        <Badge variant={call.resolved ? "default" : "secondary"}>
+                        <Badge
+                          variant={call.resolved ? "default" : "secondary"}
+                        >
                           {call.resolved ? "Resolved" : "Pending"}
                         </Badge>
                       </div>
@@ -388,7 +451,10 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm">Twilio Integration</span>
-                      <Badge variant="outline" className="text-green-700 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="text-green-700 border-green-200"
+                      >
                         <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                         Connected
                       </Badge>
@@ -426,7 +492,8 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <div className="text-center space-y-4">
                   <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto" />
                   <p className="text-muted-foreground">
-                    Advanced analytics dashboard will be available in the next update
+                    Advanced analytics dashboard will be available in the next
+                    update
                   </p>
                 </div>
               </CardContent>
@@ -440,7 +507,7 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
           {/* locations */}
           <TabsContent value="locations" className="space-y-6">
             <Card>
-              <CardHeader>
+              {/* <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-5 w-5" />
                   Locations
@@ -448,39 +515,76 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <CardDescription>
                   Manage your laundromat locations and their AI assistant training
                 </CardDescription>
+              </CardHeader> */}
+
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Locations
+                  </CardTitle>
+
+                  <Button className="text-sm px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Add Location
+                  </Button>
+                </div>
+
+                <CardDescription>
+                  Manage your laundromat locations and their AI assistant
+                  training
+                </CardDescription>
               </CardHeader>
+
               <CardContent>
                 <div className="space-y-4">
                   {locations.map((location) => (
-                    <div key={location.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={location.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-medium">{location.locationName}</h4>
-                          <Badge variant="outline" className="text-green-700 border-green-200">
+                          <h4 className="font-medium">
+                            {location.locationName}
+                          </h4>
+                          <Badge
+                            variant="outline"
+                            className="text-green-700 border-green-200"
+                          >
                             <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
                             {location.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">{location.address}</p>
-                        <p className="text-sm text-muted-foreground font-mono">{location.twilioPhone}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {location.address}
+                        </p>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          {location.twilioPhone}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          Last updated: {new Date(location.lastUpdated).toLocaleDateString()}
+                          Last updated:{" "}
+                          {new Date(location.lastUpdated).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleEditLocation(location.locationName)}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleEditLocation(location.locationName)
+                          }
                           className="flex items-center gap-1"
                         >
                           <Edit className="h-4 w-4" />
                           Edit Location
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => navigator.clipboard.writeText(location.twilioPhone)}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            navigator.clipboard.writeText(location.twilioPhone)
+                          }
                         >
                           Copy Phone
                         </Button>
@@ -505,21 +609,38 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-medium">{subscriptionData.plan} Plan</h3>
-                      <p className="text-2xl font-bold">${subscriptionData.price}<span className="text-base font-normal text-muted-foreground">/month</span></p>
+                      <h3 className="font-medium">
+                        {subscriptionData.plan} Plan
+                      </h3>
+                      <p className="text-2xl font-bold">
+                        ${subscriptionData.price}
+                        <span className="text-base font-normal text-muted-foreground">
+                          /month
+                        </span>
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        Base: $175 + {subscriptionData.locations - 1} additional location(s) at $45 each
+                        Base: $175 + {subscriptionData.locations - 1} additional
+                        location(s) at $45 each
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Status:</span>
-                        <Badge variant="outline" className="text-green-700 border-green-200">Active</Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-green-700 border-green-200"
+                        >
+                          Active
+                        </Badge>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Next billing:</span>
-                        <span>{new Date(subscriptionData.nextBilling).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(
+                            subscriptionData.nextBilling
+                          ).toLocaleDateString()}
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Locations:</span>
@@ -535,17 +656,30 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                         <div className="flex items-center space-x-3">
                           <CreditCard className="h-5 w-5" />
                           <div>
-                            <p className="text-sm font-medium">{subscriptionData.paymentMethod.type} •••• {subscriptionData.paymentMethod.last4}</p>
-                            <p className="text-xs text-muted-foreground">Expires {subscriptionData.paymentMethod.expiry}</p>
+                            <p className="text-sm font-medium">
+                              {subscriptionData.paymentMethod.type} ••••{" "}
+                              {subscriptionData.paymentMethod.last4}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Expires {subscriptionData.paymentMethod.expiry}
+                            </p>
                           </div>
                         </div>
-                        <Button size="sm" variant="outline">Update</Button>
+                        <Button size="sm" variant="outline">
+                          Update
+                        </Button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Button className="w-full">Upgrade Plan</Button>
-                      <Button onClick={handleAddLocation} variant="outline" className="w-full">Add Location (+$45/month)</Button>
+                      <Button className="w-full">Add Location (+$85/month)</Button>
+                      <Button
+                        onClick={handleAddLocation}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Add Location (+$45/month)
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -574,14 +708,22 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                   <TableBody>
                     {subscriptionData.billingHistory.map((bill) => (
                       <TableRow key={bill.invoice}>
-                        <TableCell>{new Date(bill.date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {new Date(bill.date).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>${bill.amount}</TableCell>
                         <TableCell>
-                          <Badge variant={bill.status === 'Paid' ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={
+                              bill.status === "Paid" ? "default" : "secondary"
+                            }
+                          >
                             {bill.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">{bill.invoice}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {bill.invoice}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-1">
                             <Button size="sm" variant="outline">
@@ -612,19 +754,29 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="business-name">Business Name</Label>
-                    <Input 
-                      id="business-name" 
-                      value={accountSettings.businessName} 
-                      onChange={(e) => setAccountSettings(prev => ({ ...prev, businessName: e.target.value }))}
+                    <Input
+                      id="business-name"
+                      value={accountSettings.businessName}
+                      onChange={(e) =>
+                        setAccountSettings((prev) => ({
+                          ...prev,
+                          businessName: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
+                    <Input
+                      id="email"
                       type="email"
                       value={accountSettings.email}
-                      onChange={(e) => setAccountSettings(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) =>
+                        setAccountSettings((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <Button>Update Account</Button>
@@ -640,11 +792,16 @@ export function Dashboard({ businessName, onEditTraining, onLogout }: DashboardP
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-destructive">Cancel Subscription</h4>
+                    <h4 className="font-medium text-destructive">
+                      Cancel Subscription
+                    </h4>
                     <p className="text-sm text-muted-foreground">
-                      Your AI assistant will stop working and all data will be deleted.
+                      Your AI assistant will stop working and all data will be
+                      deleted.
                     </p>
-                    <Button variant="destructive" size="sm">Cancel Subscription</Button>
+                    <Button variant="destructive" size="sm">
+                      Cancel Subscription
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
