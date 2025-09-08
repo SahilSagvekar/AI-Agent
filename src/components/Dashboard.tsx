@@ -233,6 +233,7 @@ export function Dashboard({
             {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
             <TabsTrigger value="calls">Call History</TabsTrigger>
             <TabsTrigger value="locations">Locations</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -579,6 +580,199 @@ export function Dashboard({
             </Card>
           </TabsContent>
 
+          <TabsContent value="customers" className="space-y-6">
+            {/* Customer Management */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Customer List */}
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Customer Database
+                        </CardTitle>
+                        <CardDescription>
+                          Manage customer phone numbers and engagement
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-green-700 border-green-200">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                        {[
+                          { phone: "(555) 123-4567", name: "Sarah Johnson", lastVisit: "2024-01-15", visits: 12, status: "Active" },
+                          { phone: "(555) 234-5678", name: "Mike Chen", lastVisit: "2024-01-14", visits: 8, status: "Active" },
+                          { phone: "(555) 345-6789", name: "Lisa Rodriguez", lastVisit: "2024-01-12", visits: 15, status: "Active" },
+                          { phone: "(555) 456-7890", name: "David Kim", lastVisit: "2024-01-10", visits: 5, status: "New" },
+                          { phone: "(555) 567-8901", name: "Emma Thompson", lastVisit: "2023-12-28", visits: 3, status: "Inactive" }
+                        ].length} Total Customers
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Search and Add Customer */}
+                      <div className="flex gap-2">
+                        <Input placeholder="Search customers by phone or name..." className="flex-1" />
+                        <Button>Add Customer</Button>
+                      </div>
+
+                      {/* Customer Table */}
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>Visits</TableHead>
+                            <TableHead>Last Visit</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[
+                            { phone: "(555) 123-4567", name: "Sarah Johnson", lastVisit: "2024-01-15", visits: 12, status: "Active" },
+                            { phone: "(555) 234-5678", name: "Mike Chen", lastVisit: "2024-01-14", visits: 8, status: "Active" },
+                            { phone: "(555) 345-6789", name: "Lisa Rodriguez", lastVisit: "2024-01-12", visits: 15, status: "Active" },
+                            { phone: "(555) 456-7890", name: "David Kim", lastVisit: "2024-01-10", visits: 5, status: "New" },
+                            { phone: "(555) 567-8901", name: "Emma Thompson", lastVisit: "2023-12-28", visits: 3, status: "Inactive" }
+                          ].map((customer, index) => (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium">{customer.name}</p>
+                                  <p className="text-sm text-muted-foreground">Customer #{index + 1}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-mono">{customer.phone}</TableCell>
+                              <TableCell>{customer.visits}</TableCell>
+                              <TableCell>{new Date(customer.lastVisit).toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <Badge variant={customer.status === 'Active' ? 'default' : customer.status === 'New' ? 'secondary' : 'outline'}>
+                                  {customer.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end space-x-1">
+                                  <Button size="sm" variant="outline">
+                                    <MessageSquare className="h-4 w-4" />
+                                  </Button>
+                                  <Button size="sm" variant="outline">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+               {/* SMS Blast Panel */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      SMS Blast
+                    </CardTitle>
+                    <CardDescription>
+                      Send messages to your customers
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="recipients">Recipients</Label>
+                      <select className="w-full p-2 border rounded-md">
+                        <option>All Active Customers (3)</option>
+                        <option>All Customers (5)</option>
+                        <option>New Customers Only (1)</option>
+                        <option>Inactive Customers (1)</option>
+                        <option>Custom Selection</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message</Label>
+                      <textarea 
+                        id="message"
+                        placeholder="Enter your message here..."
+                        className="w-full p-2 border rounded-md h-24 resize-none"
+                        maxLength={160}
+                      />
+                      <p className="text-xs text-muted-foreground text-right">0/160 characters</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Quick Templates</Label>
+                      <div className="space-y-1">
+                        <Button size="sm" variant="outline" className="w-full justify-start text-left h-auto p-2">
+                          <div className="text-left">
+                            <p className="font-medium">Promotion Alert</p>
+                            <p className="text-xs text-muted-foreground">20% off today only!</p>
+                          </div>
+                        </Button>
+                        <Button size="sm" variant="outline" className="w-full justify-start text-left h-auto p-2">
+                          <div className="text-left">
+                            <p className="font-medium">Maintenance Notice</p>
+                            <p className="text-xs text-muted-foreground">Temporary closure info</p>
+                          </div>
+                        </Button>
+                        <Button size="sm" variant="outline" className="w-full justify-start text-left h-auto p-2">
+                          <div className="text-left">
+                            <p className="font-medium">Thank You</p>
+                            <p className="text-xs text-muted-foreground">Appreciation message</p>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Button className="w-full" style={{ backgroundColor: '#7851A9' }}>
+                      Send SMS Blast
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Customer Stats */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Customer Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-muted rounded-lg">
+                        <p className="text-2xl font-bold">5</p>
+                        <p className="text-sm text-muted-foreground">Total Customers</p>
+                      </div>
+                      <div className="text-center p-3 bg-muted rounded-lg">
+                        <p className="text-2xl font-bold">3</p>
+                        <p className="text-sm text-muted-foreground">Active This Month</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Engagement Rate</span>
+                        <span>78%</span>
+                      </div>
+                      <Progress value={78} className="h-2" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Avg Visits/Customer</span>
+                        <span>8.6</span>
+                      </div>
+                      <Progress value={86} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+          
           <TabsContent value="billing" className="space-y-6">
             {/* Current Subscription */}
             <Card>
