@@ -414,7 +414,7 @@ export function Dashboard({
             </div>
 
             {/* AI Status */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bot className="h-5 w-5" />
@@ -463,7 +463,7 @@ export function Dashboard({
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </TabsContent>
 
           <TabsContent value="analytics">
