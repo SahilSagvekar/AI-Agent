@@ -183,6 +183,7 @@ export function Dashboard({
       // alert('An unexpected error occurred.');
     }
   };
+  const locationName = locations.length > 0 ? locations[0].locationName : "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,7 +196,8 @@ export function Dashboard({
                 <Bot className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold">{businessName}</h1>
+                <h1 className="text-xl font-semibold">{locationName}</h1>
+                {/* <h1 className="text-xl font-semibold">{businessName}</h1> */}
                 <p className="text-sm text-muted-foreground">
                   AI Assistant Dashboard
                 </p>

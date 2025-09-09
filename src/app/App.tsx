@@ -1,141 +1,187 @@
-"use client";
+// "use client";
 
-import { useState } from "react";
-import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { FeaturesSection } from "@/components/FeaturesSection";
-import { PricingSection } from "@/components/PricingSection";
-import { Footer } from "@/components/Footer";
-import { AuthTabs } from "@/components/AuthTabs";
-import { AITrainingForm } from "@/components/AITrainingForm";
-import { PhoneAssignment } from "@/components/PhoneAssignment";
-import { Dashboard } from "@/components/Dashboard";
-import { ContactUs } from "@/components/ContactUs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+// import { useState } from "react";
+// import { useRouter } from "next/navigation";
+// import { Header } from "@/components/Header";
+// import { HeroSection } from "@/components/HeroSection";
+// import { FeaturesSection } from "@/components/FeaturesSection";
+// import { PricingSection } from "@/components/PricingSection";
+// import { Footer } from "@/components/Footer";
+// import { AuthTabs } from "@/components/AuthTabs";
+// import { AITrainingForm } from "@/components/AITrainingForm";
+// import { PhoneAssignment } from "@/components/PhoneAssignment";
+// import { Dashboard } from "@/components/Dashboard";
+// import { ContactUs } from "@/components/ContactUs";
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact' | 'privacy-policy' | 'terms-of-service';
+// type AppState = 'landing' | 'payment' | 'training' | 'phone-assignment' | 'dashboard' | 'location-editor' | 'demo' | 'contact' | 'privacy-policy' | 'terms-of-service';
 
-interface UserData {
-  businessName: string;
-  email: string;
-}
+// interface UserData {
+//   businessName: string;
+//   email: string;
+// }
 
-export default function App() {
-  const [appState, setAppState] = useState<AppState>('landing');
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [userData, setUserData] = useState<UserData>({ businessName: '', email: '' });
-  const [trainingData, setTrainingData] = useState(null);
+// export default function App() {
+//   const [appState, setAppState] = useState<AppState>('landing');
+//   const [isLoginOpen, setIsLoginOpen] = useState(false);
+//   const [userData, setUserData] = useState<UserData>({ businessName: '', email: '' });
+//   const [trainingData, setTrainingData] = useState(null);
+//    const router = useRouter();
+//     // const [appState, setAppState] = useState<AppState>('landing');
+//     // const [isLoginOpen, setIsLoginOpen] = useState(false);
+  
 
-  const handleGetStarted = () => {
-    setIsLoginOpen(true);
-  };
+//   const openLogin = () => setIsLoginOpen(true);
+//   const closeLogin = () => setIsLoginOpen(false);
 
-  const handleLogin = () => {
-    setIsLoginOpen(true);
-  };
+//   const handleGetStarted = () => {
+//     setIsLoginOpen(true);
+//   };
 
-  const handleAuthSuccess = (data: { businessName: string; email: string }) => {
-    setUserData(data);
-    setIsLoginOpen(false);
-    setAppState('training');
-  };
+//   const handleLogin = () => {
+//     setIsLoginOpen(true);
+//   };
 
-  const handleTrainingComplete = (data: any) => {
-    setTrainingData(data);
-    setAppState('phone-assignment');
-  };
+//   const handleAuthSuccess = (data: { businessName: string; email: string }) => {
+//     setUserData(data);
+//     setIsLoginOpen(false);
+//     setAppState('training');
+//   };
 
-  const handlePhoneAssignmentComplete = () => {
-    setAppState('dashboard');
-  };
+//   async function getUserFirstPayment(email: string): Promise<boolean> {
+//   const res = await fetch(`/api/user/payment-status?email=${encodeURIComponent(email)}`);
+//   if (!res.ok) throw new Error("Failed to fetch payment status");
+//   const data = await res.json();
+//   return data.firstPayment === true;
+// }
 
-  const handleEditTraining = () => {
-    setAppState('training');
-  };
+//   const handleTrainingComplete = (data: any) => {
+//     setTrainingData(data);
+//     setAppState('phone-assignment');
+//   };
 
-  const handleContact = () => {
-    setAppState('contact');
-  };
-  const handleBackToLanding = () => {
-    setAppState('landing');
-  };
+//   const handlePhoneAssignmentComplete = () => {
+//     setAppState('dashboard');
+//   };
 
-  const handleLogout = () => {
-    setUserData({ businessName: '', email: '' });
-    setTrainingData(null);
-    setAppState('landing');
-  };
+//   const handleEditTraining = () => {
+//     setAppState('training');
+//   };
 
-   const handlePrivacyPolicy = () => {
-    setAppState('privacy-policy');
-  };
+//   const handleContact = () => {
+//     setAppState('contact');
+//   };
+//   const handleBackToLanding = () => {
+//     setAppState('landing');
+//   };
 
-  const handleTermsOfService = () => {
-    setAppState('terms-of-service');
-  };
+//   const handleLogout = () => {
+//     setUserData({ businessName: '', email: '' });
+//     setTrainingData(null);
+//     setAppState('landing');
+//   };
 
-  // Render based on app state
-  if (appState === 'training') {
-    return (
-      <div className="min-h-screen bg-background">
-        <AITrainingForm onComplete={handleTrainingComplete} />
-      </div>
-    );
-  }
+//    const handlePrivacyPolicy = () => {
+//     setAppState('privacy-policy');
+//   };
 
-  if (appState === 'contact') {
-    return (
-      <ContactUs onBack={handleBackToLanding} />
-    );
-  }
+//   const handleTermsOfService = () => {
+//     setAppState('terms-of-service');
+//   };
 
-  if (appState === 'phone-assignment') {
-    return (
-      <PhoneAssignment
-        businessName={userData.businessName}
-        onComplete={handlePhoneAssignmentComplete}
-      />
-    );
-  }
+//   // Render based on app state
+//   if (appState === 'training') {
+//     return (
+//       <div className="min-h-screen bg-background">
+//         <AITrainingForm onComplete={handleTrainingComplete} />
+//       </div>
+//     );
+//   }
 
-  if (appState === 'dashboard') {
-    return (
-      <Dashboard
-        businessName={userData.businessName}
-        onEditTraining={handleEditTraining}
-        onLogout={handleLogout}
-      />
-    );
-  }
+//   if (appState === 'contact') {
+//     return (
+//       <ContactUs onBack={handleBackToLanding} />
+//     );
+//   }
 
-  // Default landing page
-  return (
-    <div className="min-h-screen bg-background">
-      <Header onLogin={handleLogin} />
-      
-      <main>
-        <HeroSection onGetStarted={handleGetStarted} />
-        
-        <div id="features">
-          <FeaturesSection />
-        </div>
-        
-        <PricingSection onContact={handleContact} onGetStarted={handleGetStarted} />
-      </main>
+//   if (appState === 'phone-assignment') {
+//     return (
+//       <PhoneAssignment
+//         businessName={userData.businessName}
+//         onComplete={handlePhoneAssignmentComplete}
+//       />
+//     );
+//   }
 
-      <Footer onContact={handleContact} onPrivacyPolicy={handlePrivacyPolicy} onTermsOfService={handleTermsOfService} />
+//   if (appState === 'dashboard') {
+//     return (
+//       <Dashboard
+//         businessName={userData.businessName}
+//         onEditTraining={handleEditTraining}
+//         onLogout={handleLogout}
+//       />
+//     );
+//   }
 
-      <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="sr-only">Authentication</DialogTitle>
-            <DialogDescription className="sr-only">
-              Sign in to your existing account or create a new account to get started with the AI laundromat assistant.
-            </DialogDescription>
-          </DialogHeader>
-          {/* <AuthTabs onAuthSuccess={handleAuthSuccess} /> */}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+//     async function handleLoginSuccess(user: { email: string; name?: string }) {
+//   closeLogin();
+
+//   try {
+//     const hasPaid = await getUserFirstPayment(user.email);
+
+//     if (hasPaid) {
+//       router.push("/dashboard");
+//     } else {
+//       router.push("/payment");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching payment status:", err);
+//     // Default to payment page or show error
+//     router.push("/payment");
+//   }
+// }
+
+// async function handleRegisterSuccess(user: { email: string; name?: string }) {
+//   closeLogin();
+
+//   try {
+//     const hasPaid = await getUserFirstPayment(user.email);
+
+//     if (hasPaid) {
+//       router.push("/dashboard");
+//     } else {
+//       router.push("/payment");
+//     }
+//   } catch (err) {
+//     console.error("Error fetching payment status:", err);
+//     router.push("/payment");
+//   }
+// }
+
+
+//   // Default landing page
+//   return (
+//     <div className="min-h-screen bg-background">
+//       <Header onLogin={handleLogin} />
+//       <main>
+//         <HeroSection onGetStarted={handleGetStarted} />
+//         <div id="features"><FeaturesSection /></div>
+//         <PricingSection onContact={handleContact} onGetStarted={handleGetStarted} />
+//       </main>
+//       <Footer onContact={handleContact} onPrivacyPolicy={handlePrivacyPolicy} onTermsOfService={handleTermsOfService} />
+
+//       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+//         <DialogContent className="sm:max-w-md">
+//           <DialogHeader>
+//             <DialogTitle className="sr-only">Authentication</DialogTitle>
+//             <DialogDescription className="sr-only">
+//               Sign in to your existing account or create a new account to get started with the AI laundromat assistant.
+//             </DialogDescription>
+//           </DialogHeader>
+//           {/* <AuthTabs onAuthSuccess={handleAuthSuccess} /> */}
+//           <AuthTabs onAuthSuccess={handleLoginSuccess} onRegisterSuccess={handleRegisterSuccess} />
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   );
+// }

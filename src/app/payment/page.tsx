@@ -116,7 +116,7 @@ export default function PaymentScreen({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: totalPrice * 100, // amount in paise/cents
+        amount: basePrice, // amount in paise/cents
         currency: "usd", // or "inr" if your test account supports
         cardNumber,
         expiryDate,
@@ -126,10 +126,14 @@ export default function PaymentScreen({
     });
 
     const data = await response.json();
+    console.log('payment data' + JSON.stringify(data)
+    );
+
 
     if (data.success) {
-      // alert("Payment successful!");
-      router.push("/training");
+      // alert("Payment successful!"); phonenumberassignment
+      router.push("/phonenumberassignment");
+      // router.push("/dashboard");
       // onComplete();
     } else {
       alert("Payment failed: " + data.message);

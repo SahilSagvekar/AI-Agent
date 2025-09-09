@@ -15,6 +15,8 @@ export async function POST(request: Request) {
   try {
     const flatData = await request.json();
 
+    // console.log(JSON.stringify(flatData))
+
     // Check if laundromat location exists for user
     // const existing = await prisma.laundromatLocation.findFirst({
     //   where: { userId: user.userId },
@@ -33,7 +35,9 @@ export async function POST(request: Request) {
       user: {
         connect: { id: user.userId },
       },
-      locationName: flatData.locationName,
+      locationName: flatData.businessName,
+      businessName: flatData.businessName,
+      areaCode: flatData.areaCode,
       address: flatData.address,
       phone: flatData.phone,
       email: flatData.email,
@@ -176,6 +180,7 @@ export async function PUT(request: Request) {
       where: { id: existing.id },
       data: {
         locationName: flatData.locationName,
+        businessName: flatData.locationName,
         address: flatData.address,
         phone: flatData.phone,
         email: flatData.email,

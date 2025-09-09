@@ -3,169 +3,156 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // or "mysql" or "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
-  password String
-  name     String?
-  businessName        String?
+  id                  Int                  @id @default(autoincrement())
+  name                String?
+  email               String               @unique
+  password            String
   address             String?
+  businessName        String?
+  googleMapsUrl       String?
   phone               String?
   website             String?
-  googleMapsUrl       String?
   firstPayment        Boolean?
-  payments            Payment[]
-
   laundromatLocations LaundromatLocation[]
+  payments            Payment[]
 }
 
 model LaundromatLocation {
-  id            Int       @id @default(autoincrement())
-  userId        Int
-  locationName  String?
-  businessName  String?
-  address       String
-  phone         String
-  areaCode      String?
-  twilioPhone   String?
-  email         String?
-  website       String?
-  googleMapsUrl String?
-
-  user           User          @relation(fields: [userId], references: [id])
-  operatingHours OperatingHours?
-  services       Services?
-  pricing        Pricing?
-  machineInfo    MachineInfo?
-  amenities      Amenities?
-  questions      Questions?
-  callHandling   CallHandling?
+  id               Int               @id @default(autoincrement())
+  userId           Int
+  locationName     String?
+  address          String
+  phone            String
+  email            String?
+  website          String?
+  googleMapsUrl    String?
+  businessName     String?
+  areaCode         String?
+  twilioPhone      String?
+  amenities        Amenities?
+  businessTone     BusinessTone?
+  callHandling     CallHandling?
   languageSettings LanguageSettings?
-  businessTone   BusinessTone?
-  policies       Policies?
-  payments       Payment[]
+  user             User              @relation(fields: [userId], references: [id])
+  machineInfo      MachineInfo?
+  operatingHours   OperatingHours?
+  payments         Payment[]
+  policies         Policies?
+  pricing          Pricing?
+  questions        Questions?
+  services         Services?
 }
 
 model OperatingHours {
-  id             Int    @id @default(autoincrement())
-  locationId     Int    @unique
-  weekdayHours   String
-  weekendHours   String?
-  openOnHolidays Boolean
-  holidayNote    String?
-  lastWashTime   String?
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  weekdayHours       String
+  weekendHours       String?
+  openOnHolidays     Boolean
+  holidayNote        String?
+  lastWashTime       String?
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Services {
-  id         Int    @id @default(autoincrement())
-  locationId Int    @unique
-  services   Json
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  services           Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Pricing {
-  id                   Int    @id @default(autoincrement())
-  locationId           Int    @unique
-  washerPrices         String
-  dryerPrices          String
-  washFoldRate         String?
-  dryCleaningPrices    String?
+  id                    Int                @id @default(autoincrement())
+  locationId            Int                @unique
+  washerPrices          String
+  dryerPrices           String
+  washFoldRate          String?
+  dryCleaningPrices     String?
   pickupDeliveryPricing String?
-  minimumCharges       String?
-  paymentMethods       Json
-
-  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  minimumCharges        String?
+  paymentMethods        Json
+  laundromatLocation    LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model MachineInfo {
-  id                  Int     @id @default(autoincrement())
-  locationId          Int     @unique
-  totalWashers        String
-  totalDryers         String?
+  id                   Int                @id @default(autoincrement())
+  locationId           Int                @unique
+  totalWashers         String
+  totalDryers          String?
   machineOperationType String?
-  machinesModern      Boolean
-  largeMachines       Boolean
-
-  laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  machinesModern       Boolean
+  largeMachines        Boolean
+  laundromatLocation   LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Amenities {
-  id         Int    @id @default(autoincrement())
-  locationId Int    @unique
-  amenities  Json
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  amenities          Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Questions {
-  id              Int    @id @default(autoincrement())
-  locationId      Int    @unique
-  commonQuestions Json
-  customQuestions Json
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  commonQuestions    Json
+  customQuestions    Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model CallHandling {
-  id                Int    @id @default(autoincrement())
-  locationId        Int    @unique
-  callHandlingStyle String
-  forwardingEnabled Boolean
-  forwardingNumber  String?
-  forwardingHours   String?
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  callHandlingStyle  String
+  forwardingEnabled  Boolean
+  forwardingNumber   String?
+  forwardingHours    String?
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model LanguageSettings {
-  id                Int    @id @default(autoincrement())
-  locationId        Int    @unique
-  languages         Json
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  languages          Json
   autoDetectLanguage Boolean
-
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model BusinessTone {
-  id            Int    @id @default(autoincrement())
-  locationId    Int    @unique
-  businessTone  String
-  customPhrases String?
-  businessIntro String?
-
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  businessTone       String
+  customPhrases      String?
+  businessIntro      String?
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Policies {
-  id                Int    @id @default(autoincrement())
-  locationId        Int    @unique
-  lostFoundPolicy   String?
-  refundPolicy      String?
-  covidPolicies     String?
-  timeLimits       String?
-  unattendedPolicy String?
+  id                 Int                @id @default(autoincrement())
+  locationId         Int                @unique
+  lostFoundPolicy    String?
+  refundPolicy       String?
+  covidPolicies      String?
+  timeLimits         String?
+  unattendedPolicy   String?
   additionalPolicies String?
-
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
 }
 
 model Payment {
-  id              Int       @id @default(autoincrement())
-  userId          Int
-  locationId      Int?      // nullable, for location-related fees; null for platform fees
-  amount          Float
-  paymentType     String    // 'platform_fee' or 'location_fee'
-  stripePaymentId String?   // to store Stripe charge or session ID
-  paymentStatus   String    // 'pending', 'paid', 'failed', etc.
-  paymentDate     DateTime  @default(now())
-  user           User       @relation(fields: [userId], references: [id])
+  id                 Int                 @id @default(autoincrement())
+  userId             Int
+  locationId         Int?
+  amount             Float
+  paymentType        String
+  stripePaymentId    String?
+  paymentStatus      String
+  paymentDate        DateTime            @default(now())
   laundromatLocation LaundromatLocation? @relation(fields: [locationId], references: [id])
+  user               User                @relation(fields: [userId], references: [id])
 }
-

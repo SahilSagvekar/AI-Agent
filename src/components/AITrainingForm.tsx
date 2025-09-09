@@ -273,7 +273,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (response.ok) {
       const result = await response.json();
       onComplete(formData); // Existing callback, no UI changes
-      router.push("/dashboard");
+      // router.push("/dashboard");
+      router.push("/payment");
     } else {
       alert("Failed to save form data!");
     }
