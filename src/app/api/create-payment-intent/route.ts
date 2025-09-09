@@ -67,7 +67,7 @@ async function provisionTwilioNumber(userId: any) {
 
   const user = await getUser();
   const preferredAreaCode  = await prisma.laundromatLocation.findFirst({
-  where: { userId: user.userId },
+  where: { userId: user?.userId },
   select: {
     areaCode: true,
   },
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     const twilioNumber = await provisionTwilioNumber(userId || "unknown");
 
     const number = await prisma.laundromatLocation.updateMany({
-      where: { userId: user.userId, },
+      where: { userId: user?.userId, },
       data: { twilioPhone: twilioNumber },
     })
 
