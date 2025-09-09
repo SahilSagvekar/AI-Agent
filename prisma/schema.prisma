@@ -34,7 +34,7 @@ model LaundromatLocation {
   businessName     String?
   areaCode         String?
   twilioPhone      String?
-  phoneNumbers     PhoneNumber[] @relation("PhoneNumberLocations")
+  // phoneNumbers     PhoneNumber[] @relation("PhoneNumberLocations")
   amenities        Amenities?
   businessTone     BusinessTone?
   callHandling     CallHandling?
@@ -158,14 +158,14 @@ model Payment {
   user               User                @relation(fields: [userId], references: [id])
 }
 
-model PhoneNumber {
-  id            Int                  @id @default(autoincrement())
-  userId        Int                  // Owner user
-  number        String               @unique
-  assignedDate  DateTime             @default(now())
-  status        String               // e.g. 'active', 'pending', 'setup', etc.
+// model PhoneNumber {
+//   id            Int                  @id @default(autoincrement())
+//   userId        Int                  // Owner user
+//   number        String               @unique
+//   assignedDate  DateTime             @default(now())
+//   status        String               // e.g. 'active', 'pending', 'setup', etc.
 
-  user          User                 @relation(fields: [userId], references: [id])
-  locations     LaundromatLocation[] @relation("PhoneNumberLocations", references: [id])
-}
+//   user          User                 @relation(fields: [userId], references: [id])
+//   locations     LaundromatLocation[] @relation("PhoneNumberLocations", references: [id])
+// }
 
