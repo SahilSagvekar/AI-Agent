@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -22,21 +22,43 @@ interface PhoneAssignmentProps {
 }
 
 export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentProps) {
-  const [assignments, setAssignments] = useState<PhoneNumberAssignment[]>([
-    {
-      id: '1',
-      phoneNumber: '+1 (555) 247-8901',
-      location: 'Main Location',
-      address: '123 Main St, City, State',
-      status: 'active',
-      assignedDate: '2024-01-15'
-    }
-  ]);
+  const [assignments, setAssignments] = useState<PhoneNumberAssignment[]>([]);
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({ location: '', address: '' });
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newLocation, setNewLocation] = useState({ location: '', address: '' });
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+
+  useEffect(() => {
+  async function fetchLocations() {
+    try {
+      const res = await fetch("/api/form");
+      if (res.ok) {
+        const data = await res.json();
+
+        // Map data to PhoneNumberAssignment[] if needed
+        const mapped = data.map((loc: any) => ({
+          id: loc.id.toString(),
+          phoneNumber: loc.twilioPhone || '', // adjust as needed
+          location: loc.locationName || loc.location || '',
+          address: loc.address || '',
+          status: 'active' as const, // or map real status from data
+          assignedDate: loc.assignedDate || new Date().toISOString().split('T')[0],
+        }));
+        setAssignments(mapped);
+      } else {
+        setAssignments([]);
+      }
+    } catch (e) {
+      setAssignments([]);
+    }
+    setLoadingLocations(false);
+  }
+
+  fetchLocations();
+}, []);
 
   const handleEdit = (assignment: PhoneNumberAssignment) => {
     setEditingId(assignment.id);
@@ -134,14 +156,14 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
                 <Phone className="h-5 w-5" />
                 Assigned Phone Numbers
               </span>
-              <Button
+              {/* <Button
                 onClick={() => setIsAddingNew(true)}
                 size="sm"
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
                 Add Location
-              </Button>
+              </Button> */}
             </CardTitle>
             <CardDescription>
               These phone numbers are connected to your AI assistant. Share them with customers or use them to replace your existing business numbers.
