@@ -179,7 +179,6 @@ async function handleRegisterSuccess(user: { email: string; name?: string }) {
               Sign in to your existing account or create a new account to get started with the AI laundromat assistant.
             </DialogDescription>
           </DialogHeader>
-          {/* <AuthTabs onAuthSuccess={handleAuthSuccess} /> */}
           <AuthTabs onAuthSuccess={handleLoginSuccess} onRegisterSuccess={handleRegisterSuccess} />
         </DialogContent>
       </Dialog>

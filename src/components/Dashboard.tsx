@@ -867,7 +867,7 @@ export function Dashboard({
             </Card>
 
             {/* Billing History */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Billing History</CardTitle>
                 <CardDescription>
@@ -919,7 +919,7 @@ export function Dashboard({
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
+            </Card> */}
           </TabsContent>
 
           <TabsContent value="settings">

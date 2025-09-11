@@ -20,6 +20,7 @@ model User {
   firstPayment        Boolean?
   laundromatLocations LaundromatLocation[]
   payments            Payment[]
+  phoneNumbers        PhoneNumber[]
 }
 
 model LaundromatLocation {
@@ -32,9 +33,8 @@ model LaundromatLocation {
   website          String?
   googleMapsUrl    String?
   businessName     String?
-  areaCode         String?
+  zipCode          String?
   twilioPhone      String?
-  // phoneNumbers     PhoneNumber[] @relation("PhoneNumberLocations")
   amenities        Amenities?
   businessTone     BusinessTone?
   callHandling     CallHandling?
@@ -47,6 +47,17 @@ model LaundromatLocation {
   pricing          Pricing?
   questions        Questions?
   services         Services?
+  PhoneNumber      PhoneNumber[]     @relation("PhoneNumberToLocation")
+}
+
+model PhoneNumber {
+  id                 Int                  @id @default(autoincrement())
+  userId             Int
+  number             String               @unique
+  assignedDate       DateTime             @default(now())
+  status             String
+  user               User                 @relation(fields: [userId], references: [id])
+  LaundromatLocation LaundromatLocation[] @relation("PhoneNumberToLocation")
 }
 
 model OperatingHours {
@@ -158,14 +169,15 @@ model Payment {
   user               User                @relation(fields: [userId], references: [id])
 }
 
-// model PhoneNumber {
-//   id            Int                  @id @default(autoincrement())
-//   userId        Int                  // Owner user
-//   number        String               @unique
-//   assignedDate  DateTime             @default(now())
-//   status        String               // e.g. 'active', 'pending', 'setup', etc.
-
-//   user          User                 @relation(fields: [userId], references: [id])
-//   locations     LaundromatLocation[] @relation("PhoneNumberLocations", references: [id])
-// }
-
+model appointments {
+  id            Int       @id @default(autoincrement())
+  customer_name String    @db.VarChar(255)
+  phone_number  String    @db.VarChar(20)
+  address       String
+  service_date  DateTime  @db.Date
+  service_type  String?   @default("wash_and_fold") @db.VarChar(100)
+  location_id   Int?      @default(1)
+  status        String?   @default("scheduled") @db.VarChar(50)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+}

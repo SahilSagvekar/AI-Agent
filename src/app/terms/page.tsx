@@ -1,11 +1,24 @@
+'use client'
+
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TermsOfServiceProps {
   onBack: () => void;
 }
 
 export default function TermsOfService({ onBack }: TermsOfServiceProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/"); // redirect to landing page
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
@@ -13,7 +26,7 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
         <div className="max-w-4xl mx-auto px-6 py-4">
           <Button 
             variant="ghost" 
-            onClick={onBack}
+            onClick={handleBack}
             className="text-white hover:bg-gray-800 hover:text-white p-2"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />

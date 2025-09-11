@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +18,7 @@ import { CreditCard, Lock, ArrowLeft, Shield } from "lucide-react";
 
 interface PaymentScreenProps {
   businessName: string;
-  onComplete: () => void;
+  onComplete?: () => void; // ✅ Make optional
   onBack: () => void;
 }
 
@@ -29,121 +29,89 @@ export default function PaymentScreen({
 }: PaymentScreenProps) {
   const router = useRouter();
   const [locations, setLocations] = useState("1");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
   const [cardholderName, setCardholderName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const stripe = useStripe();
+  const elements = useElements();
 
   const basePrice = 175;
   const additionalLocationPrice = 45;
   const locationCount = parseInt(locations) || 1;
   const totalPrice = basePrice + (locationCount - 1) * additionalLocationPrice;
+  const amountInCents = Math.round(totalPrice * 100);
 
-  const handlePayment = async () => {
+  // Fetch PaymentIntent whenever amount changes
+  useEffect(() => {
+    async function createPaymentIntent() {
+      try {
+        setErrorMessage(null);
+        const res = await fetch("/api/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: amountInCents }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.clientSecret) {
+          setClientSecret(data.clientSecret);
+        } else {
+          setErrorMessage(
+            data.error || "Failed to initialize payment. Please try again."
+          );
+        }
+      } catch (err) {
+        console.error("PaymentIntent error:", err);
+        setErrorMessage("Could not connect to payment server.");
+      }
+    }
+
+    createPaymentIntent();
+  }, [amountInCents]);
+
+  async function handlePay() {
+    if (!stripe || !elements || !clientSecret) return;
     setIsProcessing(true);
+    setErrorMessage(null);
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsProcessing(false);
-    onComplete();
-  };
-
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setErrorMessage("Card information not found.");
+      setIsProcessing(false);
+      return;
     }
-    if (parts.length) {
-      return parts.join(" ");
-    } else {
-      return v;
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: cardholderName,
+            },
+          },
+        }
+      );
+
+      if (error) {
+        setErrorMessage(error.message || "Payment failed. Try again.");
+      } else if (paymentIntent?.status === "succeeded") {
+        // Call backend or redirect after success
+        onComplete?.(); // ✅ Only call if provided
+        router.push("/phonenumberassignment");
+      }
+    } catch (err) {
+      console.error("Payment failed:", err);
+      setErrorMessage("Unexpected error. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCardNumber(e.target.value);
-    if (formatted.length <= 19) {
-      setCardNumber(formatted);
-    }
-  };
-
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length >= 2) {
-      value = value.substring(0, 2) + "/" + value.substring(2, 4);
-    }
-    setExpiryDate(value);
-  };
-
-  const isFormValid = cardNumber && expiryDate && cvv && cardholderName;
-
-  // const handlePay = async () => {
-  //   setIsProcessing(true);
-  //   try {
-  //     const response = await fetch("/api/create-checkout-session", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       // Pass actual needed data, for instance:
-  //       body: JSON.stringify({
-  //         userId: "user-id-if-available",
-  //         businessName,
-  //         locationCount,
-  //       }),
-  //     });
-  //     const data = await response.json();
-  //     if (data.url) {
-  //       window.location.href = data.url; // Redirect user to Stripe hosted checkout page
-  //     } else if (data.error) {
-  //       alert("Payment error: " + data.error);
-  //       setIsProcessing(false);
-  //     }
-  //   } catch (error: any) {
-  //     alert("Failed to start payment: " + error.message);
-  //     setIsProcessing(false);
-  //   }
-  // };
-
-  //testing handlePay
-  const handlePay = async () => {
-  setIsProcessing(true);
-  try {
-    const response = await fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: basePrice, // amount in paise/cents
-        currency: "usd", // or "inr" if your test account supports
-        cardNumber,
-        expiryDate,
-        cvv,
-        cardholderName,
-      }),
-    });
-
-    const data = await response.json();
-    console.log('payment data' + JSON.stringify(data)
-    );
-
-
-    if (data.success) {
-      // alert("Payment successful!"); phonenumberassignment
-      router.push("/phonenumberassignment");
-      // router.push("/dashboard");
-      // onComplete();
-    } else {
-      alert("Payment failed: " + data.message);
-    }
-  } catch (error: any) {
-    alert("Payment error: " + error.message);
-  } finally {
-    setIsProcessing(false);
   }
-};
+
+  const isFormValid = cardholderName.length > 2;
 
   return (
     <div className="min-h-screen bg-accent/30 flex items-center justify-center p-6">
@@ -162,9 +130,7 @@ export default function PaymentScreen({
             <h1 className="text-2xl text-foreground font-medium">
               Complete Setup
             </h1>
-            <p className="text-muted-foreground">
-              Welcome back, {businessName}
-            </p>
+            <p className="text-muted-foreground">Welcome back, {businessName}</p>
           </div>
         </div>
 
@@ -231,62 +197,36 @@ export default function PaymentScreen({
                   <Label htmlFor="cardholder" className="text-sm font-medium">
                     Cardholder Name
                   </Label>
-                  <Input
+                  <input
                     id="cardholder"
                     placeholder="Enter full name"
                     value={cardholderName}
                     onChange={(e) => setCardholderName(e.target.value)}
-                    className="mt-1.5"
+                    className="mt-1.5 w-full border rounded-md px-3 py-2 text-sm"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="card-number" className="text-sm font-medium">
-                    Card Number
-                  </Label>
-                  <Input
-                    id="card-number"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardNumber}
-                    onChange={handleCardNumberChange}
-                    maxLength={19}
-                    className="mt-1.5 font-mono"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="expiry" className="text-sm font-medium">
-                      Expiry
-                    </Label>
-                    <Input
-                      id="expiry"
-                      placeholder="MM/YY"
-                      value={expiryDate}
-                      onChange={handleExpiryChange}
-                      maxLength={5}
-                      className="mt-1.5 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cvv" className="text-sm font-medium">
-                      CVV
-                    </Label>
-                    <Input
-                      id="cvv"
-                      placeholder="123"
-                      value={cvv}
-                      onChange={(e) =>
-                        setCvv(
-                          e.target.value.replace(/\D/g, "").substring(0, 4)
-                        )
-                      }
-                      maxLength={4}
-                      className="mt-1.5 font-mono"
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Card Details</Label>
+                  <div className="border rounded-md p-3 bg-white">
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: "16px",
+                            color: "#1f2937",
+                            "::placeholder": { color: "#9ca3af" },
+                          },
+                        },
+                      }}
                     />
                   </div>
                 </div>
               </div>
+
+              {errorMessage && (
+                <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+              )}
 
               <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground mt-6">
                 <Lock className="h-4 w-4 flex-shrink-0" />
@@ -296,15 +236,14 @@ export default function PaymentScreen({
               <Button
                 onClick={handlePay}
                 className="w-full h-12 mt-6"
-                disabled={isProcessing || !isFormValid}
+                disabled={isProcessing || !isFormValid || !stripe}
                 size="lg"
               >
                 {isProcessing ? "Processing..." : "Start Free Trial"}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground mt-4 leading-relaxed">
-                Your trial starts immediately. You won't be charged until day
-                15.
+                Your trial starts immediately. You won't be charged until day 15.
                 <br />
                 Cancel anytime with one click.
               </p>
