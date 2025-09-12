@@ -18,7 +18,7 @@ import { CreditCard, Lock, ArrowLeft, Shield } from "lucide-react";
 
 interface PaymentScreenProps {
   businessName: string;
-  onComplete?: () => void; // ✅ Make optional
+  onComplete?: () => void; // ✅ Optional
   onBack: () => void;
 }
 
@@ -43,28 +43,28 @@ export default function PaymentScreen({
   const totalPrice = basePrice + (locationCount - 1) * additionalLocationPrice;
   const amountInCents = Math.round(totalPrice * 100);
 
-  // Fetch PaymentIntent whenever amount changes
+  // Fetch PaymentIntent clientSecret whenever locationCount or totalPrice changes
   useEffect(() => {
+    setClientSecret(null);
+    setErrorMessage(null);
+
     async function createPaymentIntent() {
       try {
-        setErrorMessage(null);
-        const res = await fetch("/api/create-payment-intent", {
+        const response = await fetch("/api/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: amountInCents }),
+          body: JSON.stringify({ amount: amountInCents }), // send amount dynamically
+          // body: JSON.stringify({ amount: Math.round(basePrice * 100) }), // send amount dynamically
         });
 
-        const data = await res.json();
-        if (res.ok && data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else {
-          setErrorMessage(
-            data.error || "Failed to initialize payment. Please try again."
-          );
+        const data = await response.json();
+
+        if (!data.clientSecret) {
+          throw new Error("Failed to get client secret");
         }
-      } catch (err) {
-        console.error("PaymentIntent error:", err);
-        setErrorMessage("Could not connect to payment server.");
+        setClientSecret(data.clientSecret);
+      } catch (err: any) {
+        setErrorMessage(err.message || "Failed to initiate payment");
       }
     }
 
@@ -72,9 +72,14 @@ export default function PaymentScreen({
   }, [amountInCents]);
 
   async function handlePay() {
-    if (!stripe || !elements || !clientSecret) return;
+    setErrorMessage(null);  
+
+    if (!stripe || !elements || !clientSecret) {
+      setErrorMessage("Stripe has not loaded yet.");
+      return;
+    }
+
     setIsProcessing(true);
-    setErrorMessage(null);
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) {
@@ -99,13 +104,13 @@ export default function PaymentScreen({
       if (error) {
         setErrorMessage(error.message || "Payment failed. Try again.");
       } else if (paymentIntent?.status === "succeeded") {
-        // Call backend or redirect after success
-        onComplete?.(); // ✅ Only call if provided
+        // Payment succeeded
+        onComplete?.(); // call optional onComplete callback if defined
         router.push("/phonenumberassignment");
       }
     } catch (err) {
       console.error("Payment failed:", err);
-      setErrorMessage("Unexpected error. Please try again.");
+      setErrorMessage("Unexpected error occurred. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -168,7 +173,9 @@ export default function PaymentScreen({
                       {locationCount > 2 ? "s" : ""}
                     </span>
                     <span>
-                      +${(locationCount - 1) * additionalLocationPrice}/mo
+                      +$
+                      {(locationCount - 1) * additionalLocationPrice}
+                      /mo
                     </span>
                   </div>
                 )}

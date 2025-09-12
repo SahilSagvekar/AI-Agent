@@ -1,131 +1,147 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
-import twilio from 'twilio';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import twilio from "twilio";
+import Stripe from "stripe";
+import { getUser } from "@/lib/auth"; // your function 
+import * as zipcodes from "zipcodes";
+// const zipcodes = zipcodesCJS.default || zipcodesCJS;
 
-// Initialize Stripe
-const stripe = new Stripe('sk_test_51O04VbSBxyiRrqCcHMrS6cvrD6kw0muCMDMBVhmtCZNhi13t5JDPIZoqHylAn1subzYuK5vDsCnCqiGBCcy1TwFJ00HAVkwdzT');
+const prisma = new PrismaClient();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-
-// Initialize Twilio client
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID!,
   process.env.TWILIO_AUTH_TOKEN!
 );
 
-// Stripe webhook secret from your environment
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+// async function getAreaCodeForZip(zip: string): Promise<string[]> {
+//   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
+//     headers: { "X-Api-Key": process.env.NINJAS_API_KEY! }
+//   });
+//   const data = await res.json();
 
-export async function POST(request: NextRequest) {
-  const body = await request.text();
-  const signature = request.headers.get('stripe-signature') || '';
+//   return data[0].area_codes[0]; 
+// }
+async function getAreaCodeForZip(zip: string): Promise<string> {
+  const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
+    headers: { "X-Api-Key": process.env.NINJAS_API_KEY! }
+  });
+
+  const data = await res.json();
+
+  // Check if we got valid data and area_codes
+  if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0].area_codes) && data[0].area_codes.length > 0) {
+    return data[0].area_codes[0];
+  }
+
+  // Fallback area code if no data or empty result
+  const backupAreaCode = "212"; // <-- change this to a meaningful default
+  return backupAreaCode;
+}
+
+
+
+
+async function provisionTwilioNumber(userId: any) {
+  const location = await prisma.laundromatLocation.findFirst({
+    where: { userId: userId },
+    select: {
+      zipCode: true,
+    },
+  });
+
+  if (!location?.zipCode) {
+    throw new Error("No zip code found for user");
+  }
+
+  const areaCodes = await getAreaCodeForZip(location.zipCode);
+
+// TEMPORARILY DISABLED COZ REQUIRES MONEY ✅
+// --------------------------------------------------------------------
+  // const availableNumbers = await twilioClient
+  //   .availablePhoneNumbers("US")
+  //   .local.list({
+  //     areaCode: Number(areaCodes),
+  //     smsEnabled: true,
+  //     voiceEnabled: true,
+  //     limit: 1,
+  //   });
+
+  // if (availableNumbers.length === 0) {
+  //   throw new Error(
+  //     `No available Twilio numbers found for area code ${areaCodes}`
+  //   );
+  // }
+
+  // const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+
+  // const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+  //   phoneNumber: phoneNumberToPurchase,
+  // });
+
+  // return purchasedNumber.phoneNumber;
+  // --------------------------------------------------------------------
+  
+  return '8282696969';
+}
+
+export async function POST(req: NextRequest, res: NextResponse) {
+  const buf = await req.arrayBuffer();
+  const rawBody = Buffer.from(buf);
+  const signature = req.headers.get("stripe-signature")!;
+  
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
+    event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err) {
-    return NextResponse.json(
-      { error: 'Webhook signature verification failed' },
-      { status: 400 }
-    );
+    console.error("Webhook signature verification failed.", err.message);
+    return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
   }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
+  if (event.type === "payment_intent.succeeded") {
+    console.log('payment-successfull')
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const userId = paymentIntent.metadata.userId;
 
-    if (session.payment_status === 'paid') {
-      const userId = session.metadata?.userId || 'unknown';
-
+    if (userId) {
       try {
-        // === Save payment info to your DB ===
-        // Replace this with your DB update logic
-        // Example: await db.user.update({ where: { id: userId }, data: { paymentStatus: 'paid', stripeSessionId: session.id }});
+        let userIdInt = parseInt(userId, 10);
+        // Provision Twilio number
+        const twilioNumber = await provisionTwilioNumber(userIdInt);
 
-        console.log(`Payment successful for user ${userId}. Saving to DB...`);
-
-        // === Retrieve user data from your DB to get preferred area code ===
-        // Example: const user = await db.user.findUnique({ where: { id: userId }});
-        // const areaCode = user?.preferredAreaCode || '415';
-
-        const areaCode = 415; // fallback area code if you don't fetch from DB
-
-        // === Search available Twilio numbers ===
-        const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({
-          areaCode,
-          smsEnabled: true,
-          voiceEnabled: true,
-          limit: 1,
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId: Number(userId) },
+          select: { id: true },
         });
 
-        if (availableNumbers.length === 0) {
-          console.error(`No Twilio numbers available for area code ${areaCode}`);
-          return NextResponse.json(
-            { error: `No available phone numbers for area code ${areaCode}` },
-            { status: 500 }
-          );
+        if (!laundromat) {
+          throw new Error("Laundromat location not found for user");
         }
 
-        const numberToPurchase = availableNumbers[0].phoneNumber;
-
-        // === Purchase the phone number ===
-        const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-          phoneNumber: numberToPurchase,
+        // Update database with Twilio phone number
+        const updateNumber = await prisma.laundromatLocation.update({
+          where: { id: laundromat.id },
+          data: { twilioPhone: twilioNumber },
         });
 
-        // === Save purchased phone number to DB linked to user/business ===
-        // Replace with your DB logic
-        // Example: await db.userPhoneNumbers.create({ data: { userId, phoneNumber: purchasedNumber.phoneNumber }});
-
         console.log(
-          `Purchased Twilio number ${purchasedNumber.phoneNumber} for user ${userId}`
+          `Twilio number ${twilioNumber} provisioned after successful payment for user ${userId}`
         );
 
+  //       if (updateNumber) {
+  //   return NextResponse.redirect(new URL("/phonenumberassignment", req.url));
+  // }
       } catch (error) {
-        console.error('Error during payment processing and Twilio provisioning:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        console.error("Failed to provision Twilio number:", error);
+        return NextResponse.json(
+          { error: "Failed twilio provisioning" },
+          { status: 500 }
+        );
       }
     }
   }
 
   return NextResponse.json({ received: true });
 }
-
-
-
-// import { NextRequest, NextResponse } from 'next/server';
-// import Stripe from 'stripe';
-
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-08-16' });
-
-// // IMPORTANT: Set your Stripe webhook secret (from dashboard) as an env var
-// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
-// export async function POST(request: NextRequest) {
-//   const body = await request.text(); // raw body needed for signature verification
-//   const signature = request.headers.get('stripe-signature') || '';
-
-//   let event: Stripe.Event;
-
-//   try {
-//     event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
-//   } catch (err) {
-//     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
-//   }
-
-//   if (event.type === 'checkout.session.completed') {
-//     const session = event.data.object as Stripe.Checkout.Session;
-
-//     // Verify payment status
-//     if (session.payment_status === 'paid') {
-//       const userId = session.metadata?.userId || 'unknown';
-
-//       // TODO: Save payment success & session info to your DB
-
-//       // TODO: Call Twilio API to buy phone number & save to DB for this user/business
-
-//       console.log(`Payment successful for user ${userId}. Proceed with provisioning.`);
-//     }
-//   }
-
-//   return NextResponse.json({ received: true });
-// }

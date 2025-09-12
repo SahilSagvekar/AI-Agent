@@ -478,7 +478,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
 
                 <div className="w-24 space-y-2">
-                  <Label htmlFor="address">Area Code *</Label>
+                  <Label htmlFor="address">Zip Code *</Label>
                   <Input
                     id="address"
                     value={formData.zipCode}
@@ -1201,7 +1201,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="text-sm text-muted-foreground">
             * Required fields - {progress}% complete
           </div>
-          <Button type="submit" disabled={isSubmitting || progress < 70} className="flex items-center gap-2">
+          <Button type="submit" 
+          disabled={isSubmitting || progress < 10} 
+          className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             {isSubmitting ? "Training AI Assistant..." : "Complete Training Setup"}
           </Button>

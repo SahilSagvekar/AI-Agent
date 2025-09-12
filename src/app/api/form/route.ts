@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       },
       locationName: flatData.businessName,
       businessName: flatData.businessName,
-      areaCode: flatData.areaCode,
+      zipCode: flatData.zipCode,
       address: flatData.address,
       phone: flatData.phone,
       email: flatData.email,
@@ -184,7 +184,7 @@ export async function PUT(request: Request) {
         address: flatData.address,
         phone: flatData.phone,
         email: flatData.email,
-        areaCode: flatData.areaCode,
+        zipCode: flatData.zipCode,
         website: flatData.website,
         googleMapsUrl: flatData.googleMapsUrl,
 
