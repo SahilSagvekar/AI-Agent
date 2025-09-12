@@ -6,12 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Badge } from "../../components/ui/badge";
 import { Separator } from "../../components/ui/separator";
 import { ArrowLeft, Phone, MessageSquare, Play, Pause, Volume2, Clock, User, Bot, Zap, Target, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface DemoProps {
   onBack: () => void;
 }
 
 export default function Demo({ onBack }: DemoProps) {
+   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/"); // redirect to landing page
+    }
+  };
+
   const [activeDemo, setActiveDemo] = useState<'call' | 'sms' | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -102,7 +113,7 @@ export default function Demo({ onBack }: DemoProps) {
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto pl-2 pr-6 py-6">
           <div className="flex items-center">
-            <Button variant="ghost" size="sm" onClick={onBack} className="flex items-center gap-2 mr-12">
+            <Button variant="ghost" size="sm" onClick={handleBack} className="flex items-center gap-2 mr-12">
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>

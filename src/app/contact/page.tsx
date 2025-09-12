@@ -8,12 +8,23 @@ import { Label } from "../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { ArrowLeft, Mail, MessageCircle, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface ContactUsProps {
   onBack: () => void;
 }
 
 export default function ContactUs({ onBack }: ContactUsProps) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/"); // redirect to landing page
+    }
+  };
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -77,7 +88,7 @@ export default function ContactUs({ onBack }: ContactUsProps) {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={onBack} className="p-2 text-gray-700 hover:bg-purple-100">
+              <Button variant="ghost" onClick={handleBack} className="p-2 text-gray-700 hover:bg-purple-100">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center space-x-2">
