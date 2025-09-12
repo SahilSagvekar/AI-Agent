@@ -17,8 +17,11 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
 
+    if(user.password){
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+    } else {
+    return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+    }
 
     // Check if user already filled the form
     // const existingForm = await prisma.formData.findFirst({

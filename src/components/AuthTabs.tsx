@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react"; // Import for Google sign-in
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -15,7 +16,6 @@ import {
 
 interface AuthTabsProps {
   onAuthSuccess: (data: { email: string; name?: string }) => void;
-  // onLoginSuccess: (user: { email: string; name?: string }) => void;
   onRegisterSuccess: (user: { email: string; name?: string }) => void;
 }
 
@@ -24,7 +24,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    email: "",
+    email: "", 
     password: "",
     firstName: "",
     lastName: "",
@@ -65,16 +65,22 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
       } else {
         onAuthSuccess({ email: data.user.email, name: data.user.name });
       }
-
-      // onAuthSuccess({
-      //   email: data.user.email,
-      //   name: data.user.name,
-      // });
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to handle Google Sign-In via NextAuth
+  const handleGoogleSignIn = () => {
+    setError(null);
+    setIsLoading(true);
+    signIn("google", { callbackUrl: "/dashboard" }) // Redirect after sign-in
+      .catch(() => {
+        setError("Failed to sign in with Google.");
+        setIsLoading(false);
+      });
   };
 
   return (
@@ -92,13 +98,11 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
-          {/* LOGIN */}
+          {/* LOGIN TAB */}
           <TabsContent value="login" className="space-y-4 mt-6">
             {error && <p className="text-red-500">{error}</p>}
-            <form
-              onSubmit={(e) => handleSubmit(e, false)}
-              className="space-y-4"
-            >
+
+            <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -119,10 +123,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                   type="password"
                   value={formData.password}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      password: e.target.value,
-                    }))
+                    setFormData((prev) => ({ ...prev, password: e.target.value }))
                   }
                   placeholder="••••••••"
                   required
@@ -132,11 +133,23 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
+
+            <div className="text-center mt-4">
+              <Button
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? "Redirecting..." : "Sign in with Google"}
+              </Button>
+            </div>
           </TabsContent>
 
-          {/* SIGNUP */}
+          {/* SIGNUP TAB */}
           <TabsContent value="signup" className="space-y-4 mt-6">
             {error && <p className="text-red-500">{error}</p>}
+
             <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -145,10 +158,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                     id="firstName"
                     value={formData.firstName}
                     onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        firstName: e.target.value,
-                      }))
+                      setFormData((prev) => ({ ...prev, firstName: e.target.value }))
                     }
                     placeholder="John"
                     required
@@ -160,10 +170,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                     id="lastName"
                     value={formData.lastName}
                     onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        lastName: e.target.value,
-                      }))
+                      setFormData((prev) => ({ ...prev, lastName: e.target.value }))
                     }
                     placeholder="Doe"
                     required
@@ -177,10 +184,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                   type="email"
                   value={formData.signupEmail}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      signupEmail: e.target.value,
-                    }))
+                    setFormData((prev) => ({ ...prev, signupEmail: e.target.value }))
                   }
                   placeholder="your@email.com"
                   required
@@ -193,10 +197,7 @@ export function AuthTabs({ onAuthSuccess, onRegisterSuccess }: AuthTabsProps) {
                   type="password"
                   value={formData.signupPassword}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      signupPassword: e.target.value,
-                    }))
+                    setFormData((prev) => ({ ...prev, signupPassword: e.target.value }))
                   }
                   placeholder="••••••••"
                   required
