@@ -24,7 +24,7 @@ export default function ContactUs({ onBack }: ContactUsProps) {
       router.push("/"); // redirect to landing page
     }
   };
-
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',

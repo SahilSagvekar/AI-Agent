@@ -28,6 +28,15 @@ export default function PaymentScreen({
   onBack,
 }: PaymentScreenProps) {
   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/"); // redirect to landing page
+    }
+  };
+  
   const [locations, setLocations] = useState("1");
   const [cardholderName, setCardholderName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -126,7 +135,7 @@ export default function PaymentScreen({
           <Button
             variant="ghost"
             size="icon"
-            onClick={onBack}
+            onClick={handleBack}
             className="absolute left-6 top-6"
           >
             <ArrowLeft className="h-5 w-5" />

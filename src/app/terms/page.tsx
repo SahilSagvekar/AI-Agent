@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -18,7 +18,7 @@ export default function TermsOfService({ onBack }: TermsOfServiceProps) {
       router.push("/"); // redirect to landing page
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}

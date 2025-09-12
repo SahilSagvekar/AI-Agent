@@ -13,7 +13,7 @@ interface DemoProps {
 }
 
 export default function Demo({ onBack }: DemoProps) {
-  const router = useRouter();
+   const router = useRouter();
 
   const handleBack = () => {
     if (onBack) {
@@ -22,7 +22,7 @@ export default function Demo({ onBack }: DemoProps) {
       router.push("/"); // redirect to landing page
     }
   };
-  
+
   const [activeDemo, setActiveDemo] = useState<'call' | 'sms' | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
