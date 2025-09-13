@@ -184,6 +184,7 @@ export function Dashboard({
     }
   };
   const locationName = locations.length > 0 ? locations[0].locationName : "";
+  const locationEmail = locations.length > 0 ? locations[0].email : "";
 
   return (
     <div className="min-h-screen bg-background">
@@ -936,7 +937,7 @@ export function Dashboard({
                     <Label htmlFor="business-name">Business Name</Label>
                     <Input
                       id="business-name"
-                      value={accountSettings.businessName}
+                      value={locationName}
                       onChange={(e) =>
                         setAccountSettings((prev) => ({
                           ...prev,
@@ -950,7 +951,7 @@ export function Dashboard({
                     <Input
                       id="email"
                       type="email"
-                      value={accountSettings.email}
+                      value={locationEmail}
                       onChange={(e) =>
                         setAccountSettings((prev) => ({
                           ...prev,

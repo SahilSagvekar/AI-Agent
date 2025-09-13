@@ -15,6 +15,11 @@ const twilioClient = twilio(
 // Stripe webhook secret from your environment
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+export async function POST(req: NextRequest, context: { params: any }) {
+  const buf = await req.arrayBuffer();
+  const rawBody = Buffer.from(buf);
+  const signature = req.headers.get("stripe-signature")!;
+  
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature') || '';
@@ -30,6 +35,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (event.type === "payment_intent.succeeded") {
+    console.log('payment-successfull')
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const userId = paymentIntent.metadata.userId;
+    const purchase = paymentIntent.metadata.purchase;
+
+    if (userId && purchase === "twilioNumber" ) {
+      try {
+        let userIdInt = parseInt(userId, 10);
+        // Provision Twilio number
+        const twilioNumber = await provisionTwilioNumber(userIdInt);
+
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId: userIdInt },
+          select: { id: true },
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
 
@@ -56,6 +76,9 @@ export async function POST(request: NextRequest) {
           voiceEnabled: true,
           limit: 1,
         });
+
+        console.log("laundromat:", userId);
+        console.log("data:", JSON.stringify(data));
 
         if (availableNumbers.length === 0) {
           console.error(`No Twilio numbers available for area code ${areaCode}`);
@@ -84,6 +107,8 @@ export async function POST(request: NextRequest) {
         console.error('Error during payment processing and Twilio provisioning:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
       }
+    } else {
+      console.log('we are fucked ' + userId + purchase);
     }
   }
 
