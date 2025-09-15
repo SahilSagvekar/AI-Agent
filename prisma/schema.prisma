@@ -161,13 +161,17 @@ model Payment {
   userId             Int
   locationId         Int?
   amount             Float
-  paymentType        String
-  stripePaymentId    String?
+  paymentType        String              // "NEW_ACCOUNT_SUBSCRIPTION", "ADD_LOCATION", "NEW_NUMBER"
+  formData           Json?
+  stripePaymentId    String?             @unique
+  stripeSubscriptionId String?           @unique  // NEW: store subscription id
   paymentStatus      String
   paymentDate        DateTime            @default(now())
   laundromatLocation LaundromatLocation? @relation(fields: [locationId], references: [id])
   user               User                @relation(fields: [userId], references: [id])
 }
+
+
 
 model appointments {
   id            Int       @id @default(autoincrement())
@@ -181,3 +185,4 @@ model appointments {
   created_at    DateTime? @default(now()) @db.Timestamp(6)
   updated_at    DateTime? @default(now()) @db.Timestamp(6)
 }
+

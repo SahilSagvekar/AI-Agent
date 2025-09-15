@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { PrismaClient } from "@prisma/client";
 import { getUser } from "@/lib/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,22 +12,108 @@ export async function POST(req: NextRequest) {
     const userId = user?.userId;
     if (!userId) throw new Error("User not authenticated");
 
-     const data = await req.json();
-    // console.log('data' + JSON.stringify(data));
+    const data = await req.json();
 
-    // Calculate amount dynamically here
-    const amount = 22001; // example: $220.00 in cents
-    console.log('amount' + amount);
+     let Secret = null
+     let  subscriptionId = null
+     let  paymentId = null
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency: "usd",
-      metadata: { userId },
-      payment_method_types: ["card"],
+    // 1️⃣ Ensure we have or create a Stripe Customer for this user
+    const existingCustomer = await prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { email: true },
     });
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
+    const customer = await stripe.customers.create({
+      email: existingCustomer?.email ?? undefined,
+       metadata: {
+          userId: userId.toString(),
+          flowType: data.flowType,
+        },
+    });
+    const stripeCustomerId = customer.id;
+
+    // 2️⃣ Create Subscription for NEW_ACCOUNT flow
+    if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{ price: process.env.STRIPE_INTRO_PRICE_ID! }],
+        payment_behavior: "default_incomplete",
+        expand: [
+          "latest_invoice.payment_intent",
+          "latest_invoice.confirmation_secret",
+        ],
+         metadata: {
+          userId: userId.toString(),
+          flowType: data.flowType,
+        },
+      });
+
+      // Access PaymentIntent client secret
+      const invoice = subscription.latest_invoice as Stripe.Invoice;
+      let clientSecret = null;
+      if (
+        invoice.payment_intent &&
+        typeof invoice.payment_intent !== "string"
+      ) {
+        clientSecret = invoice.payment_intent.client_secret ?? null;
+      } else if ("confirmation_secret" in invoice) {
+        clientSecret = (invoice as any).confirmation_secret ?? null;
+      }
+
+      // Save subscription info to DB
+      const payment = await prisma.payment.create({
+        data: {
+          userId: Number(userId),
+          amount: 30, // first payment amount (for records)
+          paymentType: data.flowType,
+          formData: data.formData ?? {},
+          paymentStatus: "pending",
+          stripeSubscriptionId: subscription.id,
+        },
+      });
+
+      Secret = clientSecret.client_secret;
+      subscriptionId = subscription.id;
+      paymentId = payment.id;
+
+      // return NextResponse.json({
+      //   clientSecret: clientSecret.client_secret,
+      //   subscriptionId: subscription.id,
+      //   paymentId: payment.id,
+      // });
+    }
+
+    // 3️⃣ Handle other flows (one-time payments)
+
+
+    // Example: ADD_LOCATION or NEW_NUMBER → normal PaymentIntent flow
+    // const calculatedAmount = data.amount; // dynamic calculation from client
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: calculatedAmount,
+    //   currency: "usd",
+    //   metadata: { userId, flowType: data.flowType },
+    //   payment_method_types: ["card"],
+    // });
+
+    // const payment = await prisma.payment.create({
+    //   data: {
+    //     userId: Number(userId),
+    //     amount: calculatedAmount / 100,
+    //     paymentType: data.flowType,
+    //     formData: data.formData ?? {},
+    //     paymentStatus: "pending",
+    //     stripePaymentId: paymentIntent.id,
+    //   },
+    // });
+
+    return NextResponse.json({
+      clientSecret: Secret,
+      subscriptionId: subscriptionId,
+      paymentId: paymentId,
+    });
   } catch (e: any) {
+    console.error("Error in payment API:", e.message);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

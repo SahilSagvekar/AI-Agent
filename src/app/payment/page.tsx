@@ -62,8 +62,7 @@ export default function PaymentScreen({
         const response = await fetch("/api/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: amountInCents }), // send amount dynamically
-          // body: JSON.stringify({ amount: Math.round(basePrice * 100) }), // send amount dynamically
+          body: JSON.stringify({ amountt: amountInCents, flowType: "NEW_ACCOUNT_SUBSCRIPTION" }), // send amount dynamically
         });
 
         const data = await response.json();
