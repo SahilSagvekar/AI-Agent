@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       const payment = await prisma.payment.create({
         data: {
           userId: Number(userId),
-          amount: 30, // first payment amount (for records)
+          amount: 69, // first payment amount (for records)
           paymentType: data.flowType,
           formData: data.formData ?? {},
           paymentStatus: "pending",
