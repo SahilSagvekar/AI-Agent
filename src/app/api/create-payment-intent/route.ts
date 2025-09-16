@@ -102,7 +102,10 @@ if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
       { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
     ],
     payment_behavior: "default_incomplete",
-    expand: ["latest_invoice.payment_intent"],
+    expand: [
+          "latest_invoice.payment_intent",
+          "latest_invoice.confirmation_secret",
+        ],
     metadata: {
       userId: userId.toString(),
       flowType: data.flowType,
@@ -116,10 +119,23 @@ if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
 
   const invoice = subscription.latest_invoice as ExpandedInvoice;
 
-  let clientSecret: string | null = null;
-  if (invoice.payment_intent && typeof invoice.payment_intent !== "string") {
-    clientSecret = invoice.payment_intent.client_secret ?? null;
-  }
+  // let clientSecret = "fuck";
+  let clientSecret: any | null = null;
+  // if (invoice.payment_intent && typeof invoice.payment_intent !== "string") {
+  //   clientSecret = invoice.payment_intent.client_secret ?? null;
+  // }
+
+  if (
+        invoice.payment_intent &&
+        typeof invoice.payment_intent !== "string"
+      ) {
+        clientSecret = invoice.payment_intent.client_secret ?? null;
+      } else if ("confirmation_secret" in invoice) {
+        clientSecret = (invoice as any).confirmation_secret ?? null;
+      }
+
+
+  
 
   const payment = await prisma.payment.create({
     data: {
@@ -132,7 +148,7 @@ if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
     },
   });
 
-  Secret = clientSecret;
+  Secret = clientSecret.client_secret;
   subscriptionId = subscription.id;
   paymentId = payment.id;
 }
