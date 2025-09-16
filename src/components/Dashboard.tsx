@@ -179,6 +179,7 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
 
   const locationName = locations.length > 0 ? locations[0].locationName : "";
   const locationEmail = locations.length > 0 ? locations[0].email : "";
+  const locationIdAdd = locations.length > 0 ? locations[0].id : "";
 
   return (
     <div className="min-h-screen bg-background">
