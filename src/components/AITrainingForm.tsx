@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -147,7 +149,7 @@ export function AITrainingForm({
     unattendedPolicy: initialData?.unattendedPolicy ?? "",
     additionalPolicies: initialData?.additionalPolicies ?? "",
   });
-  console.log('initialData' + initialData);
+  // console.log('initialData' + initialData);
   useEffect(() => {
      console.log('initialData changed:', initialData?.zipCode);
     if (initialData) {
@@ -272,7 +274,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     if (response.ok) {
-      const flowType = searchParams.get("flowType");
+      const flowType = searchParams.get("flowType") || "";
       console.log('flowType on submit:', flowType);
 
       const result = await response.json();

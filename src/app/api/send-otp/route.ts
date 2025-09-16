@@ -28,13 +28,17 @@ async function sendEmail(to: string, otp: string) {
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
 
-  if (!email) return NextResponse.json({ message: "Email is required" }, { status: 400 });
+  if (!email)
+    return NextResponse.json({ message: "Email is required" }, { status: 400 });
 
-   const existingUser = await prisma.user.findUnique({ where: { email } });
-          if (existingUser) {
-            return NextResponse.json({ message: "Email already registered" }, { status: 400 });
-          }
-          
+  const existingUser = await prisma.user.findFirst({ where: { email } });
+  if (existingUser) {
+    return NextResponse.json(
+      { message: "Email already registered" },
+      { status: 400 }
+    );
+  }
+
   const otp = generateOtp();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 

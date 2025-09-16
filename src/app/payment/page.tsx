@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Label } from "../../components/ui/label";
-import { useRouter, useSearchParams  } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -14,35 +14,27 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Separator } from "../../components/ui/separator";
-import { CreditCard, Lock, ArrowLeft, Shield } from "lucide-react";
+import { CreditCard, Lock, ArrowLeft, Shield, Loader2 } from "lucide-react";
 
 interface PaymentScreenProps {
   businessName: string;
-  onComplete?: () => void; // ✅ Optional
+  onComplete?: () => void;
   onBack: () => void;
 }
 
-export default function PaymentScreen({
-  businessName,
-  onComplete,
-  onBack,
-}: PaymentScreenProps) {
+export const dynamic = "force-dynamic";
+
+// 🔄 Component that uses useSearchParams (wrapped in Suspense)
+function PaymentContent({ businessName, onComplete, onBack }: PaymentScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      router.push("/"); // redirect to landing page
-    }
-  };
-  
   const [locations, setLocations] = useState("1");
   const [cardholderName, setCardholderName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoadingIntent, setIsLoadingIntent] = useState(true);
 
   const stripe = useStripe();
   const elements = useElements();
@@ -53,36 +45,48 @@ export default function PaymentScreen({
   const totalPrice = basePrice + (locationCount - 1) * additionalLocationPrice;
   const amountInCents = Math.round(totalPrice * 100);
 
-  // Fetch PaymentIntent clientSecret whenever locationCount or totalPrice changes
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.push("/");
+    }
+  };
+
+  // ✅ Fetch PaymentIntent clientSecret with debounce
   useEffect(() => {
     setClientSecret(null);
     setErrorMessage(null);
+    setIsLoadingIntent(true);
 
-    async function createPaymentIntent() {
-      try {
-         const flowType = searchParams.get("flowType");
-        const response = await fetch("/api/create-payment-intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amountt: amountInCents, flowType: flowType, locationCount: locationCount }), // send amount dynamically
-        });
+    const debounceTimeout = setTimeout(() => {
+      async function createPaymentIntent() {
+        try {
+          const flowType = searchParams.get("flowType");
+          const response = await fetch("/api/create-payment-intent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amountt: amountInCents, flowType, locationCount }),
+          });
 
-        const data = await response.json();
-
-        if (!data.clientSecret) {
-          throw new Error("Failed to get client secret");
+          const data = await response.json();
+          if (!data.clientSecret) throw new Error("Failed to get client secret");
+          setClientSecret(data.clientSecret);
+        } catch (err: any) {
+          setErrorMessage(err.message || "Failed to initiate payment");
+        } finally {
+          setIsLoadingIntent(false);
         }
-        setClientSecret(data.clientSecret);
-      } catch (err: any) {
-        setErrorMessage(err.message || "Failed to initiate payment");
       }
-    }
 
-    createPaymentIntent();
-  }, []);
+      createPaymentIntent();
+    }, 500); // ⏱ 500ms debounce
+
+    return () => clearTimeout(debounceTimeout);
+  }, [locationCount, amountInCents, searchParams]);
 
   async function handlePay() {
-    setErrorMessage(null);  
+    setErrorMessage(null);
 
     if (!stripe || !elements || !clientSecret) {
       setErrorMessage("Stripe has not loaded yet.");
@@ -104,9 +108,7 @@ export default function PaymentScreen({
         {
           payment_method: {
             card: cardElement,
-            billing_details: {
-              name: cardholderName,
-            },
+            billing_details: { name: cardholderName },
           },
         }
       );
@@ -114,8 +116,7 @@ export default function PaymentScreen({
       if (error) {
         setErrorMessage(error.message || "Payment failed. Try again.");
       } else if (paymentIntent?.status === "succeeded") {
-        // Payment succeeded
-        onComplete?.(); // call optional onComplete callback if defined
+        onComplete?.();
         router.push("/phonenumberassignment");
       }
     } catch (err) {
@@ -183,9 +184,7 @@ export default function PaymentScreen({
                       {locationCount > 2 ? "s" : ""}
                     </span>
                     <span>
-                      +$
-                      {(locationCount - 1) * additionalLocationPrice}
-                      /mo
+                      +${(locationCount - 1) * additionalLocationPrice}/mo
                     </span>
                   </div>
                 )}
@@ -203,71 +202,86 @@ export default function PaymentScreen({
             </div>
 
             {/* Payment Form */}
-            <div className="space-y-5">
-              <div className="flex items-center gap-2 mb-4">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
-                <h3 className="font-medium">Payment Information</h3>
+            {isLoadingIntent ? (
+              <div className="flex justify-center items-center h-24">
+                <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="cardholder" className="text-sm font-medium">
-                    Cardholder Name
-                  </Label>
-                  <input
-                    id="cardholder"
-                    placeholder="Enter full name"
-                    value={cardholderName}
-                    onChange={(e) => setCardholderName(e.target.value)}
-                    className="mt-1.5 w-full border rounded-md px-3 py-2 text-sm"
-                  />
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="font-medium">Payment Information</h3>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Card Details</Label>
-                  <div className="border rounded-md p-3 bg-white">
-                    <CardElement
-                      options={{
-                        style: {
-                          base: {
-                            fontSize: "16px",
-                            color: "#1f2937",
-                            "::placeholder": { color: "#9ca3af" },
-                          },
-                        },
-                      }}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="cardholder" className="text-sm font-medium">
+                      Cardholder Name
+                    </Label>
+                    <input
+                      id="cardholder"
+                      placeholder="Enter full name"
+                      value={cardholderName}
+                      onChange={(e) => setCardholderName(e.target.value)}
+                      className="mt-1.5 w-full border rounded-md px-3 py-2 text-sm"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Card Details</Label>
+                    <div className="border rounded-md p-3 bg-white">
+                      <CardElement
+                        options={{
+                          style: {
+                            base: {
+                              fontSize: "16px",
+                              color: "#1f2937",
+                              "::placeholder": { color: "#9ca3af" },
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {errorMessage && (
+                  <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+                )}
+
+                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground mt-6">
+                  <Lock className="h-4 w-4 flex-shrink-0" />
+                  <span>Secured by 256-bit SSL encryption</span>
+                </div>
+
+                <Button
+                  onClick={handlePay}
+                  className="w-full h-12 mt-6"
+                  disabled={isProcessing || !isFormValid || !stripe}
+                  size="lg"
+                >
+                  {isProcessing ? "Processing..." : "Start Free Trial"}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground mt-4 leading-relaxed">
+                  Your trial starts immediately. You won't be charged until day 15.
+                  <br />
+                  Cancel anytime with one click.
+                </p>
               </div>
-
-              {errorMessage && (
-                <p className="text-sm text-red-500 text-center">{errorMessage}</p>
-              )}
-
-              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground mt-6">
-                <Lock className="h-4 w-4 flex-shrink-0" />
-                <span>Secured by 256-bit SSL encryption</span>
-              </div>
-
-              <Button
-                onClick={handlePay}
-                className="w-full h-12 mt-6"
-                disabled={isProcessing || !isFormValid || !stripe}
-                size="lg"
-              >
-                {isProcessing ? "Processing..." : "Start Free Trial"}
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground mt-4 leading-relaxed">
-                Your trial starts immediately. You won't be charged until day 15.
-                <br />
-                Cancel anytime with one click.
-              </p>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+// ✅ Wrap PaymentContent in Suspense to fix useSearchParams error
+export default function PaymentScreenWrapper(props: PaymentScreenProps) {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">Loading payment screen...</div>}>
+      <PaymentContent {...props} />
+    </Suspense>
   );
 }

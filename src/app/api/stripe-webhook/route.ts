@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import twilio from "twilio";
 import Stripe from "stripe";
-import * as zipcodes from "zipcodes";
-import { use } from "react";
+// import * as zipcodes from "zipcodes";
+// import { use } from "react";
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -19,7 +19,7 @@ const twilioClient = twilio(
 //   });
 //   const data = await res.json();
 
-//   return data[0].area_codes[0]; 
+//   return data[0].area_codes[0];
 // }
 async function getAreaCodeForZip(zip: string): Promise<string> {
   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
@@ -86,10 +86,12 @@ async function provisionTwilioNumber(userId: any) {
   return "8282696969";
 }
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   const buf = await req.arrayBuffer();
   const rawBody = Buffer.from(buf);
   const signature = req.headers.get("stripe-signature")!;
+
+  let paymentId = null;
 
   let event: Stripe.Event;
 
@@ -113,8 +115,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
     // console.log("invoice.payment_succeeded-2", invoice.parent?.subscription_details.metadata.flowType);
 
     if (invoice) {
-      const subscriptionId = invoice.parent?.subscription_details
-        .subscription as string;
+      // const subscriptionId = invoice.parent?.subscription_details.subscription as string;
+      const subscriptionId = invoice.parent!.subscription_details!.subscription as string;
+
 
       const payment = await prisma.payment.findFirst({
         where: { stripeSubscriptionId: subscriptionId },
@@ -140,7 +143,10 @@ export async function POST(req: NextRequest, res: NextResponse) {
           (inv) => inv.status === "paid"
         );
 
-        console.log("Total paid invoices for this subscription:", paidInvoices.length);
+        console.log(
+          "Total paid invoices for this subscription:",
+          paidInvoices.length
+        );
 
         if (paidInvoices.length >= 3) {
           console.log(
@@ -246,8 +252,6 @@ export async function POST(req: NextRequest, res: NextResponse) {
         //   // Save payment info etc
         // }
 
-        
-
         const userId = payment.userId;
         const flowType = payment.paymentType;
 
@@ -291,15 +295,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
   //   // ✅ Handle One-Time Payment (Add location / Buy number)
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    const userId =  paymentIntent.metadata.userId;
+    const userId = paymentIntent.metadata.userId;
     const flowType = paymentIntent.metadata.flowType;
-  
 
     if (userId) {
       try {
-        let userIdInt = parseInt(userId, 10);
+        // let userIdInt = parseInt(userId, 10);
+          let userIdInt = userId;
 
-        if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT" ) {
+        if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
+          console.log("NEW_NUMBER");
           const twilioNumber = await provisionTwilioNumber(userIdInt);
 
           const laundromat = await prisma.laundromatLocation.findFirst({
@@ -316,14 +321,41 @@ export async function POST(req: NextRequest, res: NextResponse) {
             data: { twilioPhone: twilioNumber },
           });
 
+          const payment = await prisma.payment.findFirst({
+            where: { stripeSubscriptionId: paymentIntent.id },
+          });
+
+          if (payment) {
+            await prisma.payment.update({
+              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
+              data: { paymentStatus: "succeeded" },
+            });
+          }
         }
 
         if (flowType === "ADD_LOCATION") {
-          console.log("User paid for additional locations — add them to DB here.");
+          console.log(
+            "User paid for additional locations — add them to DB here."
+          );
+
+          const payment = await prisma.payment.findFirst({
+            where: { stripeSubscriptionId: paymentIntent.id },
+          });
+          paymentId = payment?.id || null;
+
+          if (payment) {
+            await prisma.payment.update({
+              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
+              data: { paymentStatus: "succeeded" },
+            });
+          }
           // Retrieve formData from Payment table if needed and insert new LaundromatLocation
         }
       } catch (error) {
-        console.error("Failed to provision Twilio number or handle flow:", error);
+        console.error(
+          "Failed to provision Twilio number or handle flow:",
+          error
+        );
         return NextResponse.json(
           { error: "Failed post-payment processing" },
           { status: 500 }
@@ -332,5 +364,5 @@ export async function POST(req: NextRequest, res: NextResponse) {
     }
   }
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json({ paymentId: paymentId });
 }

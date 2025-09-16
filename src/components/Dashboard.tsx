@@ -166,7 +166,7 @@ export function Dashboard({
       console.log("flowType:", flowType);
       // router.push("/training");
       // router.push(`/training?flowType=${encodeURIComponent(flowType)}`);
-      router.push(`/add-training?locationId=${locationId}`);
+router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponent(flowType)}`);
   };
 
   const handleAddNumber = async () => {
@@ -846,10 +846,10 @@ export function Dashboard({
                     </div>
 
                     <div className="space-y-2">
-                      <Button className="w-full">Add Phone Number (+$85/month)</Button>
+                      <Button onClick={handleAddNumber} className="w-full">Add Phone Number (+$85/month)</Button>
                       {/* Biling add location */}
                       <Button
-                        onClick={handleAddNumber}
+                        // onClick={handleAddNumber}
                         variant="outline"
                         className="w-full"
                       >

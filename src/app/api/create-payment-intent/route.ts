@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
 
     const data = await req.json();
 
+    console.log("Payment Intent Request Data:", data);
+
      let Secret = null
      let  subscriptionId = null
      let  paymentId = null
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
         customer: stripeCustomerId,
         items: [
           { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
-          { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationsCount },
+          { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
         ],
         payment_behavior: "default_incomplete",
         expand: [
@@ -55,12 +57,16 @@ export async function POST(req: NextRequest) {
       // Access PaymentIntent client secret
       const invoice = subscription.latest_invoice as Stripe.Invoice;
       let clientSecret = null;
-      if (
-        invoice.payment_intent &&
-        typeof invoice.payment_intent !== "string"
-      ) {
-        clientSecret = invoice.payment_intent.client_secret ?? null;
-      } else if ("confirmation_secret" in invoice) {
+      // if (
+      //   invoice.payment_intent &&
+      //   typeof invoice.payment_intent !== "string"
+      // ) {
+      //   clientSecret = invoice.payment_intent.client_secret ?? null;
+      // } else if ("confirmation_secret" in invoice) {
+      //   clientSecret = (invoice as any).confirmation_secret ?? null;
+      // }
+
+      if ("confirmation_secret" in invoice) {
         clientSecret = (invoice as any).confirmation_secret ?? null;
       }
 
@@ -68,7 +74,7 @@ export async function POST(req: NextRequest) {
       const payment = await prisma.payment.create({
         data: {
           userId: Number(userId),
-          amount: 30, // first payment amount (for records)
+          amount: invoice.total,
           paymentType: data.flowType,
           formData: data.formData ?? {},
           paymentStatus: "pending",

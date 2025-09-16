@@ -8,4 +8,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+export const dynamic = "force-dynamic";
 export default nextConfig;
