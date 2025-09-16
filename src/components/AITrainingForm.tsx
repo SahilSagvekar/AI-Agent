@@ -274,7 +274,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     if (response.ok) {
-      const flowType = searchParams.get("flowType") || "";
+      const flowType = searchParams.get("flowType") || "NEW_ACCOUNT_SUBSCRIPTION";
       console.log('flowType on submit:', flowType);
 
       const result = await response.json();

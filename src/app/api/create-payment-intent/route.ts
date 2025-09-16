@@ -36,62 +36,107 @@ export async function POST(req: NextRequest) {
     const stripeCustomerId = customer.id;
 
     // 2️⃣ Create Subscription for NEW_ACCOUNT flow
-    if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
-      const subscription = await stripe.subscriptions.create({
-        customer: stripeCustomerId,
-        items: [
-          { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
-          { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
-        ],
-        payment_behavior: "default_incomplete",
-        expand: [
-          "latest_invoice.payment_intent",
-          "latest_invoice.confirmation_secret",
-        ],
-         metadata: {
-          userId: userId.toString(),
-          flowType: data.flowType,
-        },
-      });
+    // if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
+    //   const subscription = await stripe.subscriptions.create({
+    //     customer: stripeCustomerId,
+    //     items: [
+    //       { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
+    //       { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
+    //     ],
+    //     payment_behavior: "default_incomplete",
+    //     expand: [
+    //       "latest_invoice.payment_intent",
+    //       "latest_invoice.confirmation_secret",
+    //     ],
+    //      metadata: {
+    //       userId: userId.toString(),
+    //       flowType: data.flowType,
+    //     },
+    //   });
 
-      // Access PaymentIntent client secret
-      const invoice = subscription.latest_invoice as Stripe.Invoice;
-      let clientSecret = null;
-      // if (
-      //   invoice.payment_intent &&
-      //   typeof invoice.payment_intent !== "string"
-      // ) {
-      //   clientSecret = invoice.payment_intent.client_secret ?? null;
-      // } else if ("confirmation_secret" in invoice) {
-      //   clientSecret = (invoice as any).confirmation_secret ?? null;
-      // }
+    //   // Access PaymentIntent client secret
+    //   const invoice = subscription.latest_invoice as Stripe.Invoice;
+    //   let clientSecret = null;
+    //   // if (
+    //   //   invoice.payment_intent &&
+    //   //   typeof invoice.payment_intent !== "string"
+    //   // ) {
+    //   //   clientSecret = invoice.payment_intent.client_secret ?? null;
+    //   // } else if ("confirmation_secret" in invoice) {
+    //   //   clientSecret = (invoice as any).confirmation_secret ?? null;
+    //   // }
 
-      if ("confirmation_secret" in invoice) {
-        clientSecret = (invoice as any).confirmation_secret ?? null;
-      }
+    //   if ("confirmation_secret" in invoice) {
+    //     clientSecret = (invoice as any).confirmation_secret ?? null;
+    //   }
 
-      // Save subscription info to DB
-      const payment = await prisma.payment.create({
-        data: {
-          userId: Number(userId),
-          amount: invoice.total,
-          paymentType: data.flowType,
-          formData: data.formData ?? {},
-          paymentStatus: "pending",
-          stripeSubscriptionId: subscription.id,
-        },
-      });
+    //   // Save subscription info to DB
+    //   const payment = await prisma.payment.create({
+    //     data: {
+    //       userId: Number(userId),
+    //       amount: invoice.total,
+    //       paymentType: data.flowType,
+    //       formData: data.formData ?? {},
+    //       paymentStatus: "pending",
+    //       stripeSubscriptionId: subscription.id,
+    //     },
+    //   });
 
-      Secret = clientSecret.client_secret;
-      subscriptionId = subscription.id;
-      paymentId = payment.id;
+    //   Secret = clientSecret.client_secret;
+    //   subscriptionId = subscription.id;
+    //   paymentId = payment.id;
 
-      // return NextResponse.json({
-      //   clientSecret: clientSecret.client_secret,
-      //   subscriptionId: subscription.id,
-      //   paymentId: payment.id,
-      // });
-    }
+    //   // return NextResponse.json({
+    //   //   clientSecret: clientSecret.client_secret,
+    //   //   subscriptionId: subscription.id,
+    //   //   paymentId: payment.id,
+    //   // });
+    // }
+
+    // 2️⃣ Handle Subscription Flow
+if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
+  const subscription = await stripe.subscriptions.create({
+    customer: stripeCustomerId,
+    items: [
+      { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
+      { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
+    ],
+    payment_behavior: "default_incomplete",
+    expand: ["latest_invoice.payment_intent"],
+    metadata: {
+      userId: userId.toString(),
+      flowType: data.flowType,
+    },
+  });
+
+  // ✅ Use type assertion to tell TS that payment_intent is expanded
+  type ExpandedInvoice = Stripe.Invoice & {
+    payment_intent: Stripe.PaymentIntent | string | null;
+  };
+
+  const invoice = subscription.latest_invoice as ExpandedInvoice;
+
+  let clientSecret: string | null = null;
+  if (invoice.payment_intent && typeof invoice.payment_intent !== "string") {
+    clientSecret = invoice.payment_intent.client_secret ?? null;
+  }
+
+  const payment = await prisma.payment.create({
+    data: {
+      userId: Number(userId),
+      amount: invoice.total,
+      paymentType: data.flowType,
+      formData: data.formData ?? {},
+      paymentStatus: "pending",
+      stripeSubscriptionId: subscription.id,
+    },
+  });
+
+  Secret = clientSecret;
+  subscriptionId = subscription.id;
+  paymentId = payment.id;
+}
+
 
     // 3️⃣ Handle other flows (one-time payments)
 
