@@ -37,7 +37,10 @@ export async function POST(req: NextRequest) {
     if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomerId,
-        items: [{ price: process.env.STRIPE_INTRO_PRICE_ID! }],
+        items: [
+          { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
+          { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationsCount },
+        ],
         payment_behavior: "default_incomplete",
         expand: [
           "latest_invoice.payment_intent",
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
       const payment = await prisma.payment.create({
         data: {
           userId: Number(userId),
-          amount: 69, // first payment amount (for records)
+          amount: 30, // first payment amount (for records)
           paymentType: data.flowType,
           formData: data.formData ?? {},
           paymentStatus: "pending",
@@ -88,24 +91,56 @@ export async function POST(req: NextRequest) {
 
 
     // Example: ADD_LOCATION or NEW_NUMBER → normal PaymentIntent flow
-    // const calculatedAmount = data.amount; // dynamic calculation from client
-    // const paymentIntent = await stripe.paymentIntents.create({
-    //   amount: calculatedAmount,
-    //   currency: "usd",
-    //   metadata: { userId, flowType: data.flowType },
-    //   payment_method_types: ["card"],
-    // });
 
-    // const payment = await prisma.payment.create({
-    //   data: {
-    //     userId: Number(userId),
-    //     amount: calculatedAmount / 100,
-    //     paymentType: data.flowType,
-    //     formData: data.formData ?? {},
-    //     paymentStatus: "pending",
-    //     stripePaymentId: paymentIntent.id,
-    //   },
-    // });
+    if (data.flowType === "ADD_LOCATION") {
+      console.log("ADD_LOCATION");
+      const calculatedAmount = 4500; // dynamic calculation from client
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount:  calculatedAmount,
+        currency: "usd",
+        metadata: { userId, flowType: data.flowType },
+        payment_method_types: ["card"],
+      });
+
+      const payment = await prisma.payment.create({
+        data: {
+          userId: Number(userId),
+          amount: calculatedAmount,
+          paymentType: data.flowType,
+          formData: data.formData ?? {},
+          paymentStatus: "pending",
+          stripePaymentId: paymentIntent.id,
+        },
+      });
+
+      Secret = paymentIntent.client_secret;
+      paymentId = payment.id;
+    }
+
+     if (data.flowType === "NEW_NUMBER") {
+      console.log("ADD_LOCATION");
+      const calculatedAmount = 4500; // dynamic calculation from client
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount:  calculatedAmount,
+        currency: "usd",
+        metadata: { userId, flowType: data.flowType },
+        payment_method_types: ["card"],
+      });
+
+      const payment = await prisma.payment.create({
+        data: {
+          userId: Number(userId),
+          amount: calculatedAmount,
+          paymentType: data.flowType,
+          formData: data.formData ?? {},
+          paymentStatus: "pending",
+          stripePaymentId: paymentIntent.id,
+        },
+      });
+
+      Secret = paymentIntent.client_secret;
+      paymentId = payment.id;
+    }
 
     return NextResponse.json({
       clientSecret: Secret,

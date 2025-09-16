@@ -15,7 +15,7 @@ function flattenTrainingData(apiData: any, locationId: string | null) {
     businessName: apiData.locationName ?? "",
     address: apiData.address ?? "",
     phone: apiData.phone ?? "",
-    areaCode: apiData.areaCode ?? "",
+    zipCode: apiData.zipCode ?? "",
     email: apiData.email ?? "",
     website: apiData.website ?? "",
     googleMapsUrl: apiData.googleMapsUrl ?? "",

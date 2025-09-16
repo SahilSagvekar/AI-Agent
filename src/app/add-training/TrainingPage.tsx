@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { AITrainingForm } from "@/components/AITrainingForm";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AudioLoader } from "@/components/OrbitingLoader";
+import { AITrainingForm } from "@/components/AITrainingForm";
 
-function flattenTrainingData(apiData: any) {
+function flattenTrainingData(apiData: any, locationId: string | null) {
   if (!apiData) return null;
 
+//   const id = locationId;
+
   return {
-    businessName: apiData.locationName ?? "", // or fallback if null
+    id: locationId ?? "", // 👈 attach the ID here
+    businessName: apiData.locationName ?? "",
     address: apiData.address ?? "",
     phone: apiData.phone ?? "",
     zipCode: apiData.zipCode ?? "",
@@ -65,39 +68,39 @@ function flattenTrainingData(apiData: any) {
   };
 }
 
-
-export default function TrainingPage() {
+export default function TrainingPageClient() {
   const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const locationId = searchParams.get("locationId");
+
   const router = useRouter();
-
   const [trainingData, setTrainingData] = useState(null);
-  const [businessName, setBusinessName] = useState(""); // Manage any user info here or fetch globally
 
-    useEffect(() => {
+  useEffect(() => {
     async function fetchTrainingData() {
-      const res = await fetch("/api/form");
+      if (!locationId) {
+        router.push("/dashboard");
+        return;
+      }
+      const res = await fetch(`/api/form?id=${locationId}`);
       if (res.ok) {
         const apiData = await res.json();
-        const flatData = flattenTrainingData(apiData);
+        const flatData = flattenTrainingData(apiData, locationId);
         setInitialData(flatData);
       }
       setLoading(false);
     }
-  fetchTrainingData();
-  }, [router]);
+    fetchTrainingData();
+  }, [locationId, router]);
 
   function handleTrainingComplete(data: any) {
     setTrainingData(data);
-    // After training completion, navigate to next step, e.g. phone assignment
     // router.push("/phone-assignment");
   }
 
-  // if (loading) return <p>Loading training data...</p>;  
- if (loading) return <AudioLoader text="Loading training data..." />;
-
-
-
+  if (loading) return <AudioLoader text="Loading training data..." />;
 
   return (
     <div className="min-h-screen bg-background p-6">

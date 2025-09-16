@@ -186,3 +186,13 @@ model appointments {
   updated_at    DateTime? @default(now()) @db.Timestamp(6)
 }
 
+model EmailOtp {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+
+

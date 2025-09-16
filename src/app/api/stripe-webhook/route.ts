@@ -122,7 +122,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
       if (payment) {
         await prisma.payment.update({
-          where: { id: payment.id },
+          where: { id: payment.id, stripeSubscriptionId: subscriptionId },
           data: { paymentStatus: "succeeded" },
         });
 
@@ -159,6 +159,94 @@ export async function POST(req: NextRequest, res: NextResponse) {
           });
         }
 
+        // if (paidInvoices.length >= 3) {
+        //   console.log(
+        //     "3 payments done, switching to normal pricing plan automatically"
+        //   );
+
+        //   // Retrieve subscription and find items
+        //   const subscription = await stripe.subscriptions.retrieve(
+        //     subscriptionId
+        //   );
+
+        //   // Find base plan item and addon locations item if already exists
+        //   const basePlanItem = subscription.items.data.find(
+        //     (item) =>
+        //       item.price.id === process.env.STRIPE_INTRO_PRICE_ID ||
+        //       item.price.id === process.env.STRIPE_NORMAL_PRICE_ID
+        //   );
+
+        //   const addonItem = subscription.items.data.find(
+        //     (item) => item.price.id === process.env.STRIPE_ADD_LOCATION_PRICE_ID
+        //   );
+
+        //   const subscriptionItems = [];
+
+        //   // Update or add base plan item with normal price
+        //   if (basePlanItem) {
+        //     subscriptionItems.push({
+        //       id: basePlanItem.id,
+        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
+        //     });
+        //   } else {
+        //     // base plan item missing? Add it freshly
+        //     subscriptionItems.push({
+        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
+        //       quantity: 1,
+        //     });
+        //   }
+
+        //   // Update or add addon location item with correct quantity
+        //   if (locationsCount > 1) {
+        //     if (addonItem) {
+        //       subscriptionItems.push({
+        //         id: addonItem.id,
+        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
+        //         quantity: locationsCount - 1,
+        //       });
+        //     } else {
+        //       subscriptionItems.push({
+        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
+        //         quantity: locationsCount - 1,
+        //       });
+        //     }
+        //   }
+
+        //   await stripe.subscriptions.update(subscriptionId, {
+        //     items: subscriptionItems,
+        //     proration_behavior: "create_prorations",
+        //   });
+        // } else {
+        //   // initial subscription create flow with intro price + addon locations
+        //   const subscription = await stripe.subscriptions.create({
+        //     customer: stripeCustomerId,
+        //     items: [
+        //       {
+        //         price: process.env.STRIPE_INTRO_PRICE_ID!,
+        //         quantity: 1,
+        //       },
+        //       ...(locationsCount > 1
+        //         ? [
+        //             {
+        //               price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
+        //               quantity: locationsCount - 1,
+        //             },
+        //           ]
+        //         : []),
+        //     ],
+        //     payment_behavior: "default_incomplete",
+        //     proration_behavior: "create_prorations",
+        //     metadata: {
+        //       userId: userId.toString(),
+        //       flowType: data.flowType,
+        //     },
+        //     expand: ["latest_invoice.payment_intent"],
+        //   });
+
+        //   // Save payment info etc
+        // }
+
+        
 
         const userId = payment.userId;
         const flowType = payment.paymentType;
@@ -231,7 +319,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
         }
 
         if (flowType === "ADD_LOCATION") {
-          // console.log("User paid for additional locations — add them to DB here.");
+          console.log("User paid for additional locations — add them to DB here.");
           // Retrieve formData from Payment table if needed and insert new LaundromatLocation
         }
       } catch (error) {

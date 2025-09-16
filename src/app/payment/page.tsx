@@ -5,7 +5,7 @@ import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Label } from "../../components/ui/label";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams  } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,7 @@ export default function PaymentScreen({
   onBack,
 }: PaymentScreenProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleBack = () => {
     if (onBack) {
@@ -59,10 +60,11 @@ export default function PaymentScreen({
 
     async function createPaymentIntent() {
       try {
+         const flowType = searchParams.get("flowType");
         const response = await fetch("/api/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amountt: amountInCents, flowType: "NEW_ACCOUNT_SUBSCRIPTION" }), // send amount dynamically
+          body: JSON.stringify({ amountt: amountInCents, flowType: flowType, locationCount: locationCount }), // send amount dynamically
         });
 
         const data = await response.json();
@@ -77,7 +79,7 @@ export default function PaymentScreen({
     }
 
     createPaymentIntent();
-  }, [amountInCents]);
+  }, []);
 
   async function handlePay() {
     setErrorMessage(null);  

@@ -12,7 +12,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Clock, MapPin, Phone, DollarSign, Wrench, FileText, MessageCircle, Save, Settings, Languages, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter,useSearchParams  } from "next/navigation";
 
 
 
@@ -249,6 +249,7 @@ export function AITrainingForm({
     return Math.round(((completed + serviceCheck + paymentCheck) / (requiredFields.length + 2)) * 100);
   };
 
+  const searchParams = useSearchParams();
 
   // Replace your handleSubmit definition with this:
 
@@ -271,10 +272,22 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     if (response.ok) {
+      const flowType = searchParams.get("flowType");
+      console.log('flowType on submit:', flowType);
+
       const result = await response.json();
       onComplete(formData); // Existing callback, no UI changes
       // router.push("/dashboard");
-      router.push("/payment");
+      // router.push("/payment");
+      if (flowType) {
+        console.log('flowType:', flowType);
+        router.push(`/payment?flowType=${encodeURIComponent(flowType)}`);
+      } else {
+        // handle null case or provide default
+        router.push(`/payment`);
+      }
+
+
     } else {
       alert("Failed to save form data!");
     }

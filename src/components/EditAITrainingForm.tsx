@@ -45,7 +45,7 @@ interface FormData {
   businessName: string;
   address: string;
   phone: string;
-  areaCode: string;
+  zipCode: string;
   email: string;
   website: string;
   googleMapsUrl: string;
@@ -122,7 +122,7 @@ export function EditAITrainingForm({
     businessName: initialData?.businessName ?? "",
     address: initialData?.address ?? "",
     phone: initialData?.phone ?? "",
-    areaCode: initialData?.areaCode ?? "",
+    zipCode: initialData?.zipCode ?? "",
     email: initialData?.email ?? "",
     website: initialData?.website ?? "",
     googleMapsUrl: initialData?.googleMapsUrl ?? "",
@@ -181,7 +181,6 @@ export function EditAITrainingForm({
     unattendedPolicy: initialData?.unattendedPolicy ?? "",
     additionalPolicies: initialData?.additionalPolicies ?? "",
   });
-  console.log("initialData" + initialData);
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -189,7 +188,7 @@ export function EditAITrainingForm({
         businessName: initialData.businessName ?? "",
         address: initialData.address ?? "",
         phone: initialData.phone ?? "",
-        areaCode: initialData?.areaCode ?? "",
+        zipCode: initialData?.zipCode ?? "",
         email: initialData.email ?? "",
         website: initialData.website ?? "",
         googleMapsUrl: initialData.googleMapsUrl ?? "",
@@ -554,11 +553,11 @@ export function EditAITrainingForm({
                     <Label htmlFor="address">Area Code *</Label>
                     <Input
                       id="address"
-                      value={formData.areaCode}
+                      value={formData.zipCode}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          areaCode: e.target.value,
+                          zipCode: e.target.value,
                         }))
                       }
                       placeholder="415"
@@ -581,12 +580,12 @@ export function EditAITrainingForm({
   </div>
 
   <div className="w-24 space-y-1">  {/* Fixed smaller width */}
-                {/* <Label htmlFor="areaCode">Area Code *</Label>
+                {/* <Label htmlFor="zipCode">Area Code *</Label>
     <Input
-      id="areaCode"
-      value={formData.areaCode}       // Use separate state field, not address
+      id="zipCode"
+      value={formData.zipCode}       // Use separate state field, not address
       onChange={(e) =>
-        setFormData((prev) => ({ ...prev, areaCode: e.target.value }))
+        setFormData((prev) => ({ ...prev, zipCode: e.target.value }))
       }
       placeholder="415"
       required

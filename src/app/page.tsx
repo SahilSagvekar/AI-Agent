@@ -50,9 +50,8 @@ export default function App() {
 
   async function getUserFirstPayment(email: string): Promise<boolean> {
   const res = await fetch(`/api/user/payment-status?email=${encodeURIComponent(email)}`);
-  if (!res.ok) throw new Error("Failed to fetch payment status");
   const data = await res.json();
-  return data.firstPayment === true;
+  return data;
 }
 
   const handleTrainingComplete = (data: any) => {
