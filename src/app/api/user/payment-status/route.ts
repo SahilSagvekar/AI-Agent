@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client"; // Adjust import based on your project structure
+import { stat } from "fs";
 
 const prisma = new PrismaClient();
 
@@ -17,7 +18,6 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { firstPayment: true },
     });
 
     if (!user) {
@@ -27,7 +27,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ firstPayment: user.firstPayment });
+    const CheckStatus = await prisma.payment.findFirst({
+      where: { userId: user.id, paymentType: "NEW_ACCOUNT_SUBSCRIPTION" },
+      select: { paymentStatus: true },
+      orderBy: {
+        id: "desc",
+    },
+    });
+
+    let status = false;
+
+    if(CheckStatus?.paymentStatus === "succeeded"){
+      status = true;
+    } else {
+      status = false;
+    }
+    
+    
+
+    return NextResponse.json({ firstPayment: status });
   } catch (error) {
     console.error("Error fetching user payment status:", error);
     return NextResponse.json(

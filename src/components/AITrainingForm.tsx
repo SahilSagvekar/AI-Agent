@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,7 +14,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Clock, MapPin, Phone, DollarSign, Wrench, FileText, MessageCircle, Save, Settings, Languages, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter,useSearchParams  } from "next/navigation";
 
 
 
@@ -21,7 +23,7 @@ interface FormData {
   businessName: string;
   address: string;
   phone: string;
-  areaCode: string;
+  zipCode: string;
   email: string;
   website: string;
   googleMapsUrl: string;
@@ -98,7 +100,7 @@ export function AITrainingForm({
     businessName: initialData?.businessName ?? "",
     address: initialData?.address ?? "",
     phone: initialData?.phone ?? "",
-    areaCode: initialData?.areaCode ?? "",
+    zipCode: initialData?.zipCode ?? "",
     email: initialData?.email ?? "",
     website: initialData?.website ?? "",
     googleMapsUrl: initialData?.googleMapsUrl ?? "",
@@ -147,15 +149,15 @@ export function AITrainingForm({
     unattendedPolicy: initialData?.unattendedPolicy ?? "",
     additionalPolicies: initialData?.additionalPolicies ?? "",
   });
-  console.log('initialData' + initialData);
+  // console.log('initialData' + initialData);
   useEffect(() => {
-     console.log('initialData changed:', initialData?.areaCode);
+     console.log('initialData changed:', initialData?.zipCode);
     if (initialData) {
       setFormData({
         businessName: initialData.businessName ?? "",
         address: initialData.address ?? "",
         phone: initialData.phone ?? "",
-        areaCode: initialData?.areaCode ?? "",
+        zipCode: initialData?.zipCode ?? "",
         email: initialData.email ?? "",
         website: initialData.website ?? "",
         googleMapsUrl: initialData.googleMapsUrl ?? "",
@@ -249,6 +251,7 @@ export function AITrainingForm({
     return Math.round(((completed + serviceCheck + paymentCheck) / (requiredFields.length + 2)) * 100);
   };
 
+  const searchParams = useSearchParams();
 
   // Replace your handleSubmit definition with this:
 
@@ -271,10 +274,22 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
 
     if (response.ok) {
+      const flowType = searchParams.get("flowType") || "NEW_ACCOUNT_SUBSCRIPTION";
+      console.log('flowType on submit:', flowType);
+
       const result = await response.json();
       onComplete(formData); // Existing callback, no UI changes
       // router.push("/dashboard");
-      router.push("/payment");
+      // router.push("/payment");
+      if (flowType) {
+        console.log('flowType:', flowType);
+        router.push(`/payment?flowType=${encodeURIComponent(flowType)}`);
+      } else {
+        // handle null case or provide default
+        router.push(`/payment`);
+      }
+
+
     } else {
       alert("Failed to save form data!");
     }
@@ -478,11 +493,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
 
                 <div className="w-24 space-y-2">
-                  <Label htmlFor="address">Area Code *</Label>
+                  <Label htmlFor="address">Zip Code *</Label>
                   <Input
                     id="address"
-                    value={formData.areaCode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, areaCode: e.target.value }))}
+                    value={formData.zipCode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, zipCode: e.target.value }))}
                     placeholder="415"
                     required
                   />
@@ -504,12 +519,12 @@ const handleSubmit = async (e: React.FormEvent) => {
   </div>
 
   <div className="w-24 space-y-1">  {/* Fixed smaller width */}
-    {/* <Label htmlFor="areaCode">Area Code *</Label>
+    {/* <Label htmlFor="zipCode">Area Code *</Label>
     <Input
-      id="areaCode"
-      value={formData.areaCode}       // Use separate state field, not address
+      id="zipCode"
+      value={formData.zipCode}       // Use separate state field, not address
       onChange={(e) =>
-        setFormData((prev) => ({ ...prev, areaCode: e.target.value }))
+        setFormData((prev) => ({ ...prev, zipCode: e.target.value }))
       }
       placeholder="415"
       required
@@ -1201,7 +1216,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="text-sm text-muted-foreground">
             * Required fields - {progress}% complete
           </div>
-          <Button type="submit" disabled={isSubmitting || progress < 70} className="flex items-center gap-2">
+          <Button type="submit" 
+          disabled={isSubmitting || progress < 10} 
+          className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             {isSubmitting ? "Training AI Assistant..." : "Complete Training Setup"}
           </Button>

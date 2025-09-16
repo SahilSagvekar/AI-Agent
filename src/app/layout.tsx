@@ -1,4 +1,9 @@
 import type { Metadata } from "next";
+import { loadStripe } from "@stripe/stripe-js";
+import StripeProvider from "./StripeProvider";
+
+const stripePromise = loadStripe("pk_test_51S2wJ5LftZnSCITqn0pN2AZpIuDosea70tdWyyYuIlQHuMWxzEYOFkPtb4y2PWwkYquTQcbkR1gfwsq8pwc2CBQ000ibxy88Df");
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -27,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+         <StripeProvider>
+          {children}
+        </StripeProvider>
       </body>
     </html>
   );

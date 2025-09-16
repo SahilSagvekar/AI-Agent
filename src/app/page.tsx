@@ -50,9 +50,8 @@ export default function App() {
 
   async function getUserFirstPayment(email: string): Promise<boolean> {
   const res = await fetch(`/api/user/payment-status?email=${encodeURIComponent(email)}`);
-  if (!res.ok) throw new Error("Failed to fetch payment status");
   const data = await res.json();
-  return data.firstPayment === true;
+  return data;
 }
 
   const handleTrainingComplete = (data: any) => {
@@ -179,7 +178,6 @@ async function handleRegisterSuccess(user: { email: string; name?: string }) {
               Sign in to your existing account or create a new account to get started with the AI laundromat assistant.
             </DialogDescription>
           </DialogHeader>
-          {/* <AuthTabs onAuthSuccess={handleAuthSuccess} /> */}
           <AuthTabs onAuthSuccess={handleLoginSuccess} onRegisterSuccess={handleRegisterSuccess} />
         </DialogContent>
       </Dialog>

@@ -159,30 +159,24 @@ export function Dashboard({
     }
   };
 
-  const handleAddLocation = async () => {
-    try {
-      const response = await fetch("/api/create-location-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+  const handleAddLocation = async (locationId: any) => {
 
-      if (response.ok) {
-        router.push("/training");
-      }
+    const flowType = "ADD_LOCATION";
 
-      // const data = await response.json();
-      // if (data.url) {
-      //   //redirect to stripe checkout url
-      //   window.location.href = data.url;
-      // } else {
-      //   console.error('Failed to get stripe url:', data.error);
-      //   alert('Error initiating payment session.')
-      // }
-    } catch (error) {
-      console.error("Error in handleAddLocation:", error);
-      // alert('An unexpected error occurred.');
-    }
+      console.log("flowType:", flowType);
+      // router.push("/training");
+      // router.push(`/training?flowType=${encodeURIComponent(flowType)}`);
+router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponent(flowType)}`);
   };
+
+  const handleAddNumber = async () => {
+    const flowType = "NEW_NUMBER";
+
+    console.log("flowType:", flowType);
+    // router.push("/training");
+    router.push(`/training?flowType=${encodeURIComponent(flowType)}`);
+  };
+
   const locationName = locations.length > 0 ? locations[0].locationName : "";
   const locationEmail = locations.length > 0 ? locations[0].email : "";
 
@@ -513,7 +507,7 @@ export function Dashboard({
                     Locations
                   </CardTitle>
 
-                  <Button className="text-sm px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleAddLocation}>
+                  <Button className="text-sm px-3 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleAddLocation(locationIdAdd)}>
                     <Settings className="h-4 w-4 mr-2" />
                     Add Location
                   </Button>
@@ -852,10 +846,10 @@ export function Dashboard({
                     </div>
 
                     <div className="space-y-2">
-                      <Button className="w-full">Add Phone Number (+$85/month)</Button>
+                      <Button onClick={handleAddNumber} className="w-full">Add Phone Number (+$85/month)</Button>
                       {/* Biling add location */}
                       <Button
-                        onClick={handleAddLocation}
+                        // onClick={handleAddNumber}
                         variant="outline"
                         className="w-full"
                       >
@@ -868,7 +862,7 @@ export function Dashboard({
             </Card>
 
             {/* Billing History */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Billing History</CardTitle>
                 <CardDescription>
@@ -920,7 +914,7 @@ export function Dashboard({
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
+            </Card> */}
           </TabsContent>
 
           <TabsContent value="settings">
