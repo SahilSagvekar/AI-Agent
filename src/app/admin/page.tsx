@@ -1,18 +1,26 @@
+// import AdminDashboard from "@/components/admin/AdminDashboard";
+
+// const Index = () => {
+//   return <AdminDashboard />;
+// };
+
+// export default Index;
+
+
+// app/admin/page.tsx
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ADMIN_EMAILS } from "@/lib/admin";
-import AdminClient from "./AdminClient";
-
-export const dynamic = "force-dynamic";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default async function AdminPage() {
-  // const session = await getServerSession(authOptions);
-  // console.log("AdminPage session:", session);
+  const session = await getServerSession();
 
-//   if (!session || !session.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
-//     redirect("/signin"); // redirect to normal sign-in page
-//   }
+  if (session) {
+    if (!session.user?.email || !ADMIN_EMAILS.includes(session.user?.email)) {
+      redirect("/");
+    }
+  }
 
-  return <AdminClient />;
+  return <AdminDashboard />;
 }

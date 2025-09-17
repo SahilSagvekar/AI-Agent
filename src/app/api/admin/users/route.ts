@@ -1,24 +1,30 @@
-import { getServerSession } from "next-auth";
-import { authOptions, getUser } from "@/lib/auth";
+// /app/api/admin/users/route.ts (or pages/api/admin/users.ts for Pages Router)
 import { NextResponse } from "next/server";
-import { ADMIN_EMAILS } from "@/lib/admin";
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
 
 export async function GET() {
-  // const session = await getServerSession(authOptions);
-  const user = getUser();
-  
-
-  // if (user?.email || !ADMIN_EMAILS.includes(user?.email)) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // }
-
   const users = await prisma.user.findMany({
-    include: { laundromatLocations: true, payments: true, phoneNumbers: true },
-    orderBy: { id: "desc" },
+    include: {
+      laundromatLocations: {
+        include: {
+          amenities: true,
+          businessTone: true,
+          callHandling: true,
+          languageSettings: true,
+          machineInfo: true,
+          operatingHours: true,
+          payments: true,
+          policies: true,
+          pricing: true,
+          questions: true,
+          services: true,
+          PhoneNumber: true,
+        },
+      },
+      payments: true,
+      phoneNumbers: true,
+    },
   });
-
   return NextResponse.json(users);
 }
