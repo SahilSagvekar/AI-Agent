@@ -15,44 +15,113 @@ export async function POST(request: Request) {
   try {
     const flatData = await request.json();
 
-    // console.log(JSON.stringify(flatData))
+    // Operating hours
+    const hours = flatData.hours || {};
+    // Holiday hours for openOnHolidays, optional array
+    const holidayHours = flatData.holidayHours || [];
 
-    // Check if laundromat location exists for user
-    // const existing = await prisma.laundromatLocation.findFirst({
-    //   where: { userId: user.userId },
-    // });
-
-    // if (existing) {
-    //   // If already exists, respond with conflict or appropriate status
-    //   return NextResponse.json(
-    //     { error: "Laundromat location already exists, use PUT to update" },
-    //     { status: 409 }
-    //   );
-    // }
-
-    // Create new laundromat location and nested relations
     const nestedData = {
       user: {
         connect: { id: user.userId },
       },
-      locationName: flatData.businessName,
-      businessName: flatData.businessName,
-      zipCode: flatData.zipCode,
-      address: flatData.address,
-      phone: flatData.phone,
-      email: flatData.email,
-      website: flatData.website,
-      googleMapsUrl: flatData.googleMapsUrl,
+      locationName: flatData.locationName || flatData.businessName || "",
+      businessName: flatData.businessName || "",
+      zipCode: flatData.zipCode || "",
+      address: flatData.address || "",
+      phone: flatData.phone || "",
+      email: flatData.email || "",
+      website: flatData.website || "",
+      googleMapsUrl: flatData.googleMapsUrl || "",
+      notableLandmarks: flatData.notableLandmarks || "",
+      attendingHours: flatData.attendingHours || "",
+      nonAttendingHours: flatData.nonAttendingHours || "",
+      timeZone: flatData.timeZone || "",
 
       operatingHours: {
         create: {
-          weekdayHours: flatData.weekdayHours,
-          weekendHours: flatData.weekendHours,
-          openOnHolidays: flatData.openOnHoliday ?? flatData.openOnHolidays,
-          holidayNote: flatData.holidayNote,
-          lastWashTime: flatData.lastWashTime,
+          // Save each day's open/close for new hour model
+          mondayOpen: hours.Monday?.open || "",
+          mondayClose: hours.Monday?.close || "",
+          tuesdayOpen: hours.Tuesday?.open || "",
+          tuesdayClose: hours.Tuesday?.close || "",
+          wednesdayOpen: hours.Wednesday?.open || "",
+          wednesdayClose: hours.Wednesday?.close || "",
+          thursdayOpen: hours.Thursday?.open || "",
+          thursdayClose: hours.Thursday?.close || "",
+          fridayOpen: hours.Friday?.open || "",
+          fridayClose: hours.Friday?.close || "",
+          saturdayOpen: hours.Saturday?.open || "",
+          saturdayClose: hours.Saturday?.close || "",
+          sundayOpen: hours.Sunday?.open || "",
+          sundayClose: hours.Sunday?.close || "",
+          openOnHolidays: !!flatData.openOnHolidays,
+          holidayNote: flatData.holidayNote || "",
+          lastWashTime: flatData.lastWashTime || "",
+          timeZone: flatData.timeZone || "",
         },
       },
+
+      // holidayHours: {
+      //   createMany: { // optional, if you want to save
+      //     data: holidayHours.map(hh => ({
+      //       name: hh.name,
+      //       open: hh.open,
+      //       close: hh.close,
+      //     }))
+      //   }
+      // },
+      holidayHours: {
+  create: holidayHours.map((hh: { name: string; open: string; close: string }) => ({
+    name: hh.name,
+    open: hh.open,
+    close: hh.close,
+  })),
+},
+
+      // washers: {
+      //   create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(w => ({
+      //     size: w.size,
+      //     price: w.price,
+      //     quantity: w.quantity,
+      //     system: w.system,
+      //     payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema setup
+      //   })),
+      // },
+      washers: {
+  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+    (w: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
+      size: w.size,
+      price: w.price,
+      quantity: w.quantity,
+      system: w.system,
+      payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema
+    })
+  ),
+},
+
+      dryers: {
+  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+    (d: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
+      size: d.size,
+      price: d.price,
+      quantity: d.quantity,
+      system: d.system,
+      payments: { set: d.payments || [] }, // adjust as needed per your Prisma schema
+    })
+  ),
+},
+
+
+
+      // dryers: {
+      //   create: (Array.isArray(flatData.dryers) ? flatData.dryers : []).map(d: => ({
+      //     size: d.size,
+      //     price: d.price,
+      //     quantity: d.quantity,
+      //     system: d.system,
+      //     payments: { set: d.payments || [] }, // adjust for object/array according to your DB
+      //   })),
+      // },
 
       services: {
         create: { services: flatData.services ?? [] },
@@ -60,23 +129,23 @@ export async function POST(request: Request) {
 
       pricing: {
         create: {
-          washerPrices: flatData.washerPrices,
-          dryerPrices: flatData.dryerPrices,
-          washFoldRate: flatData.washFoldRate,
-          dryCleaningPrices: flatData.dryCleaningPrices,
-          pickupDeliveryPricing: flatData.pickupDeliveryPricing,
-          minimumCharges: flatData.minimumCharges,
+          washerPrices: flatData.washerPrices || "",
+          dryerPrices: flatData.dryerPrices || "",
+          washFoldRate: flatData.washFoldRate || "",
+          dryCleaningPrices: flatData.dryCleaningPrices || "",
+          pickupDeliveryPricing: flatData.pickupDeliveryPricing || "",
+          minimumCharges: flatData.minimumCharges || "",
           paymentMethods: flatData.paymentMethods ?? [],
         },
       },
 
       machineInfo: {
         create: {
-          totalWashers: flatData.totalWashers,
-          totalDryers: flatData.totalDryers,
-          machineOperationType: flatData.machineOperationType,
-          machinesModern: flatData.machinesModern,
-          largeMachines: flatData.largeMachines,
+          totalWashers: flatData.totalWashers || "",
+          totalDryers: flatData.totalDryers || "",
+          machineOperationType: flatData.machineOperationType || "",
+          machinesModern: !!flatData.machinesModern,
+          largeMachines: !!flatData.largeMachines,
         },
       },
 
@@ -93,38 +162,46 @@ export async function POST(request: Request) {
 
       callHandling: {
         create: {
-          callHandlingStyle: flatData.callHandlingStyle,
-          forwardingEnabled: flatData.forwardingEnabled,
-          forwardingNumber: flatData.forwardingNumber,
-          forwardingHours: flatData.forwardingHours,
+          callHandlingStyle: flatData.callHandlingStyle || "",
+          forwardingEnabled: !!flatData.forwardingEnabled,
+          forwardingNumber: flatData.forwardingNumber || "",
+          forwardingHours: flatData.forwardingHours || "",
         },
       },
 
       languageSettings: {
         create: {
           languages: flatData.languages ?? [],
-          autoDetectLanguage: flatData.autoDetectLanguage,
+          autoDetectLanguage: !!flatData.autoDetectLanguage,
         },
       },
 
       businessTone: {
         create: {
-          businessTone: flatData.businessTone,
-          customPhrases: flatData.customPhrases,
-          businessIntro: flatData.businessIntro,
+          businessTone: flatData.businessTone || "",
+          customPhrases: flatData.customPhrases || "",
+          businessIntro: flatData.businessIntro || "",
         },
       },
 
       policies: {
         create: {
-          lostFoundPolicy: flatData.lostFoundPolicy,
-          refundPolicy: flatData.refundPolicy,
-          covidPolicies: flatData.covidPolicies,
-          timeLimits: flatData.timeLimits,
-          unattendedPolicy: flatData.unattendedPolicy,
-          additionalPolicies: flatData.additionalPolicies,
+          lostFoundPolicy: flatData.lostFoundPolicy || "",
+          refundPolicy: flatData.refundPolicy || "",
+          covidPolicies: flatData.covidPolicies || "",
+          timeLimits: flatData.timeLimits || "",
+          unattendedPolicy: flatData.unattendedPolicy || "",
+          additionalPolicies: flatData.additionalPolicies || "",
         },
       },
+
+      // Additional settings-related fields
+      escalateForwardCall: !!flatData.escalateForwardCall,
+      escalationNumber: flatData.escalationNumber || "",
+      escalateSendMessage: !!flatData.escalateSendMessage,
+      escalateSendEmail: !!flatData.escalateSendEmail,
+      escalationEmail: flatData.escalationEmail || "",
+      hiringResponse: flatData.hiringResponse || "",
     };
 
     const created = await prisma.laundromatLocation.create({
@@ -150,8 +227,9 @@ export async function POST(request: Request) {
   }
 }
 
+
 // PUT handler: Update existing laundromat location and nested relations
-export async function PUT(request: Request) {
+export async function PUT(request: Request) { 
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ error: "User Not Found" }, { status: 401 });
@@ -159,7 +237,6 @@ export async function PUT(request: Request) {
 
   try {
     const flatData = await request.json();
-    
 
     const id = parseInt(flatData.id, 10);
 
@@ -175,61 +252,106 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Prepare all fields, defaulting where needed
+    const hours = flatData.hours || {};
+    const holidayHours = flatData.holidayHours || [];
+
     // Update laundromat location and nested relations
     const updated = await prisma.laundromatLocation.update({
       where: { id: existing.id },
       data: {
-        locationName: flatData.locationName,
-        businessName: flatData.locationName,
-        address: flatData.address,
-        phone: flatData.phone,
-        email: flatData.email,
-        zipCode: flatData.zipCode,
-        website: flatData.website,
-        googleMapsUrl: flatData.googleMapsUrl,
+        locationName: flatData.locationName || flatData.businessName || "",
+        businessName: flatData.businessName || "",
+        address: flatData.address || "",
+        phone: flatData.phone || "",
+        zipCode: flatData.zipCode || "",
+        website: flatData.website || "",
+        googleMapsUrl: flatData.googleMapsUrl || "",
+        notableLandmarks: flatData.notableLandmarks || "",
+        attendingHours: flatData.attendingHours || "",
+        nonAttendingHours: flatData.nonAttendingHours || "",
+        timeZone: flatData.timeZone || "",
 
         operatingHours: {
           update: {
-            weekdayHours: flatData.weekdayHours,
-            weekendHours: flatData.weekendHours,
-            openOnHolidays: flatData.openOnHoliday ?? flatData.openOnHolidays,
-            holidayNote: flatData.holidayNote,
-            lastWashTime: flatData.lastWashTime,
+            mondayOpen: hours.Monday?.open || "",
+            mondayClose: hours.Monday?.close || "",
+            tuesdayOpen: hours.Tuesday?.open || "",
+            tuesdayClose: hours.Tuesday?.close || "",
+            wednesdayOpen: hours.Wednesday?.open || "",
+            wednesdayClose: hours.Wednesday?.close || "",
+            thursdayOpen: hours.Thursday?.open || "",
+            thursdayClose: hours.Thursday?.close || "",
+            fridayOpen: hours.Friday?.open || "",
+            fridayClose: hours.Friday?.close || "",
+            saturdayOpen: hours.Saturday?.open || "",
+            saturdayClose: hours.Saturday?.close || "",
+            sundayOpen: hours.Sunday?.open || "",
+            sundayClose: hours.Sunday?.close || "",
+            openOnHolidays: !!flatData.openOnHolidays,
+            holidayNote: flatData.holidayNote || "",
+            lastWashTime: flatData.lastWashTime || "",
+            timeZone: flatData.timeZone || "",
           },
         },
 
+        // Optionally update nested holidayHours array if your schema supports it
+        // holidayHours: {
+        //   updateMany: { ... } // adjust for your schema/relations!
+        // },
+
+         washers: {
+  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+    (w: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
+      size: w.size,
+      price: w.price,
+      quantity: w.quantity,
+      system: w.system,
+      payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema
+    })
+  ),
+},
+
+      dryers: {
+  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+    (d: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
+      size: d.size,
+      price: d.price,
+      quantity: d.quantity,
+      system: d.system,
+      payments: { set: d.payments || [] }, // adjust as needed per your Prisma schema
+    })
+  ),
+},
+
         services: {
-          update: {
-            services: flatData.services ?? [],
-          },
+          update: { services: flatData.services ?? [] },
         },
 
         pricing: {
           update: {
-            washerPrices: flatData.washerPrices,
-            dryerPrices: flatData.dryerPrices,
-            washFoldRate: flatData.washFoldRate,
-            dryCleaningPrices: flatData.dryCleaningPrices,
-            pickupDeliveryPricing: flatData.pickupDeliveryPricing,
-            minimumCharges: flatData.minimumCharges,
+            washerPrices: flatData.washerPrices || "",
+            dryerPrices: flatData.dryerPrices || "",
+            washFoldRate: flatData.washFoldRate || "",
+            dryCleaningPrices: flatData.dryCleaningPrices || "",
+            pickupDeliveryPricing: flatData.pickupDeliveryPricing || "",
+            minimumCharges: flatData.minimumCharges || "",
             paymentMethods: flatData.paymentMethods ?? [],
           },
         },
 
         machineInfo: {
           update: {
-            totalWashers: flatData.totalWashers,
-            totalDryers: flatData.totalDryers,
-            machineOperationType: flatData.machineOperationType,
-            machinesModern: flatData.machinesModern,
-            largeMachines: flatData.largeMachines,
+            totalWashers: flatData.totalWashers || "",
+            totalDryers: flatData.totalDryers || "",
+            machineOperationType: flatData.machineOperationType || "",
+            machinesModern: !!flatData.machinesModern,
+            largeMachines: !!flatData.largeMachines,
           },
         },
 
         amenities: {
-          update: {
-            amenities: flatData.amenities ?? [],
-          },
+          update: { amenities: flatData.amenities ?? [] },
         },
 
         questions: {
@@ -241,38 +363,45 @@ export async function PUT(request: Request) {
 
         callHandling: {
           update: {
-            callHandlingStyle: flatData.callHandlingStyle,
-            forwardingEnabled: flatData.forwardingEnabled,
-            forwardingNumber: flatData.forwardingNumber,
-            forwardingHours: flatData.forwardingHours,
+            callHandlingStyle: flatData.callHandlingStyle || "",
+            forwardingEnabled: !!flatData.forwardingEnabled,
+            forwardingNumber: flatData.forwardingNumber || "",
+            forwardingHours: flatData.forwardingHours || "",
           },
         },
 
         languageSettings: {
           update: {
             languages: flatData.languages ?? [],
-            autoDetectLanguage: flatData.autoDetectLanguage,
+            autoDetectLanguage: !!flatData.autoDetectLanguage,
           },
         },
 
         businessTone: {
           update: {
-            businessTone: flatData.businessTone,
-            customPhrases: flatData.customPhrases,
-            businessIntro: flatData.businessIntro,
+            businessTone: flatData.businessTone || "",
+            customPhrases: flatData.customPhrases || "",
+            businessIntro: flatData.businessIntro || "",
           },
         },
 
         policies: {
           update: {
-            lostFoundPolicy: flatData.lostFoundPolicy,
-            refundPolicy: flatData.refundPolicy,
-            covidPolicies: flatData.covidPolicies,
-            timeLimits: flatData.timeLimits,
-            unattendedPolicy: flatData.unattendedPolicy,
-            additionalPolicies: flatData.additionalPolicies,
+            lostFoundPolicy: flatData.lostFoundPolicy || "",
+            refundPolicy: flatData.refundPolicy || "",
+            covidPolicies: flatData.covidPolicies || "",
+            timeLimits: flatData.timeLimits || "",
+            unattendedPolicy: flatData.unattendedPolicy || "",
+            additionalPolicies: flatData.additionalPolicies || "",
           },
         },
+
+        escalateForwardCall: !!flatData.escalateForwardCall,
+        escalationNumber: flatData.escalationNumber || "",
+        escalateSendMessage: !!flatData.escalateSendMessage,
+        escalateSendEmail: !!flatData.escalateSendEmail,
+        escalationEmail: flatData.escalationEmail || "",
+        hiringResponse: flatData.hiringResponse || "",
       },
       include: {
         operatingHours: true,
@@ -288,7 +417,7 @@ export async function PUT(request: Request) {
       },
     });
 
-    // Optionally also update user's businessName in User table
+    // Optionally also update user's businessName in User table:
     await prisma.user.update({
       where: { id: user.userId },
       data: {
@@ -302,6 +431,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
 
 // GET handler: Fetch laundromat location and nested data for logged-in user
 // export async function GET(request: Request) {
@@ -349,27 +479,30 @@ export async function GET(request: Request) {
     const idParam = url.searchParams.get("id");
 
     let data;
-    if (idParam) {
-      const id = parseInt(idParam, 10); // ✅ convert string -> number
+    const includeObj = {
+      operatingHours: true,
+      services: true,
+      pricing: true,
+      machineInfo: true,
+      amenities: true,
+      questions: true,
+      callHandling: true,
+      languageSettings: true,
+      businessTone: true,
+      policies: true,
+      washers: true,
+      dryers: true,
+      holidayHours: true,  // Remove or adjust if not in your schema
+    };
 
+    if (idParam) {
+      const id = parseInt(idParam, 10);
       if (isNaN(id)) {
         return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
       }
-
       data = await prisma.laundromatLocation.findFirst({
         where: { userId: user.userId, id },
-        include: {
-          operatingHours: true,
-          services: true,
-          pricing: true,
-          machineInfo: true,
-          amenities: true,
-          questions: true,
-          callHandling: true,
-          languageSettings: true,
-          businessTone: true,
-          policies: true,
-        },
+        include: includeObj,
       });
 
       if (!data) {
@@ -379,18 +512,7 @@ export async function GET(request: Request) {
       data = await prisma.laundromatLocation.findMany({
         where: { userId: user.userId },
         orderBy: { id: "asc" },
-        include: {
-          operatingHours: true,
-          services: true,
-          pricing: true,
-          machineInfo: true,
-          amenities: true,
-          questions: true,
-          callHandling: true,
-          languageSettings: true,
-          businessTone: true,
-          policies: true,
-        },
+        include: includeObj,
       });
     }
 

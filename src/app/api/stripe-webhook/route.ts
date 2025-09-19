@@ -1,3 +1,6 @@
+// // at the very top of the file where you import twilio
+// // @ts-ignore
+// import twilio from "twilio";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import twilio from "twilio";
