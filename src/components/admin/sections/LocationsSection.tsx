@@ -242,7 +242,7 @@ export function LocationsSection({ locations }: LocationsSectionProps) {
                           <div className="space-y-1">
                             <DetailRow label="Lost & Found" value={location.policies.lostFoundPolicy} />
                             <DetailRow label="Refund Policy" value={location.policies.refundPolicy} />
-                            <DetailRow label="COVID Policies" value={location.policies.covidPolicies} />
+                            <DetailRow label="COVID Policies" value={location.policies.petPolicies} />
                             <DetailRow label="Time Limits" value={location.policies.timeLimits} />
                             <DetailRow label="Unattended Policy" value={location.policies.unattendedPolicy} />
                             <DetailRow label="Additional" value={location.policies.additionalPolicies} />

@@ -15,9 +15,14 @@ export async function POST(request: Request) {
   try {
     const flatData = await request.json();
 
+    // ✅ Extract UI fields for attendant hours
+    const attendingOpen = flatData.attendingOpen || "";
+    const attendingClose = flatData.attendingClose || "";
+    const is24Hours = !!flatData.is24Hours;
+
     // Operating hours
     const hours = flatData.hours || {};
-    // Holiday hours for openOnHolidays, optional array
+    // Holiday hours (array of { name, open, close })
     const holidayHours = flatData.holidayHours || [];
 
     const nestedData = {
@@ -33,13 +38,17 @@ export async function POST(request: Request) {
       website: flatData.website || "",
       googleMapsUrl: flatData.googleMapsUrl || "",
       notableLandmarks: flatData.notableLandmarks || "",
-      attendingHours: flatData.attendingHours || "",
+
+      // ✅ Save attendant hours in structured fields
+      attendingOpen,
+      attendingClose,
+      is24Hours,
+
       nonAttendingHours: flatData.nonAttendingHours || "",
       timeZone: flatData.timeZone || "",
 
       operatingHours: {
         create: {
-          // Save each day's open/close for new hour model
           mondayOpen: hours.Monday?.open || "",
           mondayClose: hours.Monday?.close || "",
           tuesdayOpen: hours.Tuesday?.open || "",
@@ -61,67 +70,51 @@ export async function POST(request: Request) {
         },
       },
 
-      // holidayHours: {
-      //   createMany: { // optional, if you want to save
-      //     data: holidayHours.map(hh => ({
-      //       name: hh.name,
-      //       open: hh.open,
-      //       close: hh.close,
-      //     }))
-      //   }
-      // },
       holidayHours: {
-  create: holidayHours.map((hh: { name: string; open: string; close: string }) => ({
-    name: hh.name,
-    open: hh.open,
-    close: hh.close,
-  })),
-},
+        create: holidayHours.map(
+          (hh: { name: string; open: string; close: string }) => ({
+            name: hh.name,
+            open: hh.open,
+            close: hh.close,
+          })
+        ),
+      },
 
-      // washers: {
-      //   create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(w => ({
-      //     size: w.size,
-      //     price: w.price,
-      //     quantity: w.quantity,
-      //     system: w.system,
-      //     payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema setup
-      //   })),
-      // },
       washers: {
-  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
-    (w: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
-      size: w.size,
-      price: w.price,
-      quantity: w.quantity,
-      system: w.system,
-      payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema
-    })
-  ),
-},
+        create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+          (w: {
+            size: string;
+            price: number;
+            quantity: number;
+            system: string;
+            payments?: string[];
+          }) => ({
+            size: w.size,
+            price: w.price,
+            quantity: w.quantity,
+            system: w.system,
+            payments: { set: w.payments || [] },
+          })
+        ),
+      },
 
       dryers: {
-  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
-    (d: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
-      size: d.size,
-      price: d.price,
-      quantity: d.quantity,
-      system: d.system,
-      payments: { set: d.payments || [] }, // adjust as needed per your Prisma schema
-    })
-  ),
-},
-
-
-
-      // dryers: {
-      //   create: (Array.isArray(flatData.dryers) ? flatData.dryers : []).map(d: => ({
-      //     size: d.size,
-      //     price: d.price,
-      //     quantity: d.quantity,
-      //     system: d.system,
-      //     payments: { set: d.payments || [] }, // adjust for object/array according to your DB
-      //   })),
-      // },
+        create: (Array.isArray(flatData.dryers) ? flatData.dryers : []).map(
+          (d: {
+            size: string;
+            price: number;
+            quantity: number;
+            system: string;
+            payments?: string[];
+          }) => ({
+            size: d.size,
+            price: d.price,
+            quantity: d.quantity,
+            system: d.system,
+            payments: { set: d.payments || [] },
+          })
+        ),
+      },
 
       services: {
         create: { services: flatData.services ?? [] },
@@ -188,14 +181,13 @@ export async function POST(request: Request) {
         create: {
           lostFoundPolicy: flatData.lostFoundPolicy || "",
           refundPolicy: flatData.refundPolicy || "",
-          covidPolicies: flatData.covidPolicies || "",
+          petPolicies: flatData.petPolicies || "",
           timeLimits: flatData.timeLimits || "",
           unattendedPolicy: flatData.unattendedPolicy || "",
           additionalPolicies: flatData.additionalPolicies || "",
         },
       },
 
-      // Additional settings-related fields
       escalateForwardCall: !!flatData.escalateForwardCall,
       escalationNumber: flatData.escalationNumber || "",
       escalateSendMessage: !!flatData.escalateSendMessage,
@@ -229,7 +221,7 @@ export async function POST(request: Request) {
 
 
 // PUT handler: Update existing laundromat location and nested relations
-export async function PUT(request: Request) { 
+export async function PUT(request: Request) {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ error: "User Not Found" }, { status: 401 });
@@ -237,7 +229,6 @@ export async function PUT(request: Request) {
 
   try {
     const flatData = await request.json();
-
     const id = parseInt(flatData.id, 10);
 
     // Find existing laundromat location for this user
@@ -252,11 +243,15 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Extract UI fields for attendant hours
+    const attendingOpen = flatData.attendingOpen || "";
+    const attendingClose = flatData.attendingClose || "";
+    const is24Hours = !!flatData.is24Hours;
+
     // Prepare all fields, defaulting where needed
     const hours = flatData.hours || {};
     const holidayHours = flatData.holidayHours || [];
 
-    // Update laundromat location and nested relations
     const updated = await prisma.laundromatLocation.update({
       where: { id: existing.id },
       data: {
@@ -268,7 +263,12 @@ export async function PUT(request: Request) {
         website: flatData.website || "",
         googleMapsUrl: flatData.googleMapsUrl || "",
         notableLandmarks: flatData.notableLandmarks || "",
-        attendingHours: flatData.attendingHours || "",
+
+        // ✅ store attendant hours properly
+        attendingOpen,
+        attendingClose,
+        is24Hours,
+
         nonAttendingHours: flatData.nonAttendingHours || "",
         timeZone: flatData.timeZone || "",
 
@@ -295,34 +295,49 @@ export async function PUT(request: Request) {
           },
         },
 
-        // Optionally update nested holidayHours array if your schema supports it
+        // If you want to replace holiday hours, you might want to delete + recreate them:
         // holidayHours: {
-        //   updateMany: { ... } // adjust for your schema/relations!
+        //   deleteMany: {}, // clear existing
+        //   create: holidayHours.map(hh => ({ name: hh.name, open: hh.open, close: hh.close }))
         // },
 
-         washers: {
-  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
-    (w: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
-      size: w.size,
-      price: w.price,
-      quantity: w.quantity,
-      system: w.system,
-      payments: { set: w.payments || [] }, // adjust as needed per your Prisma schema
-    })
-  ),
-},
+        washers: {
+          deleteMany: {}, // clear old washers first (avoids duplicates)
+          create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
+            (w: {
+              size: string;
+              price: number;
+              quantity: number;
+              system: string;
+              payments?: string[];
+            }) => ({
+              size: w.size,
+              price: w.price,
+              quantity: w.quantity,
+              system: w.system,
+              payments: { set: w.payments || [] },
+            })
+          ),
+        },
 
-      dryers: {
-  create: (Array.isArray(flatData.washers) ? flatData.washers : []).map(
-    (d: { size: string; price: number; quantity: number; system: string; payments?: string[] }) => ({
-      size: d.size,
-      price: d.price,
-      quantity: d.quantity,
-      system: d.system,
-      payments: { set: d.payments || [] }, // adjust as needed per your Prisma schema
-    })
-  ),
-},
+        dryers: {
+          deleteMany: {}, // clear old dryers first
+          create: (Array.isArray(flatData.dryers) ? flatData.dryers : []).map(
+            (d: {
+              size: string;
+              price: number;
+              quantity: number;
+              system: string;
+              payments?: string[];
+            }) => ({
+              size: d.size,
+              price: d.price,
+              quantity: d.quantity,
+              system: d.system,
+              payments: { set: d.payments || [] },
+            })
+          ),
+        },
 
         services: {
           update: { services: flatData.services ?? [] },
@@ -389,7 +404,7 @@ export async function PUT(request: Request) {
           update: {
             lostFoundPolicy: flatData.lostFoundPolicy || "",
             refundPolicy: flatData.refundPolicy || "",
-            covidPolicies: flatData.covidPolicies || "",
+            petPolicies: flatData.petPolicies || "",
             timeLimits: flatData.timeLimits || "",
             unattendedPolicy: flatData.unattendedPolicy || "",
             additionalPolicies: flatData.additionalPolicies || "",
@@ -417,12 +432,10 @@ export async function PUT(request: Request) {
       },
     });
 
-    // Optionally also update user's businessName in User table:
+    // Optionally also update user's businessName in User table
     await prisma.user.update({
       where: { id: user.userId },
-      data: {
-        businessName: flatData.businessName,
-      },
+      data: { businessName: flatData.businessName },
     });
 
     return NextResponse.json(updated, { status: 200 });
@@ -478,7 +491,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const idParam = url.searchParams.get("id");
 
-    let data;
+    // Centralized include object for relations
     const includeObj = {
       operatingHours: true,
       services: true,
@@ -492,14 +505,18 @@ export async function GET(request: Request) {
       policies: true,
       washers: true,
       dryers: true,
-      holidayHours: true,  // Remove or adjust if not in your schema
+      holidayHours: true, // ✅ Make sure this exists in schema
     };
+
+    let data;
 
     if (idParam) {
       const id = parseInt(idParam, 10);
+
       if (isNaN(id)) {
         return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
       }
+
       data = await prisma.laundromatLocation.findFirst({
         where: { userId: user.userId, id },
         include: includeObj,
@@ -515,6 +532,9 @@ export async function GET(request: Request) {
         include: includeObj,
       });
     }
+
+    // ✅ No extra transformation needed — attendingOpen, attendingClose, is24Hours
+    // are automatically included if you updated the schema
 
     return NextResponse.json(data);
   } catch (error) {

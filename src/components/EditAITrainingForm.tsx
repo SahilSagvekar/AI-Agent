@@ -74,6 +74,10 @@ interface FormData {
   timeZone: string;
   washers: Washer[];
   dryers: Dryers[];
+  attendantType: string;
+  attendingOpen: string;
+  is24Hours: boolean;
+  attendingClose: string;
 
   // Operating Hours
   // weekdayHours: string;
@@ -180,6 +184,10 @@ export function EditAITrainingForm({
     nonAttendingHours: initialData?.nonAttendingHours ?? "",
     locationName: initialData?.locationName ?? "",
     timeZone: initialData?.timeZone ?? "",
+    attendantType: initialData?.attendantType ?? "",
+    attendingOpen: initialData?.attendingOpen ?? "",
+    is24Hours: initialData?.is24Hours ?? false,
+    attendingClose: initialData?.attendingClose ?? "",
    washers: [
     {
       size: "",
@@ -347,6 +355,29 @@ export function EditAITrainingForm({
     setIsSubmitting(false);
   };
 
+  // const [attendantType, setAttendantType] = useState<
+  //     "attendant" | "nonAttendant" | "partial" | ""
+  //   >(formData.attendantType || "");
+
+  type AttendantType = "attendant" | "nonAttendant" | "partial" | "";
+
+const [attendantType, setAttendantType] = useState<AttendantType>(
+  (["attendant", "nonAttendant", "partial"].includes(formData.attendantType)
+    ? formData.attendantType
+    : "") as AttendantType
+);
+
+  
+    const handleTypeChange = (type: "attendant" | "nonAttendant" | "partial") => {
+      setAttendantType(type);
+      setFormData((prev) => ({
+        ...prev,
+        attendantType: type,
+        attendingHours: "",
+        nonAttendingHours: "",
+      }));
+    };
+
   const addCustomQuestion = () => {
     setFormData((prev) => ({
       ...prev,
@@ -411,6 +442,7 @@ export function EditAITrainingForm({
     "Massage Chairs",
     "Alcohol Sales",
     "Coffee Shops",
+    "pickup & delivery",
   ];
 
   const paymentOptions = [
@@ -425,13 +457,13 @@ export function EditAITrainingForm({
     "Seating",
     "Folding tables",
     "Restroom",
-    "Vending machines (snacks/drinks)",
+    "Vending machines (snacks)",
+    "Vending machines (drinks)",
     "Detergent vending",
     "TV",
     "Music",
     "Kids' play area",
     "ATM",
-    "pickup & delivery",
     "Reading Area",
   ];
 
@@ -582,6 +614,101 @@ const washerOptions = [
     { manufacturer: "Tolkar", capacity: 110, loads: "11 loads" },
     { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
   ];
+
+  const dryerOptions = [
+    { manufacturer: "Speed Queen / Huebsch", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Speed Queen / Huebsch", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Speed Queen / Huebsch", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Speed Queen / Huebsch", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Speed Queen / Huebsch", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Speed Queen / Huebsch", capacity: 100, loads: "10 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 90, loads: "9 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 100, loads: "10 loads" },
+    { manufacturer: "Dexter Laundry", capacity: 120, loads: "12 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 15, loads: "2 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 55, loads: "6 loads" },
+    { manufacturer: "Maytag / Whirlpool", capacity: 65, loads: "6 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 18, loads: "2 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 45, loads: "4 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Electrolux / Wascomat", capacity: 135, loads: "14 loads" },
+    { manufacturer: "Continental Girbau", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Continental Girbau", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Continental Girbau", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Continental Girbau", capacity: 55, loads: "6 loads" },
+    { manufacturer: "Continental Girbau", capacity: 70, loads: "7 loads" },
+    { manufacturer: "Continental Girbau", capacity: 90, loads: "9 loads" },
+    { manufacturer: "Continental Girbau", capacity: 130, loads: "13 loads" },
+    { manufacturer: "Continental Girbau", capacity: 255, loads: "26 loads" },
+    { manufacturer: "Unimac", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Unimac", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Unimac", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Unimac", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Unimac", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Unimac", capacity: 100, loads: "10 loads" },
+    { manufacturer: "Unimac", capacity: 200, loads: "20 loads" },
+    { manufacturer: "Unimac", capacity: 400, loads: "40 loads" },
+    { manufacturer: "Milnor", capacity: 25, loads: "2 loads" },
+    { manufacturer: "Milnor", capacity: 50, loads: "5 loads" },
+    { manufacturer: "Milnor", capacity: 100, loads: "10 loads" },
+    { manufacturer: "Milnor", capacity: 200, loads: "20 loads" },
+    { manufacturer: "Milnor", capacity: 400, loads: "40 loads" },
+    { manufacturer: "Milnor", capacity: 700, loads: "70 loads" },
+    { manufacturer: "B&C Technologies", capacity: 25, loads: "2 loads" },
+    { manufacturer: "B&C Technologies", capacity: 40, loads: "4 loads" },
+    { manufacturer: "B&C Technologies", capacity: 60, loads: "6 loads" },
+    { manufacturer: "B&C Technologies", capacity: 80, loads: "8 loads" },
+    { manufacturer: "B&C Technologies", capacity: 100, loads: "10 loads" },
+    { manufacturer: "B&C Technologies", capacity: 125, loads: "12 loads" },
+    { manufacturer: "B&C Technologies", capacity: 200, loads: "20 loads" },
+    { manufacturer: "B&C Technologies", capacity: 475, loads: "48 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 20, loads: "2 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 30, loads: "3 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 40, loads: "4 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 55, loads: "6 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 80, loads: "8 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 100, loads: "10 loads" },
+    { manufacturer: "IPSO / Primus", capacity: 135, loads: "14 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 25, loads: "2 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 135, loads: "14 loads" },
+    { manufacturer: "Fagor Industrial", capacity: 200, loads: "20 loads" },
+    { manufacturer: "Domus", capacity: 22, loads: "2 loads" },
+    { manufacturer: "Domus", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Domus", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Domus", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Domus", capacity: 80, loads: "8 loads" },
+    { manufacturer: "Domus", capacity: 135, loads: "14 loads" },
+    { manufacturer: "Stahl", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Stahl", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Stahl", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Stahl", capacity: 100, loads: "10 loads" },
+    { manufacturer: "Stahl", capacity: 200, loads: "20 loads" },
+    { manufacturer: "Lavatec", capacity: 30, loads: "3 loads" },
+    { manufacturer: "Lavatec", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Lavatec", capacity: 110, loads: "11 loads" },
+    { manufacturer: "Lavatec", capacity: 200, loads: "20 loads" },
+    { manufacturer: "Lavatec", capacity: 400, loads: "40 loads" },
+    { manufacturer: "Tolkar", capacity: 20, loads: "2 loads" },
+    { manufacturer: "Tolkar", capacity: 40, loads: "4 loads" },
+    { manufacturer: "Tolkar", capacity: 60, loads: "6 loads" },
+    { manufacturer: "Tolkar", capacity: 110, loads: "11 loads" },
+    { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
+  ];
+
 
    const paymentSystems = [
     {
@@ -873,7 +1000,7 @@ const washerOptions = [
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="notableLandmarks">Attending Hours</Label>
                     <Input
@@ -905,6 +1032,114 @@ const washerOptions = [
                       placeholder="Non Attending Hours"
                     />
                   </div>
+                </div> */}
+                <div className="space-y-4">
+                  {/* Tickboxes */}
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={attendantType === "attendant"}
+                        onChange={() => handleTypeChange("attendant")}
+                      />
+                      Attendant
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={attendantType === "nonAttendant"}
+                        onChange={() => handleTypeChange("nonAttendant")}
+                      />
+                      Non-Attendant
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={attendantType === "partial"}
+                        onChange={() => handleTypeChange("partial")}
+                      />
+                      Partially Attendant
+                    </label>
+                  </div>
+
+                  {/* Attendant / Partially Attendant UI */}
+                  {(attendantType === "attendant" ||
+                    attendantType === "partial") && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label>Open Time</label>
+                        <select
+                          value={formData.attendingOpen || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              attendingOpen: e.target.value,
+                            }))
+                          }
+                          className="border rounded px-3 py-2 w-full"
+                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
+                        >
+                          <option value="">Select open time</option>
+                          {TIME_OPTIONS.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label>Close Time</label>
+                        <select
+                          value={formData.attendingClose || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              attendingClose: e.target.value,
+                            }))
+                          }
+                          className="border rounded px-3 py-2 w-full"
+                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
+                        >
+                          <option value="">Select close time</option>
+                          {TIME_OPTIONS.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2 col-span-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.is24Hours || false}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              is24Hours: e.target.checked,
+                              attendingOpen: e.target.checked
+                                ? ""
+                                : prev.attendingOpen,
+                              attendingClose: e.target.checked
+                                ? ""
+                                : prev.attendingClose,
+                            }))
+                          }
+                        />
+                        <span>Open 24/7</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Non-Attendant only shows checkbox (no times) */}
+                  {attendantType === "nonAttendant" && (
+                    <div className="text-sm text-gray-600">
+                      ✅ This location will be marked as non-attended.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -958,7 +1193,12 @@ const washerOptions = [
 
                         return (
                           <tr key={day}>
-                            <td className="p-1">{day}</td>
+                             {/* <td className="p-1">{day}</td> */}
+                            <td className="p-1">
+                              <div className="border border-gray-300 rounded px-2 py-1 text-center">
+                                {day}
+                              </div>
+                            </td>
 
                             {/* Open Time */}
                             <td className="p-1">
@@ -1084,170 +1324,169 @@ const washerOptions = [
 
                 {/* //Open on Holidays */}
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="openOnHolidays"
-                      checked={formData.openOnHolidays}
-                      onCheckedChange={(checked) =>
+                  {/* ✅ Removed checkbox functionality */}
+                  {/* <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="openOnHolidays"
+                            onCheckedChange={(checked) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                openOnHolidays: !!checked,
+                              }))
+                            }
+                          />
+                          <Label htmlFor="openOnHolidays">Open on holidays</Label>
+                        </div> */}
+
+                  {/* ✅ Holiday Hours always visible */}
+                  <div className="space-y-4">
+                    <Label>Holiday Hours</Label>
+
+                    {formData.holidayHours.map((holiday, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col lg:flex-row gap-4 items-center border p-3 rounded-xl"
+                      >
+                        {/* Holiday Dropdown */}
+                        <select
+                          value={holiday.name}
+                          onChange={(e) => {
+                            const updated = [...formData.holidayHours];
+                            updated[index].name = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="border rounded-lg p-2 w-full lg:w-1/3"
+                        >
+                          <option value="">Select Holiday</option>
+                          <option value="Christmas">🎄 Christmas</option>
+                          <option value="Good Friday">✝️ Good Friday</option>
+                          <option value="Easter Sunday">
+                            🐣 Easter Sunday
+                          </option>
+                          <option value="Palm Sunday">🌿 Palm Sunday</option>
+                          <option value="Ascension Day">
+                            ⛪ Ascension Day
+                          </option>
+                          <option value="Pentecost">🔥 Pentecost</option>
+                        </select>
+
+                        {/* Open Time Dropdown */}
+                        <select
+                          value={holiday.open}
+                          onChange={(e) => {
+                            const updated = [...formData.holidayHours];
+                            updated[index].open = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="border rounded-lg p-2 w-full lg:w-1/4"
+                        >
+                          <option value="">Open Time</option>
+                          {[
+                            "Closed",
+                            "6:00 AM",
+                            "6:30 AM",
+                            "7:00 AM",
+                            "7:30 AM",
+                            "8:00 AM",
+                            "8:30 AM",
+                            "9:00 AM",
+                            "9:30 AM",
+                            "10:00 AM",
+                            "10:30 AM",
+                            "11:00 AM",
+                            "11:30 AM",
+                            "12:00 PM",
+                          ].map((time) => (
+                            <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Close Time Dropdown */}
+                        <select
+                          value={holiday.close}
+                          onChange={(e) => {
+                            const updated = [...formData.holidayHours];
+                            updated[index].close = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="border rounded-lg p-2 w-full lg:w-1/4"
+                        >
+                          <option value="">Close Time</option>
+                          {[
+                            "Closed",
+                            "12:00 PM",
+                            "12:30 PM",
+                            "1:00 PM",
+                            "1:30 PM",
+                            "2:00 PM",
+                            "2:30 PM",
+                            "3:00 PM",
+                            "3:30 PM",
+                            "4:00 PM",
+                            "4:30 PM",
+                            "5:00 PM",
+                            "5:30 PM",
+                            "6:00 PM",
+                            "6:30 PM",
+                            "7:00 PM",
+                            "7:30 PM",
+                            "8:00 PM",
+                          ].map((time) => (
+                            <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Remove Holiday */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = formData.holidayHours.filter(
+                              (_, i) => i !== index
+                            );
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add New Holiday Button */}
+                    <button
+                      type="button"
+                      onClick={() =>
                         setFormData((prev) => ({
                           ...prev,
-                          openOnHolidays: !!checked,
+                          holidayHours: [
+                            ...prev.holidayHours,
+                            { name: "", open: "", close: "" },
+                          ],
                         }))
                       }
-                    />
-                    <Label htmlFor="openOnHolidays">Open on holidays</Label>
+                      className="text-blue-600 hover:underline"
+                    >
+                      + Add Holiday
+                    </button>
                   </div>
 
-                  {formData.openOnHolidays && (
-                    <div className="space-y-4">
-                      <Label>Holiday Hours</Label>
-
-                      {/* Loop through holidayHours array */}
-                      {formData.holidayHours.map((holiday, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col lg:flex-row gap-4 items-center border p-3 rounded-xl"
-                        >
-                          {/* Holiday Dropdown */}
-                          <select
-                            value={holiday.name}
-                            onChange={(e) => {
-                              const updated = [...formData.holidayHours];
-                              updated[index].name = e.target.value;
-                              setFormData((prev) => ({
-                                ...prev,
-                                holidayHours: updated,
-                              }));
-                            }}
-                            className="border rounded-lg p-2 w-full lg:w-1/3"
-                          >
-                            <option value="">Select Holiday</option>
-                            <option value="Christmas">🎄 Christmas</option>
-                            <option value="Good Friday">✝️ Good Friday</option>
-                            <option value="Easter Sunday">
-                              🐣 Easter Sunday
-                            </option>
-                            <option value="Palm Sunday">🌿 Palm Sunday</option>
-                            <option value="Ascension Day">
-                              ⛪ Ascension Day
-                            </option>
-                            <option value="Pentecost">🔥 Pentecost</option>
-                          </select>
-
-                          {/* Open Time Dropdown */}
-                          <select
-                            value={holiday.open}
-                            onChange={(e) => {
-                              const updated = [...formData.holidayHours];
-                              updated[index].open = e.target.value;
-                              setFormData((prev) => ({
-                                ...prev,
-                                holidayHours: updated,
-                              }));
-                            }}
-                            className="border rounded-lg p-2 w-full lg:w-1/4"
-                          >
-                            <option value="">Open Time</option>
-                            {[
-                              "Closed",
-                              "6:00 AM",
-                              "6:30 AM",
-                              "7:00 AM",
-                              "7:30 AM",
-                              "8:00 AM",
-                              "8:30 AM",
-                              "9:00 AM",
-                              "9:30 AM",
-                              "10:00 AM",
-                              "10:30 AM",
-                              "11:00 AM",
-                              "11:30 AM",
-                              "12:00 PM",
-                            ].map((time) => (
-                              <option key={time} value={time}>
-                                {time}
-                              </option>
-                            ))}
-                          </select>
-
-                          {/* Close Time Dropdown */}
-                          <select
-                            value={holiday.close}
-                            onChange={(e) => {
-                              const updated = [...formData.holidayHours];
-                              updated[index].close = e.target.value;
-                              setFormData((prev) => ({
-                                ...prev,
-                                holidayHours: updated,
-                              }));
-                            }}
-                            className="border rounded-lg p-2 w-full lg:w-1/4"
-                          >
-                            <option value="">Close Time</option>
-                            {[
-                              "Closed",
-                              "12:00 PM",
-                              "12:30 PM",
-                              "1:00 PM",
-                              "1:30 PM",
-                              "2:00 PM",
-                              "2:30 PM",
-                              "3:00 PM",
-                              "3:30 PM",
-                              "4:00 PM",
-                              "4:30 PM",
-                              "5:00 PM",
-                              "5:30 PM",
-                              "6:00 PM",
-                              "6:30 PM",
-                              "7:00 PM",
-                              "7:30 PM",
-                              "8:00 PM",
-                            ].map((time) => (
-                              <option key={time} value={time}>
-                                {time}
-                              </option>
-                            ))}
-                          </select>
-
-                          {/* Remove Holiday */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = formData.holidayHours.filter(
-                                (_, i) => i !== index
-                              );
-                              setFormData((prev) => ({
-                                ...prev,
-                                holidayHours: updated,
-                              }));
-                            }}
-                            className="text-red-500 hover:underline"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-
-                      {/* Add New Holiday Button */}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            holidayHours: [
-                              ...prev.holidayHours,
-                              { name: "", open: "", close: "" },
-                            ],
-                          }))
-                        }
-                        className="text-blue-600 hover:underline"
-                      >
-                        + Add Holiday
-                      </button>
-                    </div>
-                  )}
-
+                  {/* Last Wash Time */}
                   <div className="space-y-2">
                     <Label htmlFor="lastWashTime">
                       Last wash time / final entry time
@@ -1265,6 +1504,7 @@ const washerOptions = [
                     />
                   </div>
 
+                  {/* Time Zone */}
                   <div className="space-y-2">
                     <Label htmlFor="timeZone">Time Zone</Label>
                     <Input
@@ -1279,7 +1519,7 @@ const washerOptions = [
                       placeholder="UTC -8:00 / -7:00 (PST/PDT)"
                     />
                   </div>
-                </div>
+                </div>  
               </CardContent>
             </Card>
             <div className="flex justify-between mt-6">
@@ -1670,8 +1910,8 @@ const washerOptions = [
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              dryers: prev.dryers.map((d, i) =>
-                                i === index ? { ...d, size: e.target.value } : d
+                              dryers: prev.dryers.map((w, i) =>
+                                i === index ? { ...w, size: e.target.value } : w
                               ),
                             }))
                           }
@@ -1681,7 +1921,7 @@ const washerOptions = [
                           <option value="" disabled>
                             Select dryer size
                           </option>
-                          {washerOptions.map((w, i) => (
+                          {dryerOptions.map((w, i) => (
                             <option
                               key={i}
                               value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
@@ -1700,17 +1940,18 @@ const washerOptions = [
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              dryers: prev.dryers.map((d, i) =>
-                                i === index
-                                  ? { ...d, price: e.target.value }
-                                  : d
+                              dryers: prev.dryers.map(
+                                (w, i) =>
+                                  i === index
+                                    ? { ...w, price: e.target.value }
+                                    : w // ✅ Keep as string
                               ),
                             }))
                           }
                           required
                         />
 
-                        {/* Payment Systems for this dryer */}
+                        {/* Payment Systems for this washer */}
                         <div className="space-y-2">
                           <Label>Payment Systems</Label>
                           {dryer.payments?.map((payment, pIndex) => (
@@ -1723,11 +1964,11 @@ const washerOptions = [
                                 onChange={(e) =>
                                   setFormData((prev) => ({
                                     ...prev,
-                                    dryers: prev.dryers.map((d, i) =>
+                                    dryers: prev.dryers.map((w, i) =>
                                       i === index
                                         ? {
-                                            ...d,
-                                            payments: d.payments.map((p, pi) =>
+                                            ...w,
+                                            payments: w.payments.map((p, pi) =>
                                               pi === pIndex
                                                 ? {
                                                     ...p,
@@ -1736,7 +1977,7 @@ const washerOptions = [
                                                 : p
                                             ),
                                           }
-                                        : d
+                                        : w
                                     ),
                                   }))
                                 }
@@ -1752,7 +1993,7 @@ const washerOptions = [
                                 ))}
                               </select>
 
-                              <Input
+                              {/* <Input
                                 type="text"
                                 placeholder="Optional notes"
                                 value={payment.notes}
@@ -1776,7 +2017,7 @@ const washerOptions = [
                                     ),
                                   }))
                                 }
-                              />
+                              /> */}
 
                               <Button
                                 type="button"
@@ -1785,15 +2026,15 @@ const washerOptions = [
                                 onClick={() =>
                                   setFormData((prev) => ({
                                     ...prev,
-                                    dryers: prev.dryers.map((d, i) =>
+                                    dryers: prev.dryers.map((w, i) =>
                                       i === index
                                         ? {
-                                            ...d,
-                                            payments: d.payments.filter(
+                                            ...w,
+                                            payments: w.payments.filter(
                                               (_, pi) => pi !== pIndex
                                             ),
                                           }
-                                        : d
+                                        : w
                                     ),
                                   }))
                                 }
@@ -1825,16 +2066,17 @@ const washerOptions = [
                             onClick={() =>
                               setFormData((prev) => ({
                                 ...prev,
-                                dryers: [
-                                  ...(prev.dryers || []),
-                                  {
-                                    size: "",
-                                    price: "",
-                                    quantity: 0,
-                                    system: "",
-                                    payments: [],
-                                  },
-                                ],
+                                 dryers: prev.dryers.map((w, i) =>
+                                  i === index
+                                    ? {
+                                        ...w,
+                                        payments: [
+                                          ...(w.payments || []),
+                                          { system: "", notes: "" },
+                                        ],
+                                      }
+                                    : w
+                                ),
                               }))
                             }
                           >
@@ -1842,7 +2084,7 @@ const washerOptions = [
                           </Button>
                         </div>
 
-                        {/* Remove Dryer */}
+                        {/* Remove Washer */}
                         <Button
                           type="button"
                           variant="destructive"
@@ -1854,12 +2096,12 @@ const washerOptions = [
                             }))
                           }
                         >
-                          Remove Dryer
+                          Remove Washer
                         </Button>
                       </div>
                     ))}
 
-                    {/* Add Dryer */}
+                    {/* Add Washer */}
                     <Button
                       type="button"
                       variant="outline"

@@ -231,7 +231,7 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
             {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
             <TabsTrigger value="calls">Call History</TabsTrigger>
             <TabsTrigger value="locations">Locations</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
+            {/* <TabsTrigger value="customers">Customers</TabsTrigger> */}
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -295,55 +295,6 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                 </CardContent>
               </Card>
             </div>
-
-            {/* Subscription Overview */}
-            {/* <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Subscription Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Current Plan</span>
-                      <Badge variant="outline">{subscriptionData.plan}</Badge>
-                    </div>
-                    <p className="text-2xl font-bold">${subscriptionData.price}/month</p>
-                    <p className="text-xs text-muted-foreground">
-                      ${subscriptionData.locations === 1 ? '175 base' : '175 base + $45 per additional location'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Status</span>
-                      <Badge variant="outline" className="text-green-700 border-green-200">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                        {subscriptionData.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm">Next billing: {new Date(subscriptionData.nextBilling).toLocaleDateString()}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {subscriptionData.locations} location{subscriptionData.locations > 1 ? 's' : ''}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium">Payment Method</span>
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="h-4 w-4" />
-                      <span className="text-sm">{subscriptionData.paymentMethod.type} •••• {subscriptionData.paymentMethod.last4}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Expires {subscriptionData.paymentMethod.expiry}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card> */}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Common Questions */}
@@ -578,10 +529,8 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
             </Card>
           </TabsContent>
 
-          <TabsContent value="customers" className="space-y-6">
-            {/* Customer Management */}
+          {/* <TabsContent value="customers" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Customer List */}
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader>
@@ -609,13 +558,11 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {/* Search and Add Customer */}
                       <div className="flex gap-2">
                         <Input placeholder="Search customers by phone or name..." className="flex-1" />
                         <Button>Add Customer</Button>
                       </div>
 
-                      {/* Customer Table */}
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -668,7 +615,6 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   </CardContent>
                 </Card>
               </div>
-               {/* SMS Blast Panel */}
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -733,7 +679,6 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   </CardContent>
                 </Card>
 
-                {/* Customer Stats */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Customer Insights</CardTitle>
@@ -769,7 +714,7 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                 </Card>
               </div>
             </div>
-          </TabsContent>
+          </TabsContent> */}
           
           <TabsContent value="billing" className="space-y-6">
             {/* Current Subscription */}

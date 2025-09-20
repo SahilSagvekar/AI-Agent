@@ -42,7 +42,9 @@ model LaundromatLocation {
   googleMapsUrl     String?
   twilioPhone       String?
   notableLandmarks  String?
-  attendingHours    String?
+  attendingOpen    String?   // "09:00 AM"
+  attendingClose   String?   // "06:00 PM"
+  is24Hours        Boolean   @default(false)
   nonAttendingHours String?
   timeZone          String?               @default("UTC")
   escalateForwardCall Boolean @default(false)
@@ -213,7 +215,7 @@ model Policies {
   locationId          Int       @unique
   lostFoundPolicy     String?
   refundPolicy        String?
-  covidPolicies       String?
+  petPolicies         String?
   timeLimits          String?
   unattendedPolicy    String?
   additionalPolicies  String?

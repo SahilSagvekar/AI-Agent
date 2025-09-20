@@ -58,7 +58,7 @@ function flattenTrainingData(apiData: any) {
 
     lostFoundPolicy: apiData.policies?.lostFoundPolicy ?? "",
     refundPolicy: apiData.policies?.refundPolicy ?? "",
-    covidPolicies: apiData.policies?.covidPolicies ?? "",
+    petPolicies: apiData.policies?.petPolicies ?? "",
     timeLimits: apiData.policies?.timeLimits ?? "",
     unattendedPolicy: apiData.policies?.unattendedPolicy ?? "",
     additionalPolicies: apiData.policies?.additionalPolicies ?? "",
