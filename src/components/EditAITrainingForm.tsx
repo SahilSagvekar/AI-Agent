@@ -494,6 +494,16 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
     "Korean",
   ];
 
+  const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+  ];
+
   const TIME_OPTIONS = [
   { value: "00:00", label: "12:00 AM" },
   { value: "01:00", label: "1:00 AM" },
