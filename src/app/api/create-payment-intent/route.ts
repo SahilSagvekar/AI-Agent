@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { PrismaClient } from "@prisma/client";
 import { getUser } from "@/lib/auth";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe("sk_test_51S2wJ5LftZnSCITqD75sQsz0hARgFh1Jz8kVTuOPZ2s4VDPMGWLm87tjvQk9poYzbuF21EfASWh53vHwsnLlFYVV00qsD6fce3");
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
@@ -98,8 +98,8 @@ if (data.flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
   const subscription = await stripe.subscriptions.create({
     customer: stripeCustomerId,
     items: [
-      { price: process.env.STRIPE_INTRO_PRICE_ID!, quantity: 1 },
-      { price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!, quantity: data.locationCount },
+      { price: "price_1S6pr1LftZnSCITqYE9ET5V4", quantity: 1 },
+      { price: "price_1S6psbLftZnSCITq91fr5eDe", quantity: data.locationCount },
     ],
     payment_behavior: "default_incomplete",
     expand: [
