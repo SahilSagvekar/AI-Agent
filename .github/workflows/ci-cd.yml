@@ -3,8 +3,6 @@ name: CI / CD to AWS Fargate
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 env:
   AWS_REGION: ap-southeast-2
@@ -22,57 +20,75 @@ jobs:
       id-token: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Setup Node
-      uses: actions/setup-node@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: 20
 
-    - name: Install dependencies
-      run: npm ci --legacy-peer-deps
+    - run: npm ci --legacy-peer-deps
+    - run: npm test --silent || true
 
-    - name: Run tests
-      run: npm test --silent || true
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+    - uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
+    - id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push Docker image
+    - name: Build & push Docker image
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
+        STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
+        STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
+        STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
       run: |
-        docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-      shell: bash
+        docker build \
+          --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+          --build-arg DATABASE_URL=$DATABASE_URL \
+          --build-arg NINJAS_API_KEY=$NINJAS_API_KEY \
+          --build-arg STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID \
+          --build-arg STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID \
+          --build-arg STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID \
+          --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
+          --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
+          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
     - name: Render ECS task definition
-      id: task-def
       env:
-        STRIPE_SECRET_KEY: sk_test_51S2wJ5LftZnSCITqD75sQsz0hARgFh1Jz8kVTuOPZ2s4VDPMGWLm87tjvQk9poYzbuF21EfASWh53vHwsnLlFYVV00qsD6fce3
-        OPENAI_API_KEY: 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
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
+        STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
+        STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
+        STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
       run: |
         IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
         jq -n --arg img "$IMAGE_URI" \
               --arg stripe "$STRIPE_SECRET_KEY" \
-              --arg openai "$OPENAI_API_KEY" \
+              --arg db "$DATABASE_URL" \
+              --arg ninja "$NINJAS_API_KEY" \
+              --arg stripe_add "$STRIPE_ADD_LOCATION_PRICE_ID" \
+              --arg stripe_intro "$STRIPE_INTRO_PRICE_ID" \
+              --arg stripe_normal "$STRIPE_NORMAL_PRICE_ID" \
+              --arg twilio_sid "$TWILIO_ACCOUNT_SID" \
+              --arg twilio_auth "$TWILIO_AUTH_TOKEN" \
               '{
                 family: "'"${{ env.TASK_FAMILY }}"'",
                 networkMode: "awsvpc",
                 requiresCompatibilities: ["FARGATE"],
                 cpu: "512",
                 memory: "1024",
-                executionRoleArn: "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+                executionRoleArn: "arn:aws:iam::043309366307:role/ecsTaskExecutionRole",
                 containerDefinitions: [
                   {
                     name: "'"${{ env.CONTAINER_NAME }}"'",
@@ -81,7 +97,13 @@ jobs:
                     portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
                     environment: [
                       {name: "STRIPE_SECRET_KEY", value: $stripe},
-                      {name: "OPENAI_API_KEY", value: $openai}
+                      {name: "DATABASE_URL", value: $db},
+                      {name: "NINJAS_API_KEY", value: $ninja},
+                      {name: "STRIPE_ADD_LOCATION_PRICE_ID", value: $stripe_add},
+                      {name: "STRIPE_INTRO_PRICE_ID", value: $stripe_intro},
+                      {name: "STRIPE_NORMAL_PRICE_ID", value: $stripe_normal},
+                      {name: "TWILIO_ACCOUNT_SID", value: $twilio_sid},
+                      {name: "TWILIO_AUTH_TOKEN", value: $twilio_auth}
                     ],
                     logConfiguration: {
                       logDriver: "awslogs",
@@ -95,11 +117,9 @@ jobs:
                 ]
               }' > taskdef.json
 
-    - name: Register ECS task definition
-      run: aws ecs register-task-definition --cli-input-json file://taskdef.json
+    - run: aws ecs register-task-definition --cli-input-json file://taskdef.json
 
-    - name: Deploy to ECS service
-      run: |
+    - run: |
         aws ecs update-service \
           --cluster ${{ env.CLUSTER_NAME }} \
           --service ${{ env.SERVICE_NAME }} \
