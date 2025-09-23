@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   }
 
   const otp = generateOtp();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
   try {
     // Save or update OTP in DB
