@@ -5,12 +5,13 @@ on:
     branches: [ main, master ]
 
 env:
-  AWS_REGION: ap-southeast-2
+  AWS_REGION: us-east-1
   ECR_REPOSITORY: my-ai-agent
-  CLUSTER_NAME: my-ecs-cluster
-  SERVICE_NAME: my-ai-agent-service
+  CLUSTER_NAME: my-ecs-cluster-us
+  SERVICE_NAME: my-ai-service-us
   TASK_FAMILY: my-ai-task
-  CONTAINER_NAME: my-ai-container
+  CONTAINER_NAME: my-ai-agent-container
+
 
 jobs:
   build-and-deploy:
