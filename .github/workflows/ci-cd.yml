@@ -121,6 +121,6 @@ jobs:
 
     - run: |
         aws ecs update-service \
-          --cluster ${{ env.CLUSTER_NAME }} \
-          --service ${{ env.SERVICE_NAME }} \
+          --cluster my-ecs-cluster \
+          --service my-ai-service \
           --force-new-deployment
