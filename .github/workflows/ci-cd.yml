@@ -21,25 +21,31 @@ jobs:
       id-token: write
 
     steps:
+      # Checkout repo
       - uses: actions/checkout@v4
 
+      # Setup Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # Install dependencies & run tests
       - run: npm ci --legacy-peer-deps
       - run: npm test --silent || true
 
+      # Configure AWS credentials
       - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # Login to ECR
       - id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build & push Docker image
+      # Build & push Docker image
+      - name: Build & Push Docker Image
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -52,7 +58,7 @@ jobs:
         run: |
           IMAGE_TAG=${GITHUB_SHA}
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-          
+
           docker build \
             --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
             --build-arg DATABASE_URL=$DATABASE_URL \
@@ -66,7 +72,8 @@ jobs:
           docker push $IMAGE_URI
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-      - name: Render ECS task definition
+      # Render ECS task definition
+      - name: Render ECS Task Definition
         run: |
           IMAGE_URI=$IMAGE_URI
           jq -n --arg img "$IMAGE_URI" \
@@ -113,10 +120,12 @@ jobs:
                   ]
                 }' > taskdef.json
 
-      - name: Register ECS task definition
+      # Register ECS task definition
+      - name: Register ECS Task Definition
         run: aws ecs register-task-definition --cli-input-json file://taskdef.json
 
-      - name: Deploy to ECS service (force new deployment)
+      # Update ECS service (ALB-backed)
+      - name: Update ECS Service
         run: |
           aws ecs update-service \
             --cluster ${{ env.CLUSTER_NAME }} \
@@ -124,7 +133,8 @@ jobs:
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
 
-      - name: Wait for service stability
+      # Wait for ECS service to be stable
+      - name: Wait for Service Stability
         run: |
           aws ecs wait services-stable \
             --cluster ${{ env.CLUSTER_NAME }} \
