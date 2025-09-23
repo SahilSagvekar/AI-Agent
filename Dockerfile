@@ -23,7 +23,8 @@ ENV TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID
 ENV TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN
 
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+COPY prisma ./prisma
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
