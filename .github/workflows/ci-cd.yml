@@ -8,7 +8,7 @@ env:
   AWS_REGION: ap-southeast-2
   ECR_REPOSITORY: my-ai-agent
   CLUSTER_NAME: my-ecs-cluster
-  SERVICE_NAME: my-ai-service
+  SERVICE_NAME: my-ai-agent-service
   TASK_FAMILY: my-ai-task
   CONTAINER_NAME: my-ai-container
 
@@ -122,5 +122,5 @@ jobs:
     - run: |
         aws ecs update-service \
           --cluster my-ecs-cluster \
-          --service my-ai-service \
+          --service my-ai-agent-service \
           --force-new-deployment
