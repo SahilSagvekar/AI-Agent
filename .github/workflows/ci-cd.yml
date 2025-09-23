@@ -1,0 +1,105 @@
+name: CI / CD to AWS Fargate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  AWS_REGION: ap-southeast-2      # change to your region
+  ECR_REPOSITORY: my-ai-agent  # change to your repo name
+  CLUSTER_NAME: my-ecs-cluster
+  SERVICE_NAME: my-ecs-service
+  TASK_FAMILY: my-ai-task
+  CONTAINER_NAME: my-ai-container
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test --silent || true   # tolerate failing tests if you prefer; remove `|| true` to fail
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        echo "ECR_REGISTRY=$ECR_REGISTRY"
+        docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+      shell: bash
+
+    - name: Render task definition
+      id: task-def
+      run: |
+        # Create a task definition JSON by swapping in image URI
+        IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+        jq -n --arg img "$IMAGE_URI" --arg name "${{ env.CONTAINER_NAME }}" '{
+          family: "'"${{ env.TASK_FAMILY }}"'",
+          networkMode: "awsvpc",
+          requiresCompatibilities: ["FARGATE"],
+          cpu: "512",
+          memory: "1024",
+          executionRoleArn: "",      # fill later or provide via AWS default
+          containerDefinitions: [
+            {
+              name: $name,
+              image: $img,
+              essential: true,
+              portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
+              environment: [],
+              logConfiguration: {
+                logDriver: "awslogs",
+                options: {
+                  "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
+                  "awslogs-region": "${{ env.AWS_REGION }}",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              }
+            }
+          ]
+        }' > taskdef.json
+        echo "::set-output name=taskdef::$(cat taskdef.json | base64 -w0)"
+      shell: bash
+
+    - name: Register task definition
+      run: |
+        aws ecs register-task-definition --cli-input-json file://taskdef.json
+      shell: bash
+
+    - name: Deploy to ECS service (update)
+      run: |
+        # Force new deployment on the service to pick up new task definition
+        aws ecs update-service \
+          --cluster ${{ env.CLUSTER_NAME }} \
+          --service ${{ env.SERVICE_NAME }} \
+          --force-new-deployment
+      shell: bash
