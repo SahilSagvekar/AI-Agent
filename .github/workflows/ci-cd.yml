@@ -1,4 +1,4 @@
-name: CI / CD to AWS Fargate
+name: CI/CD to AWS Fargate (ALB)
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   SERVICE_NAME: my-ai-service-us
   TASK_FAMILY: my-ai-task
   CONTAINER_NAME: my-ai-agent-container
-
+  ALB_DNS_NAME: http://my-ai-alb-1340931210.us-east-1.elb.amazonaws.com/
 
 jobs:
   build-and-deploy:
@@ -21,108 +21,112 @@ jobs:
       id-token: write
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - run: npm ci --legacy-peer-deps
-    - run: npm test --silent || true
+      - run: npm ci --legacy-peer-deps
+      - run: npm test --silent || true
 
-    - uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build & push Docker image
-      env:
-        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
-        STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
-        STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
-        STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
-        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-      run: |
-        docker build \
-          --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
-          --build-arg DATABASE_URL=$DATABASE_URL \
-          --build-arg NINJAS_API_KEY=$NINJAS_API_KEY \
-          --build-arg STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID \
-          --build-arg STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID \
-          --build-arg STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID \
-          --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
-          --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
-          -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
-        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Build & push Docker image
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
+          STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
+          STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
+          STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          
+          docker build \
+            --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+            --build-arg DATABASE_URL=$DATABASE_URL \
+            --build-arg NINJAS_API_KEY=$NINJAS_API_KEY \
+            --build-arg STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID \
+            --build-arg STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID \
+            --build-arg STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID \
+            --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
+            --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
+            -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-    - name: Render ECS task definition
-      env:
-        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
-        STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
-        STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
-        STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
-        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-      run: |
-        IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
-        jq -n --arg img "$IMAGE_URI" \
-              --arg stripe "$STRIPE_SECRET_KEY" \
-              --arg db "$DATABASE_URL" \
-              --arg ninja "$NINJAS_API_KEY" \
-              --arg stripe_add "$STRIPE_ADD_LOCATION_PRICE_ID" \
-              --arg stripe_intro "$STRIPE_INTRO_PRICE_ID" \
-              --arg stripe_normal "$STRIPE_NORMAL_PRICE_ID" \
-              --arg twilio_sid "$TWILIO_ACCOUNT_SID" \
-              --arg twilio_auth "$TWILIO_AUTH_TOKEN" \
-              '{
-                family: "'"${{ env.TASK_FAMILY }}"'",
-                networkMode: "awsvpc",
-                requiresCompatibilities: ["FARGATE"],
-                cpu: "512",
-                memory: "1024",
-                executionRoleArn: "arn:aws:iam::043309366307:role/ecsTaskExecutionRole",
-                containerDefinitions: [
-                  {
-                    name: "'"${{ env.CONTAINER_NAME }}"'",
-                    image: $img,
-                    essential: true,
-                    portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
-                    environment: [
-                      {name: "STRIPE_SECRET_KEY", value: $stripe},
-                      {name: "DATABASE_URL", value: $db},
-                      {name: "NINJAS_API_KEY", value: $ninja},
-                      {name: "STRIPE_ADD_LOCATION_PRICE_ID", value: $stripe_add},
-                      {name: "STRIPE_INTRO_PRICE_ID", value: $stripe_intro},
-                      {name: "STRIPE_NORMAL_PRICE_ID", value: $stripe_normal},
-                      {name: "TWILIO_ACCOUNT_SID", value: $twilio_sid},
-                      {name: "TWILIO_AUTH_TOKEN", value: $twilio_auth}
-                    ],
-                    logConfiguration: {
-                      logDriver: "awslogs",
-                      options: {
-                        "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
-                        "awslogs-region": "${{ env.AWS_REGION }}",
-                        "awslogs-stream-prefix": "ecs"
+      - name: Render ECS task definition
+        run: |
+          IMAGE_URI=$IMAGE_URI
+          jq -n --arg img "$IMAGE_URI" \
+                --arg stripe "$STRIPE_SECRET_KEY" \
+                --arg db "$DATABASE_URL" \
+                --arg ninja "$NINJAS_API_KEY" \
+                --arg stripe_add "$STRIPE_ADD_LOCATION_PRICE_ID" \
+                --arg stripe_intro "$STRIPE_INTRO_PRICE_ID" \
+                --arg stripe_normal "$STRIPE_NORMAL_PRICE_ID" \
+                --arg twilio_sid "$TWILIO_ACCOUNT_SID" \
+                --arg twilio_auth "$TWILIO_AUTH_TOKEN" \
+                '{
+                  family: "'"${{ env.TASK_FAMILY }}"'",
+                  networkMode: "awsvpc",
+                  requiresCompatibilities: ["FARGATE"],
+                  cpu: "512",
+                  memory: "1024",
+                  executionRoleArn: "arn:aws:iam::043309366307:role/ecsTaskExecutionRole",
+                  containerDefinitions: [
+                    {
+                      name: "'"${{ env.CONTAINER_NAME }}"'",
+                      image: $img,
+                      essential: true,
+                      portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
+                      environment: [
+                        {name: "STRIPE_SECRET_KEY", value: $stripe},
+                        {name: "DATABASE_URL", value: $db},
+                        {name: "NINJAS_API_KEY", value: $ninja},
+                        {name: "STRIPE_ADD_LOCATION_PRICE_ID", value: $stripe_add},
+                        {name: "STRIPE_INTRO_PRICE_ID", value: $stripe_intro},
+                        {name: "STRIPE_NORMAL_PRICE_ID", value: $stripe_normal},
+                        {name: "TWILIO_ACCOUNT_SID", value: $twilio_sid},
+                        {name: "TWILIO_AUTH_TOKEN", value: $twilio_auth}
+                      ],
+                      logConfiguration: {
+                        logDriver: "awslogs",
+                        options: {
+                          "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
+                          "awslogs-region": "${{ env.AWS_REGION }}",
+                          "awslogs-stream-prefix": "ecs"
+                        }
                       }
                     }
-                  }
-                ]
-              }' > taskdef.json
+                  ]
+                }' > taskdef.json
 
-    - run: aws ecs register-task-definition --cli-input-json file://taskdef.json
+      - name: Register ECS task definition
+        run: aws ecs register-task-definition --cli-input-json file://taskdef.json
 
-    - run: |
-        aws ecs update-service \
-          --cluster my-ecs-cluster-us \
-          --service my-ai-service-us \
-          --force-new-deployment \
-          --region us-east-1
+      - name: Deploy to ECS service (force new deployment)
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service ${{ env.SERVICE_NAME }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --services ${{ env.SERVICE_NAME }} \
+            --region ${{ env.AWS_REGION }}
