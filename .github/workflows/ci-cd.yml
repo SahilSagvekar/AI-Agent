@@ -122,6 +122,6 @@ jobs:
 
     - run: |
         aws ecs update-service \
-          --cluster my-ecs-cluster \
-          --service my-ai-agent-service \
+          --cluster my-ecs-cluster-us \
+          --service my-ai-service-us \
           --force-new-deployment
