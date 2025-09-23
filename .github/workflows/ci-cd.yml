@@ -124,4 +124,5 @@ jobs:
         aws ecs update-service \
           --cluster my-ecs-cluster-us \
           --service my-ai-service-us \
-          --force-new-deployment
+          --force-new-deployment \
+          --region us-east-1
