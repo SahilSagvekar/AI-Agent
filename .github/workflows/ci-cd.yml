@@ -7,10 +7,10 @@ on:
     branches: [ main, master ]
 
 env:
-  AWS_REGION: ap-southeast-2      # change to your region
-  ECR_REPOSITORY: my-ai-agent  # change to your repo name
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: my-ai-agent
   CLUSTER_NAME: my-ecs-cluster
-  SERVICE_NAME: my-ecs-service
+  SERVICE_NAME: my-ai-service
   TASK_FAMILY: my-ai-task
   CONTAINER_NAME: my-ai-container
 
@@ -22,7 +22,7 @@ jobs:
       id-token: write
 
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Setup Node
@@ -34,7 +34,7 @@ jobs:
       run: npm ci --legacy-peer-deps
 
     - name: Run tests
-      run: npm test --silent || true   # tolerate failing tests if you prefer; remove `|| true` to fail
+      run: npm test --silent || true
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -47,61 +47,60 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to ECR
+    - name: Build, tag, and push Docker image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        echo "ECR_REGISTRY=$ECR_REGISTRY"
-        echo "IMAGE_TAG=$IMAGE_TAG"
-        # Build the Docker image and push to ECR  
         docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
         docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
       shell: bash
 
-    - name: Render task definition
+    - name: Render ECS task definition
       id: task-def
+      env:
+        STRIPE_SECRET_KEY: sk_test_51S2wJ5LftZnSCITqD75sQsz0hARgFh1Jz8kVTuOPZ2s4VDPMGWLm87tjvQk9poYzbuF21EfASWh53vHwsnLlFYVV00qsD6fce3
+        OPENAI_API_KEY: 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
       run: |
-        # Create a task definition JSON by swapping in image URI
         IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
-        jq -n --arg img "$IMAGE_URI" --arg name "${{ env.CONTAINER_NAME }}" '{
-          family: "'"${{ env.TASK_FAMILY }}"'",
-          networkMode: "awsvpc",
-          requiresCompatibilities: ["FARGATE"],
-          cpu: "512",
-          memory: "1024",
-          executionRoleArn: "",      # fill later or provide via AWS default
-          containerDefinitions: [
-            {
-              name: $name,
-              image: $img,
-              essential: true,
-              portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
-              environment: [],
-              logConfiguration: {
-                logDriver: "awslogs",
-                options: {
-                  "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
-                  "awslogs-region": "${{ env.AWS_REGION }}",
-                  "awslogs-stream-prefix": "ecs"
-                }
-              }
-            }
-          ]
-        }' > taskdef.json
-        echo "::set-output name=taskdef::$(cat taskdef.json | base64 -w0)"
-      shell: bash
+        jq -n --arg img "$IMAGE_URI" \
+              --arg stripe "$STRIPE_SECRET_KEY" \
+              --arg openai "$OPENAI_API_KEY" \
+              '{
+                family: "'"${{ env.TASK_FAMILY }}"'",
+                networkMode: "awsvpc",
+                requiresCompatibilities: ["FARGATE"],
+                cpu: "512",
+                memory: "1024",
+                executionRoleArn: "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+                containerDefinitions: [
+                  {
+                    name: "'"${{ env.CONTAINER_NAME }}"'",
+                    image: $img,
+                    essential: true,
+                    portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
+                    environment: [
+                      {name: "STRIPE_SECRET_KEY", value: $stripe},
+                      {name: "OPENAI_API_KEY", value: $openai}
+                    ],
+                    logConfiguration: {
+                      logDriver: "awslogs",
+                      options: {
+                        "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
+                        "awslogs-region": "${{ env.AWS_REGION }}",
+                        "awslogs-stream-prefix": "ecs"
+                      }
+                    }
+                  }
+                ]
+              }' > taskdef.json
 
-    - name: Register task definition
-      run: |
-        aws ecs register-task-definition --cli-input-json file://taskdef.json
-      shell: bash
+    - name: Register ECS task definition
+      run: aws ecs register-task-definition --cli-input-json file://taskdef.json
 
-    - name: Deploy to ECS service (update)
+    - name: Deploy to ECS service
       run: |
-        # Force new deployment on the service to pick up new task definition
         aws ecs update-service \
           --cluster ${{ env.CLUSTER_NAME }} \
           --service ${{ env.SERVICE_NAME }} \
           --force-new-deployment
-      shell: bash
