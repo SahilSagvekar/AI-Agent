@@ -25,14 +25,14 @@ export function Header({ onLogin }: { onLogin: () => void }) {
               onClick={() => scrollToSection('features')} 
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              {/* Features */}
-              future
+              Features
             </button>
             <button 
               onClick={() => scrollToSection('pricing')} 
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              Pricing
+              {/* Pricing */}
+              Price
             </button>
             <button 
               onClick={redirectDemo} 
