@@ -139,4 +139,5 @@ jobs:
           aws ecs wait services-stable \
             --cluster ${{ env.CLUSTER_NAME }} \
             --services ${{ env.SERVICE_NAME }} \
-            --region ${{ env.AWS_REGION }}
+            --region ${{ env.AWS_REGION }} \
+            --force-new-deployment

@@ -295,7 +295,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  //   // ✅ Handle One-Time Payment (Add location / Buy number)
+  //   // ✅ Handle One-Time Payment (Add location / Buy second number)
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const userId = paymentIntent.metadata.userId;
@@ -303,8 +303,8 @@ export async function POST(req: NextRequest) {
 
     if (userId) {
       try {
-        // let userIdInt = parseInt(userId, 10);
-          let userIdInt = userId;
+        let userIdInt = parseInt(userId, 10);
+          // let userIdInt = userId;
 
         if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
           console.log("NEW_NUMBER");
