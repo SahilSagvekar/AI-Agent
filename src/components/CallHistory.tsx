@@ -460,6 +460,7 @@ export function CallHistory() {
           </Card>
 
           {/* Call Details */}
+          {/* Call Details */}
           {filteredCalls.length > 0 && (
             <Card>
               <CardHeader>
