@@ -112,14 +112,6 @@ jobs:
                         {name: "TWILIO_ACCOUNT_SID", value: $twilio_sid},
                         {name: "TWILIO_AUTH_TOKEN", value: $twilio_auth}
                       ],
-                      logConfiguration: {
-                        logDriver: "awslogs",
-                        options: {
-                          "awslogs-group": "/ecs/${{ env.SERVICE_NAME }}",
-                          "awslogs-region": "${{ env.AWS_REGION }}",
-                          "awslogs-stream-prefix": "ecs"
-                        }
-                      }
                     }
                   ]
                 }' > taskdef.json
