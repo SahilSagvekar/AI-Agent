@@ -31,8 +31,7 @@ export function Header({ onLogin }: { onLogin: () => void }) {
               onClick={() => scrollToSection('pricing')} 
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              {/* Pricing */}
-              Price
+              Pricing
             </button>
             <button 
               onClick={redirectDemo} 

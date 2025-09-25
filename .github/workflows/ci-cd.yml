@@ -1,4 +1,4 @@
-name: CI/CD to AWS Fargate
+name: CI/CD to AWS EC2
 
 on:
   push:
@@ -7,10 +7,9 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: my-ai-agent
-  CLUSTER_NAME: my-ecs-cluster-us
-  SERVICE_NAME: my-ai-service-us
-  TASK_FAMILY: my-ai-task
-  CONTAINER_NAME: my-ai-agent-container
+  EC2_HOST: <EC2_PUBLIC_IP_OR_DNS>
+  EC2_USER: ec2-user
+  DOCKER_CONTAINER_NAME: my-ai-agent
 
 jobs:
   build-and-deploy:
@@ -43,7 +42,7 @@ jobs:
       - id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Build & push Docker image
+      # Build & Push Docker Image
       - name: Build & Push Docker Image
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
@@ -74,65 +73,35 @@ jobs:
           docker push $IMAGE_URI
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      # SSH into EC2 and deploy
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Login to ECR on EC2
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
-      # Render ECS task definition
-      - name: Render ECS Task Definition
-        run: |
-          IMAGE_URI=$IMAGE_URI
-          jq -n --arg img "$IMAGE_URI" \
-                --arg stripe "$STRIPE_SECRET_KEY" \
-                --arg db "$DATABASE_URL" \
-                --arg ninja "$NINJAS_API_KEY" \
-                --arg stripe_add "$STRIPE_ADD_LOCATION_PRICE_ID" \
-                --arg stripe_intro "$STRIPE_INTRO_PRICE_ID" \
-                --arg stripe_normal "$STRIPE_NORMAL_PRICE_ID" \
-                --arg twilio_sid "$TWILIO_ACCOUNT_SID" \
-                --arg twilio_auth "$TWILIO_AUTH_TOKEN" \
-                '{
-                  family: "'"${{ env.TASK_FAMILY }}"'",
-                  networkMode: "awsvpc",
-                  requiresCompatibilities: ["FARGATE"],
-                  cpu: "512",
-                  memory: "1024",
-                  executionRoleArn: "arn:aws:iam::043309366307:role/ecsTaskExecutionRole",
-                  containerDefinitions: [
-                    {
-                      name: "'"${{ env.CONTAINER_NAME }}"'",
-                      image: $img,
-                      essential: true,
-                      portMappings: [{ containerPort: 3000, hostPort: 3000, protocol: "tcp" }],
-                      environment: [
-                        {name: "STRIPE_SECRET_KEY", value: $stripe},
-                        {name: "DATABASE_URL", value: $db},
-                        {name: "NINJAS_API_KEY", value: $ninja},
-                        {name: "STRIPE_ADD_LOCATION_PRICE_ID", value: $stripe_add},
-                        {name: "STRIPE_INTRO_PRICE_ID", value: $stripe_intro},
-                        {name: "STRIPE_NORMAL_PRICE_ID", value: $stripe_normal},
-                        {name: "TWILIO_ACCOUNT_SID", value: $twilio_sid},
-                        {name: "TWILIO_AUTH_TOKEN", value: $twilio_auth}
-                      ],
-                    }
-                  ]
-                }' > taskdef.json
+            # Pull the latest image
+            docker pull $IMAGE_URI
+            docker tag $IMAGE_URI 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
 
-      # Register ECS task definition
-      - name: Register ECS Task Definition
-        run: aws ecs register-task-definition --cli-input-json file://taskdef.json
+            # Stop and remove old container
+            docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
+            docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
 
-      # Update ECS service (no ALB now)
-      - name: Update ECS Service
-        run: |
-          aws ecs update-service \
-            --cluster ${{ env.CLUSTER_NAME }} \
-            --service ${{ env.SERVICE_NAME }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
-
-      # Wait for ECS service to be stable
-      - name: Wait for Service Stability
-        run: |
-          aws ecs wait services-stable \
-            --cluster ${{ env.CLUSTER_NAME }} \
-            --services ${{ env.SERVICE_NAME }} \
-            --region ${{ env.AWS_REGION }}
+            # Run new container
+            docker run -d --restart unless-stopped -p 80:3000 \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+              -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+              -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+              -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+              -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+              -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
