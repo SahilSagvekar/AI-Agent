@@ -11,7 +11,6 @@ env:
   SERVICE_NAME: my-ai-service-us
   TASK_FAMILY: my-ai-task
   CONTAINER_NAME: my-ai-agent-container
-  ALB_DNS_NAME: http://my-ai-alb-1340931210.us-east-1.elb.amazonaws.com/
 
 jobs:
   build-and-deploy:
