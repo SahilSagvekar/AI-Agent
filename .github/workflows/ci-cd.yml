@@ -7,10 +7,9 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: my-ai-agent
-  EC2_HOST: 50.19.49.41
+  EC2_HOST: 
   EC2_USER: ec2-user
   DOCKER_CONTAINER_NAME: my-ai-agent
-  ENV_FILE_PATH: /home/ec2-user/my-ai-agent/.env
 
 jobs:
   build-and-deploy:
@@ -45,23 +44,36 @@ jobs:
 
       # Build & Push Docker Image
       - name: Build & Push Docker Image
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
+          STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
+          STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
+          STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         run: |
-          IMAGE_TAG=${GITHUB_SHA}  # unique tag per commit
+          IMAGE_TAG=${GITHUB_SHA} 
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-          # Build Docker image
-          docker build -t $IMAGE_URI .
+          docker build \
+            --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+            --build-arg DATABASE_URL=$DATABASE_URL \
+            --build-arg NINJAS_API_KEY=$NINJAS_API_KEY \
+            --build-arg STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID \
+            --build-arg STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID \
+            --build-arg STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID \
+            --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
+            --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
+            -t $IMAGE_URI .
 
-          # Tag for ECR
-          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-          # Push images
           docker push $IMAGE_URI
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      # Deploy on EC2
+      # SSH into EC2 and deploy
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -69,11 +81,12 @@ jobs:
           username: ${{ env.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Login to ECR
+            # commands to pull image and restart container
+            # Login to ECR on EC2
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
             docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
-            # Pull new Docker image
+            # Pull the latest image
             docker pull $IMAGE_URI
             docker tag $IMAGE_URI 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
 
@@ -81,8 +94,15 @@ jobs:
             docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
 
-            # Run container using .env file
+            # Run new container
             docker run -d --restart unless-stopped -p 80:3000 \
-              --env-file ${{ env.ENV_FILE_PATH }} \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+              -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+              -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+              -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+              -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+              -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
               --name ${{ env.DOCKER_CONTAINER_NAME }} \
               043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
