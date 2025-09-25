@@ -67,8 +67,9 @@ jobs:
             --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
             --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
             -t $IMAGE_URI .
-          docker push $IMAGE_URI
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
 
       # Render ECS task definition
       - name: Render ECS Task Definition
