@@ -1,4 +1,4 @@
-name: CI/CD to AWS Fargate (ALB)
+name: CI/CD to AWS Fargate
 
 on:
   push:
@@ -57,7 +57,6 @@ jobs:
         run: |
           IMAGE_TAG=${GITHUB_SHA}
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-
           docker build \
             --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
             --build-arg DATABASE_URL=$DATABASE_URL \
@@ -116,14 +115,14 @@ jobs:
                         }
                       }
                     }
-                  ]
+                   ]
                 }' > taskdef.json
 
       # Register ECS task definition
       - name: Register ECS Task Definition
         run: aws ecs register-task-definition --cli-input-json file://taskdef.json
 
-      # Update ECS service (ALB-backed)
+      # Update ECS service (no ALB now)
       - name: Update ECS Service
         run: |
           aws ecs update-service \
@@ -138,4 +137,4 @@ jobs:
           aws ecs wait services-stable \
             --cluster ${{ env.CLUSTER_NAME }} \
             --services ${{ env.SERVICE_NAME }} \
-            --region ${{ env.AWS_REGION }} \
+            --region ${{ env.AWS_REGION }}
