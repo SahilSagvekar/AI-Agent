@@ -8,7 +8,7 @@ interface TermsOfServiceProps {
 export function TermsOfService({ onBack }: TermsOfServiceProps) {
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
+      
       <div className="border-b border-gray-800">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <Button 
