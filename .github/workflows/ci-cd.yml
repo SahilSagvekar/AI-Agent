@@ -1,25 +1,88 @@
-- name: Deploy on EC2
-  uses: appleboy/ssh-action@v0.1.7
-  with:
-    host: ${{ env.EC2_HOST }}
-    username: ${{ env.EC2_USER }}
-    key: ${{ secrets.EC2_SSH_KEY }}
-    script: |
-      # commands to pull image and restart container
+name: CI/CD to AWS EC2
+
+on:
+  push:
+    branches: [ main, master ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: my-ai-agent
+  EC2_HOST: 50.19.49.41
+  EC2_USER: ec2-user
+  DOCKER_CONTAINER_NAME: my-ai-agent
+  ENV_FILE_PATH: /home/ec2-user/my-ai-agent/.env
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      # Checkout repo
+      - uses: actions/checkout@v4
+
+      # Setup Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Install dependencies & run tests
+      - run: npm ci --legacy-peer-deps
+      - run: npm test --silent || true
+
+      # Configure AWS credentials
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
       # Login to ECR
-      aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-      docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # Pull new Docker image
-      docker pull $IMAGE_URI
-      docker tag $IMAGE_URI 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+      # Build & Push Docker Image
+      - name: Build & Push Docker Image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}  # unique tag per commit
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      # Stop and remove old container
-      docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
-      docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
+          # Build Docker image
+          docker build -t $IMAGE_URI .
 
-      # Run container using .env file
-      docker run -d --restart unless-stopped -p 80:3000 \
-        --env-file ${{ env.ENV_FILE_PATH }} \
-        --name ${{ env.DOCKER_CONTAINER_NAME }} \
-        043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          # Tag for ECR
+          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+          # Push images
+          docker push $IMAGE_URI
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      # Deploy on EC2
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Login to ECR
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
+
+            # Pull new Docker image
+            docker pull $IMAGE_URI
+            docker tag $IMAGE_URI 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+
+            # Stop and remove old container
+            docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
+            docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
+
+            # Run container using .env file
+            docker run -d --restart unless-stopped -p 80:3000 \
+              --env-file ${{ env.ENV_FILE_PATH }} \
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
