@@ -22,7 +22,7 @@ export function TermsOfService({ onBack }: TermsOfServiceProps) {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content */}{/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="space-y-8">
           <h1 className="text-3xl font-bold text-white">Terms Of Service</h1>
