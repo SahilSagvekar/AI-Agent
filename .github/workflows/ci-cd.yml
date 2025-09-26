@@ -56,8 +56,13 @@ jobs:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         run: |
-          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          # 6a. Unique tag for this commit
+          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV  # Make it available for next steps
+
+          # 6b. Build Docker image with build args
           docker build \
             --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
             --build-arg DATABASE_URL=$DATABASE_URL \
@@ -69,7 +74,12 @@ jobs:
             --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
             -t $IMAGE_URI .
 
+          # 6c. Push commit-specific tag
           docker push $IMAGE_URI
+
+          # 6d. Also tag as latest and push
+          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
       # 7️⃣ SSH into EC2 and deploy
       - name: SSH into EC2 and Deploy
@@ -88,7 +98,7 @@ jobs:
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
             docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
-            # Pull latest image
+            # Pull the latest image
             docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
 
             # Stop & remove old container
