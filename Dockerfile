@@ -1,34 +1,23 @@
 FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-# # Build-time secrets
-# ARG STRIPE_SECRET_KEY
-# ARG DATABASE_URL
-# ARG NINJAS_API_KEY
-# ARG STRIPE_ADD_LOCATION_PRICE_ID
-# ARG STRIPE_INTRO_PRICE_ID
-# ARG STRIPE_NORMAL_PRICE_ID
-# ARG TWILIO_ACCOUNT_SID
-# ARG TWILIO_AUTH_TOKEN
-
-# # # Runtime environment variables
-# ENV STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-# ENV DATABASE_URL=$DATABASE_URL
-# ENV NINJAS_API_KEY=$NINJAS_API_KEY
-# ENV STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID
-# ENV STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID
-# ENV STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID
-# ENV TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID
-# ENV TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN
-
+# Copy package files and install dependencies
 COPY package*.json ./
-COPY prisma ./prisma
 RUN npm install --legacy-peer-deps
 
-COPY . .
-
+# Copy prisma and generate client
+COPY prisma ./prisma
 RUN npx prisma generate
+
+# Copy rest of app including .env
+COPY . . 
+
+# Copy .env
+COPY .env .env
+
+# Build Next.js
 RUN npm run build
 
 EXPOSE 3000

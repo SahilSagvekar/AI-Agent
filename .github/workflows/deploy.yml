@@ -62,5 +62,8 @@ jobs:
             docker pull $IMAGE_URI
             docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
-            docker run -d --restart unless-stopped -p 3000:3000 --name ${{ env.DOCKER_CONTAINER_NAME }} $IMAGE_URI
+            docker run -d --restart unless-stopped -p 3000:3000 \
+            --name my-ai-agent \
+            --env-file /home/ec2-user/my-app/.env \
+            43309366307.dkr.ecr.us-east-1.amazonaws.com/my-ai-agent:latest
           "
