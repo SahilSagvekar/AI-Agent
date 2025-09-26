@@ -9,67 +9,91 @@ env:
   ECR_REPOSITORY: my-ai-agent
   EC2_HOST: 3.88.159.156
   EC2_USER: ec2-user
+  DOCKER_CONTAINER_NAME: my-ai-agent
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Dependencies & Test
-        run: |
-          npm ci --legacy-peer-deps
-          npm test --silent || true
+      - run: npm ci --legacy-peer-deps
+      - run: npm test --silent || true
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build & Push Docker Image
+        id: build-image
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NINJAS_API_KEY: ${{ secrets.NINJAS_API_KEY }}
+          STRIPE_ADD_LOCATION_PRICE_ID: ${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}
+          STRIPE_INTRO_PRICE_ID: ${{ secrets.STRIPE_INTRO_PRICE_ID }}
+          STRIPE_NORMAL_PRICE_ID: ${{ secrets.STRIPE_NORMAL_PRICE_ID }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         run: |
-          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-          docker build  \
-            --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
-            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            --build-arg NINJAS_API_KEY=${{ secrets.NINJAS_API_KEY }} \
-            --build-arg STRIPE_ADD_LOCATION_PRICE_ID=${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }} \
-            --build-arg STRIPE_INTRO_PRICE_ID=${{ secrets.STRIPE_INTRO_PRICE_ID }} \
-            --build-arg STRIPE_NORMAL_PRICE_ID=${{ secrets.STRIPE_NORMAL_PRICE_ID }} \
-            --build-arg TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }} \
-            --build-arg TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }} \
+          docker build \
+            --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+            --build-arg DATABASE_URL=$DATABASE_URL \
+            --build-arg NINJAS_API_KEY=$NINJAS_API_KEY \
+            --build-arg STRIPE_ADD_LOCATION_PRICE_ID=$STRIPE_ADD_LOCATION_PRICE_ID \
+            --build-arg STRIPE_INTRO_PRICE_ID=$STRIPE_INTRO_PRICE_ID \
+            --build-arg STRIPE_NORMAL_PRICE_ID=$STRIPE_NORMAL_PRICE_ID \
+            --build-arg TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
+            --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
             -t $IMAGE_URI .
 
           docker push $IMAGE_URI
+          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
 
-      - name: SSH & Deploy on EC2
+      - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            export DATABASE_URL="${{ secrets.DATABASE_URL }}"
-            export STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}"
-            export NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}"
-            export STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}"
-            export STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}"
-            export STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}"
-            export TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}"
-            export TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}"
+            if ! command -v aws &> /dev/null; then
+              sudo yum install -y awscli
+            fi
 
-            /home/ec2-user/deploy.sh
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
+
+            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+
+            docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
+            docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
+
+            docker run -d --restart unless-stopped -p 80:3000 \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+              -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+              -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+              -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+              -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+              -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
