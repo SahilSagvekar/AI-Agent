@@ -42,8 +42,8 @@ jobs:
       - name: Build & Push Docker Image
         run: |
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-      
-          docker build -t $IMAGE_URI . \
+
+          docker build  \
             --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
             --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
             --build-arg NINJAS_API_KEY=${{ secrets.NINJAS_API_KEY }} \
@@ -51,10 +51,11 @@ jobs:
             --build-arg STRIPE_INTRO_PRICE_ID=${{ secrets.STRIPE_INTRO_PRICE_ID }} \
             --build-arg STRIPE_NORMAL_PRICE_ID=${{ secrets.STRIPE_NORMAL_PRICE_ID }} \
             --build-arg TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }} \
-            --build-arg TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}
-      
+            --build-arg TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }} \
+            -t $IMAGE_URI .
+
           docker push $IMAGE_URI
-      
+
       - name: SSH & Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
