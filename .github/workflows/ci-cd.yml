@@ -9,7 +9,7 @@ env:
   ECR_REPOSITORY: my-ai-agent
   EC2_HOST: 3.88.159.156
   EC2_USER: ec2-user
-  DOCKER_CONTAINER_NAME: dreamy_fermi
+  DOCKER_CONTAINER_NAME: upbeat_borg
 
 jobs:
   build-and-deploy:
