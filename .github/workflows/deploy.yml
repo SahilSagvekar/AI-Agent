@@ -1,0 +1,66 @@
+name: CI/CD to EC2 with Versioned Docker Tags and ECR Cleanup
+
+on:
+  push:
+    branches: [main]
+
+  env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: my-ai-agent
+  EC2_HOST: 3.88.159.156
+  EC2_USER: ec2-user
+  DOCKER_CONTAINER_NAME: my-ai-agent
+  AWS_ACCOUNT_ID: 043309366307
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Docker image version
+        id: vars
+        run: echo "IMAGE_TAG=main-${GITHUB_SHA::8}" >> $GITHUB_ENV
+
+      - name: Build, tag, and push Docker image
+        run: |
+          IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      - name: Cleanup old ECR images (keep last 5)
+        run: |
+          aws ecr list-images \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --query 'imageIds[*].imageTag' \
+            --output text | tr '\t' '\n' | grep '^main-' | sort -r | tail -n +6 | while read tag; do
+              echo "Deleting old image: $tag"
+              aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=$tag
+            done
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Deploy on EC2
+        run: |
+          IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_HOST }} "
+            docker pull $IMAGE_URI
+            docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
+            docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
+            docker run -d --restart unless-stopped -p 3000:3000 --name ${{ env.DOCKER_CONTAINER_NAME }} $IMAGE_URI
+          "
