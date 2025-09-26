@@ -97,3 +97,4 @@ jobs:
               -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
               --name ${{ env.DOCKER_CONTAINER_NAME }} \
               043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+              /home/ec2-user/deploy.sh
