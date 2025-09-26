@@ -19,33 +19,31 @@ jobs:
       id-token: write
 
     steps:
-      # 1️⃣ Checkout code
+      # Checkout repo
       - uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js
+      # Setup Node.js
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3️⃣ Install dependencies & run tests
+      # Install dependencies & run tests
       - run: npm ci --legacy-peer-deps
       - run: npm test --silent || true
 
-      # 4️⃣ Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      # Configure AWS credentials
+      - uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 5️⃣ Login to Amazon ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
+      # Login to ECR
+      - id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # 6️⃣ Build, Tag, and Push Docker image
-      - name: Build, Tag, and Push Docker image
+      # Build & Push Docker Image
+      - name: Build & Push Docker Image
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -56,13 +54,9 @@ jobs:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         run: |
-          # 6a. Unique tag for this commit
-          IMAGE_TAG=${GITHUB_SHA}
+          IMAGE_TAG=${GITHUB_SHA} 
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV  # Make it available for next steps
-
-          # 6b. Build Docker image with build args
           docker build \
             --build-arg STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
             --build-arg DATABASE_URL=$DATABASE_URL \
@@ -74,34 +68,30 @@ jobs:
             --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
             -t $IMAGE_URI .
 
-          # 6c. Push commit-specific tag
-          docker push $IMAGE_URI
-
-          # 6d. Also tag as latest and push
           docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+
+          docker push $IMAGE_URI
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      # 7️⃣ SSH into EC2 and deploy
-      - name: SSH into EC2 and Deploy
+      # SSH into EC2 and deploy
+      - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
+          username: ${{ env.EC2_USER }} 
           key: ${{ secrets.EC2_SSH_KEY }}
+          # passphrase: ${{ secrets.EC2_SSH_PASSPHRASE }}
           script: |
-            # Install AWS CLI if missing
-            if ! command -v aws &> /dev/null; then
-              sudo yum install -y awscli
-            fi
-
+            # commands to pull image and restart container
             # Login to ECR on EC2
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
             docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
             # Pull the latest image
-            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+            docker pull $IMAGE_URI
+            docker tag $IMAGE_URI 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-            # Stop & remove old container
+            # Stop and remove old container
             docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
 
