@@ -68,45 +68,43 @@ jobs:
           docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
       - name: SSH into EC2 and Deploy
-  uses: appleboy/ssh-action@v0.1.7
-  with:
-    host: ${{ env.EC2_HOST }}
-    username: ${{ env.EC2_USER }}
-    key: ${{ secrets.EC2_SSH_KEY }}
-    envs:
-      IMAGE_TAG: ${{ github.sha }}   # Pass the GitHub SHA to EC2
-    script: |
-      # Install AWS CLI if not present
-      if ! command -v aws &> /dev/null; then
-        sudo yum install -y awscli
-      fi
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Install AWS CLI if not present
+            if ! command -v aws &> /dev/null; then
+              sudo yum install -y awscli
+            fi
 
-      # Login to ECR
-      aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-        docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
+            # Login to ECR
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+              docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
-      # Pull the latest image
-      docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+            # Pull the latest image
+            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      # Stop & remove old container if exists
-      if docker ps -a --format '{{.Names}}' | grep -Eq "^${{ env.DOCKER_CONTAINER_NAME }}$"; then
-        docker stop ${{ env.DOCKER_CONTAINER_NAME }}
-        docker rm ${{ env.DOCKER_CONTAINER_NAME }}
-      fi
+            # Stop & remove old container if exists
+            if docker ps -a --format '{{.Names}}' | grep -Eq "^${{ env.DOCKER_CONTAINER_NAME }}$"; then
+              docker stop ${{ env.DOCKER_CONTAINER_NAME }}
+              docker rm ${{ env.DOCKER_CONTAINER_NAME }}
+            fi
 
-      # Run the new container
-      docker run -d \
-        --restart unless-stopped \
-        -p 80:3000 \
-        -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-        -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
-        -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
-        -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
-        -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
-        -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
-        -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
-        -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
-        --name ${{ env.DOCKER_CONTAINER_NAME }} \
-        043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+            # Run the new container
+            docker run -d \
+              --restart unless-stopped \
+              -p 80:3000 \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+              -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+              -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+              -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+              -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+              -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      echo "✅ Deployment completed successfully!"
+            echo "✅ Deployment completed successfully!"
