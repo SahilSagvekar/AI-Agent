@@ -1,4 +1,4 @@
-name: CI/CD to EC2 with Versioned Docker Tags and ECR Cleanup
+name: CI/CD to EC2 with Versioned Docker Images
 
 on:
   push:
@@ -13,13 +13,15 @@ env:
   AWS_ACCOUNT_ID: 043309366307
 
 jobs:
-  deploy: 
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -27,20 +29,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # 3. Login to ECR
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set Docker image version
+      # 4. Set Docker image tag (versioned)
+      - name: Set IMAGE_TAG
         id: vars
         run: echo "IMAGE_TAG=main-${GITHUB_SHA::8}" >> $GITHUB_ENV
 
-      - name: Build, tag, and push Docker image
+      # 5. Build and push Docker image
+      - name: Build and push Docker image
         run: |
           IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
           docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
 
-      - name: Cleanup old ECR images (keep last 5)
+      # 6. Cleanup old ECR images (keep last 5)
+      - name: Cleanup old ECR images
         run: |
           aws ecr list-images \
             --repository-name ${{ env.ECR_REPOSITORY }} \
@@ -50,20 +56,22 @@ jobs:
               aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=$tag
             done
 
+      # 7. Setup SSH
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      # 8. Deploy on EC2
       - name: Deploy on EC2
         run: |
           IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ env.EC2_HOST }} "
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "
             docker pull $IMAGE_URI
             docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker run -d --restart unless-stopped -p 3000:3000 \
-            --name my-ai-agent \
-            --env-file /home/ec2-user/my-app/.env \
-            43309366307.dkr.ecr.us-east-1.amazonaws.com/my-ai-agent:latest
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              --env-file /home/${{ env.EC2_USER }}/my-app/.env \
+              $IMAGE_URI
           "
