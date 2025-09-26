@@ -1,4 +1,4 @@
-name: CI/CD to AWS EC2
+name: CI/CD to EC2
 
 on:
   push:
@@ -27,17 +27,18 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm test --silent || true
 
-      - uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - id: login-ecr
+      - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build & Push Docker Image
-        id: build-image
+      - name: Build, Tag, and Push Docker image
         env:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -48,6 +49,9 @@ jobs:
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         run: |
+          # IMAGE_URI=043309366307.dkr.ecr.us-east-1.amazonaws.com/my-ai-agent:latest
+          # docker build -t $IMAGE_URI .
+          # docker push $IMAGE_URI
           IMAGE_TAG=${GITHUB_SHA}
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
@@ -63,11 +67,10 @@ jobs:
             --build-arg TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN \
             -t $IMAGE_URI .
 
-          docker push $IMAGE_URI
           docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      - name: Deploy on EC2
+      - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ env.EC2_HOST }}
@@ -81,7 +84,7 @@ jobs:
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
             docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
 
-            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
 
             docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
             docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
@@ -96,5 +99,5 @@ jobs:
               -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
               -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
               --name ${{ env.DOCKER_CONTAINER_NAME }} \
-              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
               /home/ec2-user/deploy.sh
