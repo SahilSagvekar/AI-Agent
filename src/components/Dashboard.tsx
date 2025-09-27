@@ -66,30 +66,31 @@ export function Dashboard({
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [loading, setLoading] = useState(false);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [currentSub, setCurrentSub] = useState<any>(null);
+  const [twilioData, setTwilioData] = useState<any>(null);
 
   // Mock subscription data
-  const subscriptionData = {
-    plan: "Professional",
-    status: "Active",
-    price: 220, // $175 base + $45 for 1 additional location
-    locations: 2,
-    nextBilling: "2024-02-15",
-    billingHistory: [
-      { date: "2024-01-15", amount: 220, status: "Paid", invoice: "INV-001" },
-      { date: "2023-12-15", amount: 175, status: "Paid", invoice: "INV-002" },
-      { date: "2023-11-15", amount: 175, status: "Paid", invoice: "INV-003" },
-    ],
-    paymentMethod: {
-      type: "Visa",
-      last4: "4242",
-      expiry: "12/27",
-    },
-  };
+  // const subscriptionData = {
+  //   plan: "Professional",
+  //   status: "Active",
+  //   price: 220, // $175 base + $45 for 1 additional location
+  //   locations: 2,
+  //   nextBilling: "2024-02-15",
+  //   billingHistory: [
+  //     { date: "2024-01-15", amount: 220, status: "Paid", invoice: "INV-001" },
+  //     { date: "2023-12-15", amount: 175, status: "Paid", invoice: "INV-002" },
+  //     { date: "2023-11-15", amount: 175, status: "Paid", invoice: "INV-003" },
+  //   ],
+  //   paymentMethod: {
+  //     type: "Visa",
+  //     last4: "4242",
+  //     expiry: "12/27",
+  //   },
+  // };
 
   // Mock data for demonstration
   const stats = {
-    totalCalls: 127,
-    callsToday: 8,
+    
     avgResponseTime: "1.2s",
     satisfactionRate: 94,
     commonQuestions: [
@@ -155,8 +156,34 @@ export function Dashboard({
       }
     }
 
+    async function fetchSubData() {
+      try {
+        const res = await fetch("/api/monthly-payments");
+        const data = await res.json();
+        if (data.success) {
+          setCurrentSub(data.stats);
+          // console.log('twilio-data' + JSON.stringify(twilioData))
+        }
+      } catch (e) {
+        console.error("Failed to fetch Twilio data", e);
+      }
+    }
+
+    async function fetchTwilioData() {
+      try {
+        const res = await fetch("/api/twilio-data");
+        const data = await res.json();
+        if (data.success) {
+          setTwilioData(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch Twilio data", e);
+      }
+    }
     fetchLocations();
     fetchPayments();
+    fetchTwilioData();
+    fetchSubData()
   }, []);
 
 
@@ -189,7 +216,7 @@ export function Dashboard({
       console.log("flowType:", flowType);
       // router.push("/training");
       // router.push(`/training?flowType=${encodeURIComponent(flowType)}`);
-router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponent(flowType)}`);
+      router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponent(flowType)}`);
   };
 
   const handleAddNumber = async () => {
@@ -234,6 +261,9 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
   const locationName = locations.length > 0 ? locations[0].locationName : "";
   const locationEmail = locations.length > 0 ? locations[0].email : "";
   const locationIdAdd = locations.length > 0 ? locations[0].id : "";
+  const totalCalls = twilioData?.totalCalls ?? 0
+  const callsToday = twilioData?.callsToday ?? 0
+
 
 
   return (
@@ -261,12 +291,13 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                 AI Active
               </Badge>
               <Badge variant="secondary" className="hidden sm:flex">
-                {subscriptionData.plan} Plan
+                {/* {subscriptionData.plan}  */}
+                Plan
               </Badge>
-              <Button variant="outline" onClick={onEditTraining}>
+              {/* <Button variant="outline" onClick={onEditTraining}>
                 <Settings className="h-4 w-4 mr-2" />
                 Edit Training
-              </Button>
+              </Button> */}
               <Button variant="ghost" onClick={onLogout}>
                 Logout
               </Button>
@@ -300,9 +331,9 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   <Phone className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalCalls}</div>
+                <div className="text-2xl font-bold">{totalCalls}</div>
                   <p className="text-xs text-muted-foreground">
-                    +12% from last month
+                    {/* +12% from last month */}
                   </p>
                 </CardContent>
               </Card>
@@ -313,9 +344,9 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.callsToday}</div>
+                  <div className="text-2xl font-bold">{callsToday}</div>
                   <p className="text-xs text-muted-foreground">
-                    Real-time count
+                    {/* Real-time count */}
                   </p>
                 </CardContent>
               </Card>
@@ -330,7 +361,7 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                     {stats.avgResponseTime}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Lightning fast
+                    {/* Lightning fast */}
                   </p>
                 </CardContent>
               </Card>
@@ -345,7 +376,7 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                     {stats.satisfactionRate}%
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Customer rating
+                    {/* Customer rating */}
                   </p>
                 </CardContent>
               </Card>
@@ -788,16 +819,19 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-medium">
-                        {subscriptionData.plan} Plan
+                        {/* {subscriptionData.plan}  */}
+                        Plan
                       </h3>
                       <p className="text-2xl font-bold">
-                        ${subscriptionData.price}
+                        ${currentSub?.amount_paid}
                         <span className="text-base font-normal text-muted-foreground">
                           /month
                         </span>
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Base: $175 + {subscriptionData.locations - 1} additional
+                        Base: $175 + 
+                        {/* {subscriptionData.locations - 1} */}
+                         additional
                         location(s) at $45 each
                       </p>
                     </div>
@@ -815,14 +849,14 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                       <div className="flex justify-between text-sm">
                         <span>Next billing:</span>
                         <span>
-                          {new Date(
-                            subscriptionData.nextBilling
-                          ).toLocaleDateString()}
+                          {/* {new Date( */}
+                            setCurrentSub?.nextBillingDate
+                          {/* // ).toLocaleDateString()} */}
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Locations:</span>
-                        <span>{subscriptionData.locations}</span>
+                        {/* <span>{setCurrentSub.totalLocations}</span> */}
                       </div>
                     </div>
                   </div>
@@ -835,11 +869,12 @@ router.push(`/add-training?locationId=${locationId}&flowType=${encodeURIComponen
                           <CreditCard className="h-5 w-5" />
                           <div>
                             <p className="text-sm font-medium">
-                              {subscriptionData.paymentMethod.type} ••••{" "}
-                              {subscriptionData.paymentMethod.last4}
+                              {/* {subscriptionData.paymentMethod.type} ••••{" "}
+                              {subscriptionData.paymentMethod.last4} */}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Expires {subscriptionData.paymentMethod.expiry}
+                              Expires 
+                              {/* {subscriptionData.paymentMethod.expiry} */}
                             </p>
                           </div>
                         </div>
