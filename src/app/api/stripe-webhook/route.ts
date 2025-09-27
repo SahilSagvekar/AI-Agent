@@ -97,13 +97,8 @@ export async function POST(req: NextRequest) {
   let paymentId = null;
 
   let event: Stripe.Event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     console.error("Webhook signature verification failed.", err.message);
     return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
@@ -111,261 +106,96 @@ export async function POST(req: NextRequest) {
 
   console.log("Received Stripe event:", event.type);
 
-  // ✅ Handle Subscription Payments (first 3 months intro pricing)
-  if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice;
-    // console.log("invoice.payment_succeeded", invoice.parent?.subscription_details.metadata);
-    // console.log("invoice.payment_succeeded-2", invoice.parent?.subscription_details.metadata.flowType);
-
-    if (invoice) {
-      // const subscriptionId = invoice.parent?.subscription_details.subscription as string;
+  try {
+    // -------------------------------
+    // Handle Invoice Payments
+    // -------------------------------
+    if (event.type === "invoice.paid") {
+      const invoice = event.data.object as Stripe.Invoice;
       const subscriptionId = invoice.parent!.subscription_details!.subscription as string;
 
-
-      const payment = await prisma.payment.findFirst({
-        where: { stripeSubscriptionId: subscriptionId },
-      });
-
+      const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
       if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id, stripeSubscriptionId: subscriptionId },
-          data: { paymentStatus: "succeeded" },
-        });
+        // Idempotent update: only mark succeeded if not already
+        if (payment.paymentStatus !== "succeeded") {
+          await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+        }
 
-        console.log(
-          `Subscription payment succeeded for user ${payment.userId}`
-        );
-
-        // Check if user has paid 3 invoices already → switch to normal plan
-        const invoices = await stripe.invoices.list({
-          subscription: subscriptionId,
-          limit: 10,
-        });
-
-        const paidInvoices = invoices.data.filter(
-          (inv) => inv.status === "paid"
-        );
-
-        console.log(
-          "Total paid invoices for this subscription:",
-          paidInvoices.length
-        );
-
+        // Check if 3 paid invoices → upgrade plan
+        const invoices = await stripe.invoices.list({ subscription: subscriptionId, limit: 10 });
+        const paidInvoices = invoices.data.filter(inv => inv.status === "paid");
         if (paidInvoices.length >= 3) {
-          console.log(
-            "3 payments done, switching to normal pricing plan automatically"
-          );
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           await stripe.subscriptions.update(subscriptionId, {
-            items: [
-              {
-                id: (
-                  await stripe.subscriptions.retrieve(subscriptionId)
-                ).items.data[0].id,
-                price: process.env.STRIPE_NORMAL_PRICE_ID!, // $175 + $45/location
-              },
-            ],
+            items: [{ id: subscription.items.data[0].id, price: process.env.STRIPE_NORMAL_PRICE_ID! }],
             proration_behavior: "create_prorations",
           });
         }
 
-        // if (paidInvoices.length >= 3) {
-        //   console.log(
-        //     "3 payments done, switching to normal pricing plan automatically"
-        //   );
-
-        //   // Retrieve subscription and find items
-        //   const subscription = await stripe.subscriptions.retrieve(
-        //     subscriptionId
-        //   );
-
-        //   // Find base plan item and addon locations item if already exists
-        //   const basePlanItem = subscription.items.data.find(
-        //     (item) =>
-        //       item.price.id === process.env.STRIPE_INTRO_PRICE_ID ||
-        //       item.price.id === process.env.STRIPE_NORMAL_PRICE_ID
-        //   );
-
-        //   const addonItem = subscription.items.data.find(
-        //     (item) => item.price.id === process.env.STRIPE_ADD_LOCATION_PRICE_ID
-        //   );
-
-        //   const subscriptionItems = [];
-
-        //   // Update or add base plan item with normal price
-        //   if (basePlanItem) {
-        //     subscriptionItems.push({
-        //       id: basePlanItem.id,
-        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
-        //     });
-        //   } else {
-        //     // base plan item missing? Add it freshly
-        //     subscriptionItems.push({
-        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
-        //       quantity: 1,
-        //     });
-        //   }
-
-        //   // Update or add addon location item with correct quantity
-        //   if (locationsCount > 1) {
-        //     if (addonItem) {
-        //       subscriptionItems.push({
-        //         id: addonItem.id,
-        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //         quantity: locationsCount - 1,
-        //       });
-        //     } else {
-        //       subscriptionItems.push({
-        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //         quantity: locationsCount - 1,
-        //       });
-        //     }
-        //   }
-
-        //   await stripe.subscriptions.update(subscriptionId, {
-        //     items: subscriptionItems,
-        //     proration_behavior: "create_prorations",
-        //   });
-        // } else {
-        //   // initial subscription create flow with intro price + addon locations
-        //   const subscription = await stripe.subscriptions.create({
-        //     customer: stripeCustomerId,
-        //     items: [
-        //       {
-        //         price: process.env.STRIPE_INTRO_PRICE_ID!,
-        //         quantity: 1,
-        //       },
-        //       ...(locationsCount > 1
-        //         ? [
-        //             {
-        //               price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //               quantity: locationsCount - 1,
-        //             },
-        //           ]
-        //         : []),
-        //     ],
-        //     payment_behavior: "default_incomplete",
-        //     proration_behavior: "create_prorations",
-        //     metadata: {
-        //       userId: userId.toString(),
-        //       flowType: data.flowType,
-        //     },
-        //     expand: ["latest_invoice.payment_intent"],
-        //   });
-
-        //   // Save payment info etc
-        // }
-
-        const userId = payment.userId;
-        const flowType = payment.paymentType;
-
-        if (userId) {
-          try {
-            // let userIdInt = parseInt(userId, 10);
-            let userIdInt = userId;
-
-            if (flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
-              const twilioNumber = await provisionTwilioNumber(userIdInt);
-
-              const laundromat = await prisma.laundromatLocation.findFirst({
-                where: { userId: Number(userId) },
-                select: { id: true },
-              });
-
-              if (!laundromat) {
-                throw new Error("Laundromat location not found for user");
-              }
-
-              await prisma.laundromatLocation.update({
-                where: { id: laundromat.id },
-                data: { twilioPhone: twilioNumber },
-              });
-            }
-          } catch (error) {
-            console.error(
-              "Failed to provision Twilio number or handle flow:",
-              error
-            );
-            return NextResponse.json(
-              { error: "Failed post-payment processing" },
-              { status: 500 }
-            );
+        // Provision Twilio if new account subscription
+        if (payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION") {
+          const twilioNumber = await provisionTwilioNumber(payment.userId);
+          const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId }, select: { id: true } });
+          if (laundromat) {
+            await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber } });
           }
         }
       }
     }
-  }
 
-  //   // ✅ Handle One-Time Payment (Add location / Buy second number)
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    const userId = paymentIntent.metadata.userId;
-    const flowType = paymentIntent.metadata.flowType;
+    // -------------------------------
+    // Handle One-Time Payments
+    // -------------------------------
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const userId = parseInt(paymentIntent.metadata.userId!, 10);
+      const flowType = paymentIntent.metadata.flowType;
 
-    if (userId) {
-      try {
-        let userIdInt = parseInt(userId, 10);
-          // let userIdInt = userId;
+      const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: paymentIntent.id } });
+      if (payment && payment.paymentStatus !== "succeeded") {
+        await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+      }
 
-        if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
-          console.log("NEW_NUMBER");
-          const twilioNumber = await provisionTwilioNumber(userIdInt);
-
-          const laundromat = await prisma.laundromatLocation.findFirst({
-            where: { userId: Number(userId) },
-            select: { id: true },
-          });
-
-          if (!laundromat) {
-            throw new Error("Laundromat location not found for user");
-          }
-
-          await prisma.laundromatLocation.update({
-            where: { id: laundromat.id },
-            data: { twilioPhone: twilioNumber },
-          });
-
-          const payment = await prisma.payment.findFirst({
-            where: { stripeSubscriptionId: paymentIntent.id },
-          });
-
-          if (payment) {
-            await prisma.payment.update({
-              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
-              data: { paymentStatus: "succeeded" },
-            });
-          }
+      if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
+        const twilioNumber = await provisionTwilioNumber(userId);
+        const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId }, select: { id: true } });
+        if (laundromat) {
+          await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber } });
         }
+      }
 
-        if (flowType === "ADD_LOCATION") {
-          console.log(
-            "User paid for additional locations — add them to DB here."
-          );
-
-          const payment = await prisma.payment.findFirst({
-            where: { stripeSubscriptionId: paymentIntent.id },
-          });
-          paymentId = payment?.id || null;
-
-          if (payment) {
-            await prisma.payment.update({
-              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
-              data: { paymentStatus: "succeeded" },
-            });
-          }
-          // Retrieve formData from Payment table if needed and insert new LaundromatLocation
-        }
-      } catch (error) {
-        console.error(
-          "Failed to provision Twilio number or handle flow:",
-          error
-        );
-        return NextResponse.json(
-          { error: "Failed post-payment processing" },
-          { status: 500 }
-        );
+      if (flowType === "ADD_LOCATION") {
+        console.log("User paid for additional locations — handle DB update here");
       }
     }
+
+    // -------------------------------
+    // Handle Subscription Deletion
+    // -------------------------------
+    // if (event.type === "customer.subscription.deleted") {
+    //   const subscription = event.data.object as Stripe.Subscription;
+    //   const subscriptionId = subscription.id;
+
+    //   const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
+    //   if (payment) {
+    //     // Idempotent cancellation: only update if not already cancelled
+    //     if (payment.paymentStatus !== "cancelled") {
+    //       await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "cancelled" } });
+    //     }
+
+    //     // Optional: release Twilio numbers
+    //     const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId } });
+    //     if (laundromat?.twilioPhone) {
+    //       console.log(`Twilio number ${laundromat.twilioPhone} can be released here`);
+    //       // await twilioClient.incomingPhoneNumbers(laundromat.twilioPhone).remove();
+    //     }
+    //   }
+    // }
+
+  } catch (error) {
+    console.error("Error processing Stripe webhook:", error);
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ paymentId: paymentId });
+  return NextResponse.json({ paymentId });
 }
