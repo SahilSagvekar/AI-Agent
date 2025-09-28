@@ -60,6 +60,7 @@ model LaundromatLocation {
   callHandling      CallHandling?
   languageSettings  LanguageSettings?
   machineInfo       MachineInfo?
+  isPaid            Boolean              @default(false)
   operatingHours    OperatingHours?
   payments          Payment[]
   policies          Policies?
@@ -78,6 +79,7 @@ model PhoneNumber {
   userId              Int
   number              String                @unique
   assignedDate        DateTime              @default(now())
+  isPaid            Boolean                 @default(false)
   status              String
   user                User                  @relation(fields: [userId], references: [id])
   LaundromatLocation  LaundromatLocation[]  @relation("PhoneNumberToLocation")
