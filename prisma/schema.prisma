@@ -19,6 +19,8 @@ model User {
   phone               String?
   website             String?
   firstPayment        Boolean?
+  isPaid              Boolean              @default(false)         // <-- Add: overall payment status
+  planType            String?                                        // <-- Add: "newCustomer", "regular" etc
   laundromatLocations LaundromatLocation[]
   payments            Payment[]
   phoneNumbers        PhoneNumber[]
