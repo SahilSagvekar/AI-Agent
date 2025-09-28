@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import twilio from "twilio";
 import Stripe from "stripe";
+import { duplicateLocation } from "@/app/api/form/route";
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -86,9 +87,10 @@ export async function provisionTwilioNumber(userId: number) {
   });
 
   return {
+    // phoneNumber: 9876543210,
     phoneNumber: purchasedNumber.phoneNumber,
-    voiceBin: voiceTwimlBin.sid,
-    messageBin: messageTwimlBin.sid,
+      voiceBin: voiceTwimlBin.sid,
+      messageBin: messageTwimlBin.sid,
   };
 }
 
@@ -100,7 +102,11 @@ export async function POST(req: NextRequest) {
   let paymentId = null;
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
   } catch (err: any) {
     console.error("Webhook signature verification failed.", err.message);
     return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
@@ -114,42 +120,81 @@ export async function POST(req: NextRequest) {
     // -------------------------------
     if (event.type === "invoice.paid") {
       const invoice = event.data.object as Stripe.Invoice;
-      const subscriptionId = invoice.parent?.subscription_details?.subscription as string;
+      const subscriptionId = invoice.parent?.subscription_details
+        ?.subscription as string;
 
-      const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
+      const payment = await prisma.payment.findFirst({
+        where: { stripeSubscriptionId: subscriptionId },
+      });
+
       if (payment) {
         if (payment.paymentStatus !== "succeeded") {
-          await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+          await prisma.payment.update({
+            where: { id: payment.id },
+            data: { paymentStatus: "succeeded" },
+          });
         }
 
         // Mark user as paid and set planType
         await prisma.user.update({
           where: { id: payment.userId },
-          data: { isPaid: true, planType: payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION" ? "newCustomer" : "regular" }
+          data: {
+            isPaid: true,
+            planType:
+              payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION"
+                ? "newCustomer"
+                : "regular",
+          },
         });
 
         // Check for upgrade after trial (3 paid invoices)
-        const invoices = await stripe.invoices.list({ subscription: subscriptionId, limit: 10 });
-        const paidInvoices = invoices.data.filter(inv => inv.status === "paid");
+        const invoices = await stripe.invoices.list({
+          subscription: subscriptionId,
+          limit: 10,
+        });
+        const paidInvoices = invoices.data.filter(
+          (inv) => inv.status === "paid"
+        );
         if (paidInvoices.length >= 3) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+          const subscription = await stripe.subscriptions.retrieve(
+            subscriptionId
+          );
           await stripe.subscriptions.update(subscriptionId, {
-            items: [{ id: subscription.items.data[0].id, price: process.env.STRIPE_NORMAL_PRICE_ID! }],
+            items: [
+              {
+                id: subscription.items.data[0].id,
+                price: process.env.STRIPE_NORMAL_PRICE_ID!,
+              },
+            ],
             proration_behavior: "create_prorations",
           });
           await prisma.user.update({
             where: { id: payment.userId },
-            data: { planType: "regular" }
+            data: { planType: "regular" },
           });
         }
 
         // Provision Twilio number for new account
         if (payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION") {
           const twilioNumber = await provisionTwilioNumber(payment.userId);
-          const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId }, select: { id: true } });
+          const laundromat = await prisma.laundromatLocation.findFirst({
+            where: { userId: payment.userId },
+            select: { id: true },
+          });
           if (laundromat) {
-            await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+            // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+            await prisma.laundromatLocation.update({
+              where: { id: laundromat.id },
+              data: { twilioPhone: "test", isPaid: true },
+            });
           }
+
+          let locationId = laundromat?.id
+
+          let locationCount = parseInt(payment.locationCount);
+
+          console.log("Number(locationId), locationCount" , Number(locationId), locationCount);
+          await duplicateLocation(Number(locationId), locationCount );
         }
       }
     }
@@ -161,38 +206,93 @@ export async function POST(req: NextRequest) {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const userId = parseInt(paymentIntent.metadata.userId!, 10);
       const flowType = paymentIntent.metadata.flowType;
+      let locationId = 0;
+      // const locationCount = parseInt(
+      //   paymentIntent.metadata.locationCount || "1",
+      //   10
+      // );
+
+      // console.log();
 
       // Mark as paid in payment log
-      const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: paymentIntent.id } });
+      const payment = await prisma.payment.findFirst({
+        where: { stripePaymentId: paymentIntent.id },
+      });
+
+      const locationCount = payment?.locationNum ?? 0
+
       if (payment && payment.paymentStatus !== "succeeded") {
-        await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { paymentStatus: "succeeded" },
+        });
       }
+      
 
       if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
         // Provision and mark as paid
         const twilioNumber = await provisionTwilioNumber(userId);
-        const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId }, select: { id: true } });
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        locationId = Number(laundromat?.id);
+        await duplicateLocation(Number(locationId), locationCount );
         if (laundromat) {
-          await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+          await prisma.laundromatLocation.update({
+            where: { id: laundromat.id },
+            data: { twilioPhone: "test", isPaid: true },
+          });
         }
-        await prisma.user.update({ where: { id: userId }, data: { isPaid: true } });
+        await prisma.user.update({
+          where: { id: userId },
+          data: { isPaid: true },
+        });
+
+        
       }
 
       if (flowType === "ADD_LOCATION") {
-        // Mark the additional location as paid (requires locationId in metadata)
-        const locationId = paymentIntent.metadata.locationId;
-        if (locationId) {
-          await prisma.laundromatLocation.update({ where: { id: parseInt(locationId) }, data: { isPaid: true } });
+        // const locationId = paymentIntent.metadata.locationId;
+        console.log("ADD_LOCATION ");
+
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        locationId = Number(laundromat?.id);
+        console.log("locationId" + locationId);
+        if (laundromat) {
+          // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+          await prisma.laundromatLocation.update({
+            where: { id: laundromat.id },
+            data: { isPaid: true },
+          });
         }
+        
+        await duplicateLocation(Number(locationId), locationCount );
       }
 
       if (flowType === "ADD_PHONE") {
         // Mark the additional phone number as paid (requires phoneNumberId in metadata)
         const phoneId = paymentIntent.metadata.phoneNumberId;
         if (phoneId) {
-          await prisma.phoneNumber.update({ where: { id: parseInt(phoneId) }, data: { isPaid: true } });
+          await prisma.phoneNumber.update({
+            where: { id: parseInt(phoneId) },
+            data: { userId: userId, isPaid: true },
+          });
         }
       }
+
+      // if (locationId && locationCount > 1) {
+      //   try {
+      //     console.log("insisde deplicate "  , locationId , locationCount);
+      //     await duplicateLocation(Number(locationId), locationCount);
+      //     console.log(`📍 Created duplicate locations`);
+      //   } catch (err) {
+      //     console.error("❌ Failed to duplicate locations:", err);
+      //   }
+      // }
     }
 
     // -------------------------------
@@ -207,15 +307,16 @@ export async function POST(req: NextRequest) {
     //     await prisma.user.update({ where: { id: payment.userId }, data: { isPaid: false } });
     //   }
     // }
-
   } catch (error) {
     console.error("Error processing Stripe webhook:", error);
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ paymentId });
 }
-
 
 // // // at the very top of the file where you import twilio
 // // // @ts-ignore
@@ -384,7 +485,6 @@ export async function POST(req: NextRequest) {
 //     messageBin: messageTwimlBin.sid,
 //   };
 // }
-
 
 // export async function POST(req: NextRequest) {
 //   const buf = await req.arrayBuffer();

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getUser } from "@/lib/auth";
 
+import { Prisma } from "@prisma/client";
+
+
 const prisma = new PrismaClient();
 const secret = process.env.JWT_SECRET || "secret";
 
@@ -542,3 +545,131 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+
+/**
+ * Utility function to recursively remove `id` and `locationId` keys from an object/array
+ */
+function stripIds<T>(data: T): T {
+  if (Array.isArray(data)) {
+    return data.map(stripIds) as unknown as T;
+  }
+  if (data && typeof data === "object") {
+    const newObj: any = {};
+    for (const key in data) {
+      if (key === "id" || key === "locationId") continue; // remove these keys
+      newObj[key] = stripIds((data as any)[key]);
+    }
+    return newObj;
+  }
+  return data;
+}
+
+function stripIdAndLocationId<T extends Record<string, any>>(obj: T) {
+  if (!obj) return obj;
+  const { id, locationId, ...rest } = obj;
+  return rest;
+}
+
+export async function duplicateLocation(firstLocationId: number, count: number) {
+  if (count <= 1) return [];
+
+  const original = await prisma.laundromatLocation.findUnique({
+    where: { id: firstLocationId },
+    include: {
+      operatingHours: true,
+      holidayHours: true,
+      washers: true,
+      dryers: true,
+      services: true,
+      pricing: true,
+      machineInfo: true,
+      amenities: true,
+      questions: true,
+      callHandling: true,
+      languageSettings: true,
+      businessTone: true,
+      policies: true,
+    },
+  });
+
+  if (!original) throw new Error("Original location not found");
+
+  const createdDuplicates = [];
+
+  for (let i = 0; i < count - 1; i++) {
+    const duplicateData: any = {
+      user: { connect: { id: original.userId } },
+      locationName: original.locationName,
+      businessName: original.businessName,
+      zipCode: original.zipCode,
+      address: original.address,
+      phone: original.phone,
+      email: original.email,
+      website: original.website,
+      googleMapsUrl: original.googleMapsUrl,
+      notableLandmarks: original.notableLandmarks,
+      attendingOpen: original.attendingOpen,
+      attendingClose: original.attendingClose,
+      is24Hours: original.is24Hours,
+      nonAttendingHours: original.nonAttendingHours,
+      timeZone: original.timeZone,
+      escalateForwardCall: original.escalateForwardCall,
+      escalationNumber: original.escalationNumber,
+      escalateSendMessage: original.escalateSendMessage,
+      escalateSendEmail: original.escalateSendEmail,
+      escalationEmail: original.escalationEmail,
+      hiringResponse: original.hiringResponse,
+    };
+
+    if (original.operatingHours) duplicateData.operatingHours = { create: stripIdAndLocationId(original.operatingHours) };
+    if (original.holidayHours?.length)
+      duplicateData.holidayHours = { create: original.holidayHours.map(stripIdAndLocationId) };
+    if (original.washers?.length)
+      duplicateData.washers = { create: original.washers.map(stripIdAndLocationId) };
+    if (original.dryers?.length)
+      duplicateData.dryers = { create: original.dryers.map(stripIdAndLocationId) };
+    if (original.services) duplicateData.services = { create: { services: original.services.services || [] } };
+    if (original.pricing) duplicateData.pricing = { create: stripIdAndLocationId(original.pricing) };
+    if (original.machineInfo) duplicateData.machineInfo = { create: stripIdAndLocationId(original.machineInfo) };
+    if (original.amenities) duplicateData.amenities = { create: { amenities: original.amenities.amenities || [] } };
+    if (original.questions)
+      duplicateData.questions = {
+        create: {
+          commonQuestions: original.questions.commonQuestions || [],
+          customQuestions: original.questions.customQuestions || [],
+        },
+      };
+    if (original.callHandling) duplicateData.callHandling = { create: stripIdAndLocationId(original.callHandling) };
+    if (original.languageSettings) duplicateData.languageSettings = { create: stripIdAndLocationId(original.languageSettings) };
+    if (original.businessTone) duplicateData.businessTone = { create: stripIdAndLocationId(original.businessTone) };
+    if (original.policies) duplicateData.policies = { create: stripIdAndLocationId(original.policies) };
+
+    // console.log("🔁 Creating duplicate:", i + 1, duplicateData); // ✅ Add debugging log
+
+    const created = await prisma.laundromatLocation.create({
+      data: duplicateData,
+      include: {
+        operatingHours: true,
+        services: true,
+        pricing: true,
+        machineInfo: true,
+        amenities: true,
+        questions: true,
+        callHandling: true,
+        languageSettings: true,
+        businessTone: true,
+        policies: true,
+      },
+    });
+
+    createdDuplicates.push(created);
+  }
+
+  return createdDuplicates;
+}
+
+
+
+
+
