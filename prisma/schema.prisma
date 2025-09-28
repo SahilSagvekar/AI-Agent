@@ -257,3 +257,22 @@ model EmailOtp {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
 }
+
+model Transcription {
+  id        Int      @id @default(autoincrement())
+  callSid   String   @unique
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model CallLog {
+  id           Int      @id @default(autoincrement())
+  callSid      String   @unique
+  fromNumber   String?
+  toNumber     String?
+  recordingUrl String?
+  transcriptionText String?
+  createdAt    DateTime @default(now())
+}
+
+  

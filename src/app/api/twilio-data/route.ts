@@ -34,15 +34,17 @@ export async function GET() {
     // ✅ Fetch all numbers from Twilio
     const twilioNumbers = await twilioClient.incomingPhoneNumbers.list({ limit: 50 });
 
+    console.log('twilioNumbers' + twilioNumbers)
+
     // ✅ Filter only the ones present in our DB
-    const filteredNumbers = twilioNumbers.filter((num) =>
+    const filteredNumbers = twilioNumbers.filter((num: { phoneNumber: string }) =>
       dbNumberList.includes(num.phoneNumber)
     );
 
     // ✅ Fetch and filter calls
     const calls = await twilioClient.calls.list({ limit: 100 }); // Increase limit if you need more
     const filteredCalls = calls.filter(
-      (call) =>
+      (call: {to: string; from: string}) =>
         dbNumberList.includes(call.to) || dbNumberList.includes(call.from)
     );
 
@@ -53,7 +55,7 @@ export async function GET() {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // start of today
 
-    const todaysCalls = filteredCalls.filter((call) => {
+    const todaysCalls = filteredCalls.filter((call: {startTime: string}) => {
       const callDate = new Date(call.startTime);
       return callDate >= today;
     });

@@ -1,0 +1,121 @@
+To manage and track multiple different payment tiers and add-ons for each user so that an AI agent can check payment status accurately, it’s important to design your data model and payment reconciliation process carefully. Here’s an organized approach:
+
+### Key Concepts for Payment Tracking
+
+1. **User Payment Status:**
+   Store a high-level flag like `isPaid` per user to indicate if they have any valid active payment or not.
+
+2. **Payment Types and Tiers:**
+   Track what type of payment the user has made:
+   - New customer $30 plan
+   - Full $175 regular plan
+   - Extra payments for additional locations
+   - Extra payments for additional phone numbers
+
+3. **Mapping Location and Phone Number Payments:**
+   For each user's added locations and phone numbers, track whether they are paid:
+   - Maintain a list or records for user’s locations and which of them have been paid for.
+   - Maintain a separate list/records for phone numbers and their payment status.
+
+4. **Link to Stripe Payment Details:**
+   When webhook or API confirms a payment, record exact details:
+   - Which user made payment (via Stripe customerId)
+   - What plan or add-ons were paid for (from invoice line items and metadata)
+   - Update the payment status of the main plan and relevant add-ons in your database.
+
+***
+
+### How Your AI Agent Can Use This:
+
+- When the AI agent runs:
+  - Check the user’s `isPaid` flag for basic activation.
+  - Check the paid plan type to know which base pricing applies.
+  - For each location and phone number assigned to the user, check if it’s marked as paid.
+  - Only enable features or functions for locations and numbers that are paid.
+
+***
+
+### Suggested Database Schema Overview:
+
+| Entity          | Important fields                         |
+|-----------------|----------------------------------------|
+| User            | id, isPaid (bool), planType, customerId (Stripe)  |
+| Location        | id, userId, isPaid (bool), additionalInfo |
+| PhoneNumber     | id, userId, isPaid (bool), additionalInfo |
+| Payments        | id, userId, amount, paymentType (plan, location add-on, phone add-on), date, stripeInvoiceId |
+
+***
+
+### Example Workflow
+
+1. User signs up -> new customer payment of $30 -> receive Stripe invoice webhook, update user `isPaid=true`, `planType="newCustomer"`.
+2. User later upgrades or regular payment of $175 -> update `planType= "regular"`.
+3. User adds locations -> for each add-on payment invoice, update corresponding `Location.isPaid=true`.
+4. Same for phone numbers.
+
+***
+
+### Logic in Code for AI agent:
+```js
+function canUseFeature(user, location, phoneNumber) {
+  if (!user.isPaid) return false;
+
+  const locationPaid = location ? location.isPaid : true;
+  const phonePaid = phoneNumber ? phoneNumber.isPaid : true;
+
+  return locationPaid && phonePaid;
+}
+```
+
+***
+
+If you provide details on your current DB setup or API structure, I can help write specific code snippets to systematically update and check these payment statuses.
+
+This structure will enable your AI to confidently know who is paid, for what, and restrict features accordingly.To manage multiple payment types and add-ons and enable your AI agent to know which users, locations, and phone numbers are paid, you need a structured way to track payments tied to each entity.
+
+### How to organize payment data:
+
+1. **User level payment status**  
+   Store a high-level field like `isPaid` per user to flag if the user has any active paid plan. Include `planType` to know if they are on the $30 new user plan or the $175 regular plan.
+
+2. **Locations and Phone Numbers payment status**  
+   For each location and phone number assigned to a user, also store whether it has been paid for (e.g., `location.isPaid` and `phone.isPaid`). This lets the AI check granular paid status for add-ons.
+
+3. **Tie Stripe invoices to database updates**  
+   When a payment succeeds (via webhook), parse the invoice line items to detect:  
+   - Which plan was purchased  
+   - How many locations or phone numbers are paid  
+   Update the corresponding user, location, and phone records in your database.
+
+4. **Metadata for clarity**  
+   Use metadata on Stripe subscriptions/invoices/line items to tag what each payment corresponds to (new user plan, regular plan, location fee, phone number fee). This makes backend processing easier.
+
+***
+
+### How the AI agent knows payment status:
+
+- Check `user.isPaid` and `user.planType` — if false, deny access.  
+- For access per location/phone number, check if `location.isPaid` or `phoneNumber.isPaid` are true. Deny features if false.  
+- This way AI clearly knows what’s paid and what’s not.
+
+***
+
+### Example data model sketch:
+
+| Entity       | Fields                                 |
+|--------------|--------------------------------------|
+| User         | id, isPaid (bool), planType, stripeCustomerId |
+| Location     | id, userId, isPaid (bool), address   |
+| PhoneNumber  | id, userId, isPaid (bool), number    |
+| PaymentLog   | id, userId, amount, type (plan/location/phone), stripeInvoiceId, date |
+
+***
+
+### Summary
+
+- Mark user paid after first payment ($30 or $175)  
+- Mark each location/phone number paid after corresponding add-on payment  
+- Use webhooks to update statuses automatically when Stripe confirms payment  
+- AI agent reads these fields to decide functionality
+
+If you share your database or code structure, I can help to design exact implementation for updating and verifying these statuses.

@@ -46,48 +46,126 @@ async function getAreaCodeForZip(zip: string): Promise<string> {
   return backupAreaCode;
 }
 
-async function provisionTwilioNumber(userId: any) {
+// async function provisionTwilioNumber(userId: any) {
+//   const location = await prisma.laundromatLocation.findFirst({
+//     where: { userId: userId },
+//     select: {
+//       zipCode: true,
+//     },
+//   });
+
+//   if (!location?.zipCode) {
+//     throw new Error("No zip code found for user");
+//   }
+
+//   const areaCodes = await getAreaCodeForZip(location.zipCode);
+
+//   // TEMPORARILY DISABLED COZ REQUIRES MONEY ✅
+//   // --------------------------------------------------------------------
+//   const availableNumbers = await twilioClient
+//     .availablePhoneNumbers("US")
+//     .local.list({
+//       areaCode: Number(areaCodes),
+//       smsEnabled: true,
+//       voiceEnabled: true,
+//       limit: 1,
+//     });
+
+//   if (availableNumbers.length === 0) {
+//     throw new Error(
+//       `No available Twilio numbers found for area code ${areaCodes}`
+//     );
+//   }
+
+//   const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+
+//   const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+//     phoneNumber: phoneNumberToPurchase,
+//   });
+
+//   return purchasedNumber.phoneNumber;
+//   // --------------------------------------------------------------------
+
+//   return "8282696969";
+// }
+
+export async function provisionTwilioNumber(userId: number) {
+  // 1. Get user's location/zip code
   const location = await prisma.laundromatLocation.findFirst({
-    where: { userId: userId },
-    select: {
-      zipCode: true,
-    },
+    where: { userId },
+    select: { zipCode: true },
   });
 
-  if (!location?.zipCode) {
-    throw new Error("No zip code found for user");
-  }
+  if (!location?.zipCode) throw new Error("No zip code found for user");
 
   const areaCodes = await getAreaCodeForZip(location.zipCode);
 
-  // TEMPORARILY DISABLED COZ REQUIRES MONEY ✅
-  // --------------------------------------------------------------------
-  // const availableNumbers = await twilioClient
-  //   .availablePhoneNumbers("US")
-  //   .local.list({
-  //     areaCode: Number(areaCodes),
-  //     smsEnabled: true,
-  //     voiceEnabled: true,
-  //     limit: 1,
-  //   });
+  // 2. Search available numbers
+  const availableNumbers = await twilioClient
+    .availablePhoneNumbers("US")
+    .local.list({
+      areaCode: Number(areaCodes),
+      smsEnabled: true,
+      voiceEnabled: true,
+      limit: 1,
+    });
 
-  // if (availableNumbers.length === 0) {
-  //   throw new Error(
-  //     `No available Twilio numbers found for area code ${areaCodes}`
-  //   );
-  // }
+  if (availableNumbers.length === 0) {
+    throw new Error(`No available Twilio numbers for area code ${areaCodes}`);
+  }
 
-  // const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+  const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
 
-  // const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-  //   phoneNumber: phoneNumberToPurchase,
-  // });
+  // 3. Create Voice TwiML Bin
+  const voiceTwimlBin = await twilioClient.twimlBins.create({
+    friendlyName: `User-${userId}-VoiceBin`,
+    twiml: `
+      <Response>
+        <Say>Thanks for calling. This call is being recorded.</Say>
+        <Record transcribe="true"
+                transcribeCallback="${process.env.NEXT_PUBLIC_BASE_URL}/api/twilio/transcription"
+                maxLength="3600"
+                playBeep="true"/>
+      </Response>
+    `,
+  });
 
-  // return purchasedNumber.phoneNumber;
-  // --------------------------------------------------------------------
+  // 4. Create Messaging TwiML Bin
+  const messageTwimlBin = await twilioClient.twimlBins.create({
+    friendlyName: `User-${userId}-MessageBin`,
+    twiml: `
+      <Response>
+        <Message>Thanks for texting us! We will get back to you shortly.</Message>
+      </Response>
+    `,
+  });
 
-  return "8282696969";
+  // 5. Purchase the number and link to both bins
+  const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+    phoneNumber: phoneNumberToPurchase,
+
+    // ✅ Link Voice to TwiML Bin
+    voiceApplicationSid: voiceTwimlBin.sid,
+    voiceMethod: "POST",
+
+    // ✅ Link Messaging to TwiML Bin
+    smsApplicationSid: messageTwimlBin.sid,
+    smsMethod: "POST",
+  });
+
+  // 6. Save purchased number to DB
+  await prisma.laundromatLocation.updateMany({
+    where: { userId },
+    data: { twilioPhone: purchasedNumber.phoneNumber },
+  });
+
+  return {
+    phoneNumber: purchasedNumber.phoneNumber,
+    voiceBin: voiceTwimlBin.sid,
+    messageBin: messageTwimlBin.sid,
+  };
 }
+
 
 export async function POST(req: NextRequest) {
   const buf = await req.arrayBuffer();
@@ -137,7 +215,7 @@ export async function POST(req: NextRequest) {
           const twilioNumber = await provisionTwilioNumber(payment.userId);
           const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId }, select: { id: true } });
           if (laundromat) {
-            await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber } });
+            await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber  } });
           }
         }
       }
@@ -160,7 +238,7 @@ export async function POST(req: NextRequest) {
         const twilioNumber = await provisionTwilioNumber(userId);
         const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId }, select: { id: true } });
         if (laundromat) {
-          await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber } });
+          await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber } });
         }
       }
 
