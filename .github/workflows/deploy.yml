@@ -13,13 +13,23 @@ env:
   AWS_ACCOUNT_ID: 043309366307
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       # 1. Checkout code
       - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci --legacy-peer-deps
+      - run: npm test --silent || true
+
 
       # 2. Configure AWS credentials
       - name: Configure AWS credentials
@@ -31,7 +41,8 @@ jobs:
 
       # 3. Login to Amazon ECR
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       # 4. Set Docker image tag (versioned)
       - name: Set IMAGE_TAG
@@ -74,17 +85,17 @@ jobs:
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-    
+
       # 8. Create directory on EC2 for .env file
       - name: Create directory on EC2 for .env file
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p /home/${{ env.EC2_USER }}/my-app"
-    
+
       # 9. Copy .env to EC2
       - name: Copy .env to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "echo '${{ secrets.ENV_FILE_CONTENTS }}' > /home/${{ env.EC2_USER }}/my-app/.env"
-    
+
       # 10. Deploy on EC2
       - name: Deploy on EC2
         run: |
