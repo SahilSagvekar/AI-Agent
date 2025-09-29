@@ -42,8 +42,21 @@ jobs:
       - name: Build and push Docker image
         run: |
           IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
-          docker build -t $IMAGE_URI .
+          docker build \
+            --build-arg STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+            --build-arg STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+            --build-arg NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" \
+            --build-arg STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+            --build-arg STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+            --build-arg STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+            --build-arg OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            --build-arg NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+            --build-arg GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --build-arg GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --build-arg NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+            -t $IMAGE_URI .
           docker push $IMAGE_URI
+
 
       # 6. Cleanup old ECR images (keep last 5)
       - name: Cleanup old ECR images
