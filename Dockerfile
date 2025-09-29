@@ -49,7 +49,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-ENV NODE_ENV=production
+# ENV NODE_ENV=production
 
 # Copy built assets and node_modules from builder stage
 COPY --from=builder /app/.next ./.next
