@@ -1,33 +1,40 @@
-# Use lightweight Node.js base image
+# Stage 1: Build stage
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies separately to leverage Docker cache better
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+
+# Copy prisma schema and generate client
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Copy rest of the source code
+COPY . .
+
+# Build Next.js app
+RUN npm run build
+
+# Stage 2: Production stage
 FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files first (for caching)
-COPY package*.json ./
+# Set NODE_ENV for production
+ENV NODE_ENV=production
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Copy only necessary files from build stage
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/public ./public
 
-# Copy prisma and generate client
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# Copy all source files
-COPY . .
-
-# Copy dummy build-time environment variables
-COPY .env.build .env
-
-# Build Next.js app
-RUN npm run build
-
-# Remove dummy env so it doesn't get baked into final container
-RUN rm .env
-
-# Expose app port
+# Expose application port
 EXPOSE 3000
 
-# Start application
+# Start Next.js app
 CMD ["npm", "start"]
