@@ -40,13 +40,12 @@ jobs:
 
       - name: Build, Tag, and Push Docker image      
         run: |
-          # IMAGE_URI=043309366307.dkr.ecr.us-east-1.amazonaws.com/my-ai-agent:latest
-          # docker build -t $IMAGE_URI .
-          # docker push $IMAGE_URI
           IMAGE_TAG=${GITHUB_SHA}
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV   # ✅ Add this
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV  # ✅ make IMAGE_TAG available to next steps
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+          echo "🚀 Building Docker image: $IMAGE_URI"
           docker build \
             --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
             --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
@@ -57,8 +56,10 @@ jobs:
             --build-arg TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }} \
             --build-arg TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }} \
             -t $IMAGE_URI .
-          docker tag $IMAGE_URI ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          
+          echo "📦 Pushing Docker image to ECR"
+          docker push $IMAGE_URI
+
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -66,21 +67,25 @@ jobs:
           username: ${{ env.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Install AWS CLI if not present
+            echo "🔑 Checking AWS CLI..."
             if ! command -v aws &> /dev/null; then
               sudo yum install -y awscli
             fi
-            # Login to ECR
+
+            echo "🔑 Logging into ECR..."
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-              docker login --username AWS --password-stdin 043309366307.dkr.ecr.us-east-1.amazonaws.com
-            # Pull the latest image
-            docker pull 043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-            # Stop & remove old container if exists
+              docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            echo "📥 Pulling latest image: $IMAGE_TAG"
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+
+            echo "🛑 Stopping old container if exists..."
             if docker ps -a --format '{{.Names}}' | grep -Eq "^${{ env.DOCKER_CONTAINER_NAME }}$"; then
               docker stop ${{ env.DOCKER_CONTAINER_NAME }}
               docker rm ${{ env.DOCKER_CONTAINER_NAME }}
             fi
-            # Run the new container
+
+            echo "🚀 Running new container..."
             docker run -d \
               --restart unless-stopped \
               -p 80:3000 \
@@ -93,5 +98,20 @@ jobs:
               -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
               -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
               --name ${{ env.DOCKER_CONTAINER_NAME }} \
-              043309366307.dkr.ecr.us-east-1.amazonaws.com/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-            echo "✅ Deployment completed successfully!"
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+
+            echo "✅ Container started."
+
+      - name: Health Check
+        run: |
+          echo "🔍 Checking if app is up..."
+          for i in {1..10}; do
+            if curl -s --max-time 5 http://${{ env.EC2_HOST }} > /dev/null; then
+              echo "✅ App is responding!"
+              exit 0
+            fi
+            echo "⏳ App not ready yet, retrying in 5s..."
+            sleep 5
+          done
+          echo "❌ Health check failed. App did not respond after 50s."
+          exit 1
