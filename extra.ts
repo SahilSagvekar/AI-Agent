@@ -1,0 +1,33 @@
+docker build \
+  --build-arg STRIPE_SECRET_KEY="sk_test_51S2wJ5LftZnSCITqD75sQsz0hARgFh1Jz8kVTuOPZ2s4VDPMGWLm87tjvQk9poYzbuF21EfASWh53vHwsnLlFYVV00qsD6fce3" \
+  --build-arg STRIPE_WEBHOOK_SECRET="whsec_IFCTVt5692ahs6QXjyOj5jWSL1NmuH8c" \
+  --build-arg NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_51S2wJ5LftZnSCITqn0pN2AZpIuDosea70tdWyyYuIlQHuMWxzEYOFkPtb4y2PWwkYquTQcbkR1gfwsq8pwc2CBQ000ibxy88Df" \
+  --build-arg STRIPE_ADD_LOCATION_PRICE_ID="price_1S7ioiLftZnSCITqPh5Jo2sR" \
+  --build-arg STRIPE_INTRO_PRICE_ID="price_1S6pr1LftZnSCITqYE9ET5V4" \
+  --build-arg STRIPE_NORMAL_PRICE_ID="price_1S6psbLftZnSCITq91fr5eDe" \
+  --build-arg OPENAI_API_KEY="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" \
+  --build-arg NINJAS_API_KEY="aRb/GlMbJBH36xw/TIWH6Q==ELXtvoehDtTTZ2hW" \
+  --build-arg GOOGLE_CLIENT_ID="45704090528-6th97dg5vo2prjnkb0hn3vmdouefofu7.apps.googleusercontent.com" \
+  --build-arg GOOGLE_CLIENT_SECRET="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" \
+  --build-arg NEXTAUTH_SECRET="4679340da685830b9e8ba129de9b90526f8f05928b6a0d15a9153889e44ad7aa" \
+  -t my-ai-agent .
+
+
+
+
+
+ docker run -it -p 3000:3000 \
+  -e STRIPE_SECRET_KEY="sk_test_51S2wJ5LftZnSCITqD75sQsz0hARgFh1Jz8kVTuOPZ2s4VDPMGWLm87tjvQk9poYzbuF21EfASWh53vHwsnLlFYVV00qsD6fce3" \
+  -e STRIPE_WEBHOOK_SECRET="whsec_IFCTVt5692ahs6QXjyOj5jWSL1NmuH8c" \
+  -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_51S2wJ5LftZnSCITqn0pN2AZpIuDosea70tdWyyYuIlQHuMWxzEYOFkPtb4y2PWwkYquTQcbkR1gfwsq8pwc2CBQ000ibxy88Df" \
+  -e STRIPE_ADD_LOCATION_PRICE_ID="price_1S7ioiLftZnSCITqPh5Jo2sR" \
+  -e STRIPE_INTRO_PRICE_ID="price_1S6pr1LftZnSCITqYE9ET5V4" \
+  -e STRIPE_NORMAL_PRICE_ID="price_1S6psbLftZnSCITq91fr5eDe" \
+  -e OPENAI_API_KEY="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" \
+  -e NINJAS_API_KEY="aRb/GlMbJBH36xw/TIWH6Q==ELXtvoehDtTTZ2hW" \
+  -e GOOGLE_CLIENT_ID="45704090528-6th97dg5vo2prjnkb0hn3vmdouefofu7.apps.googleusercontent.com" \
+  -e GOOGLE_CLIENT_SECRET="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" \
+  -e NEXTAUTH_SECRET="4679340da685830b9e8ba129de9b90526f8f05928b6a0d15a9153889e44ad7aa" \
+  --name my-ai-agent \
+  my-ai-agent
+
