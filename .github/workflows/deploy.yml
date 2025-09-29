@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: my-ai-agent
-  EC2_HOST: 3.88.159.156
+  EC2_HOST: 3.84.118.99
   EC2_USER: ec2-user
   DOCKER_CONTAINER_NAME: my-ai-agent
 
@@ -82,7 +82,7 @@ jobs:
             # Run the new container
             docker run -d \
               --restart unless-stopped \
-              -p 80:3002 \
+              -p 80:3000 \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
               -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
