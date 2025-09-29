@@ -69,18 +69,23 @@ jobs:
               aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=$tag
             done
 
-      # 7. Setup SSH agent for EC2 access
+        # 7. Setup SSH agent for EC2 access
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      # 8. Copy .env content to EC2
+    
+      # 8. Create directory on EC2 for .env file
+      - name: Create directory on EC2 for .env file
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p /home/${{ env.EC2_USER }}/my-app"
+    
+      # 9. Copy .env to EC2
       - name: Copy .env to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "echo '${{ secrets.ENV_FILE_CONTENTS }}' > /home/${{ env.EC2_USER }}/my-app/.env"
-
-      # 9. Deploy on EC2
+    
+      # 10. Deploy on EC2
       - name: Deploy on EC2
         run: |
           IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
