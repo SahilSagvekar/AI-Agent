@@ -44,7 +44,7 @@ jobs:
           # docker build -t $IMAGE_URI .
           # docker push $IMAGE_URI
           IMAGE_TAG=${GITHUB_SHA}
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV   # ✅ Add this
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV   
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           docker build \
