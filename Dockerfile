@@ -17,17 +17,17 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS runner
+# FROM node:20-alpine AS runner
 
-WORKDIR /app
+# WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --production --legacy-peer-deps
+# COPY package*.json ./
+# RUN npm install --production --legacy-peer-deps
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
 
