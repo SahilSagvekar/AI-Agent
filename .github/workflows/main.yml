@@ -32,21 +32,21 @@ jobs:
         echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
 
     - name: Build docker image
-      run: docker build -t sahilswagvekar/nextjs-app:latest .
+      run: docker build -t sahilswagvekar/ai-agent-2:latest .
 
     - name: Login to docker hub
       run: docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
 
     - name: Publish image to docker hub
-      run: docker push sahilswagvekar/nextjs-app:latest
+      run: docker push sahilswagvekar/ai-agent-2:latest
 
   deploy:
     needs: build
     runs-on: self-hosted
     steps:
       - name: Pull image from docker hub
-        run: docker pull sahilswagvekar/nextjs-app:latest
+        run: docker pull sahilswagvekar/ai-agent-2:latest
       - name: Delete old container
         run: docker rm -f nextjs-app-container  
       - name: Run docker container
-        run: docker run -d -p 80:3000 --name nextjs-app-container sahilswagvekar/nextjs-app:latest
+        run: docker run -d -p 80:3000 --name nextjs-app-container sahilswagvekar/ai-agent-2:latest
