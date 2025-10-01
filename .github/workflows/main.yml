@@ -5,8 +5,8 @@ on:
     branches: [ main, master ]
 
 env:
-  DOCKER_USERNAME: sagvekarsahil966
-  DOCKER_PASSWORD: Z-E-.uAWpN@WC54
+  DOCKER_USERNAME: sahilsagvekar230@gmail.com
+  DOCKER_PASSWORD: AiX#kA-6-R-_4ve
 
 
 jobs:
