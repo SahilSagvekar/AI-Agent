@@ -39,7 +39,7 @@ jobs:
       run: docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
 
     - name: Publish image to docker hub
-      run: docker push sahilssahilswagvekaragvekar/nextjs-app:latest
+      run: docker push sahilswagvekar/nextjs-app:latest
 
   deploy:
     needs: build
