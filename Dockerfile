@@ -30,7 +30,7 @@ WORKDIR /app
 
 # Copy only necessary files and production dependencies
 COPY package*.json ./
-RUN npm install --production --legacy-peer-deps
+RUN npm install  --legacy-peer-deps
 
 # Copy built output and Prisma client from builder
 COPY --from=builder /app/.next ./.next
