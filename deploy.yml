@@ -10,8 +10,7 @@ env:
   EC2_HOST: 3.84.118.99
   EC2_USER: ec2-user
   DOCKER_CONTAINER_NAME: my-ai-agent
-  AWS_ACCESS_KEY_ID: AKIAQUFLQPQRSHEJQLRS
-  AWS_SECRET_ACCESS_KEY: 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
+  
 
 jobs:
   build-and-deploy:
@@ -32,8 +31,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
