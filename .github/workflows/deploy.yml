@@ -6,7 +6,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: ai-agent-2
+  ECR_REPOSITORY: my-ai-agent
   EC2_HOST: 54.152.182.10
   EC2_USER: ec2-user
   DOCKER_CONTAINER_NAME: my-ai-agent
