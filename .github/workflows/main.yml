@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
 
 env:
-  DOCKER_USERNAME: sahilsagvekar230@gmail.com
+  DOCKER_USERNAME: sahilswagvekar
   DOCKER_PASSWORD: AiX#kA-6-R-_4ve
 
 
@@ -39,7 +39,7 @@ jobs:
       run: docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
 
     - name: Publish image to docker hub
-      run: docker push sagvekarsahil966/ai-agent:latest
+      run: docker push sahilsagvekar/nextjs-app:latest
 
 
   deploy:
@@ -47,8 +47,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Pull image from docker hub
-        run: docker pull sagvekarsahil966/ai-agent:latest
+        run: docker pull sahilsagvekar/nextjs-app:latest
       - name: Delete old container
         run: docker rm -f nextjs-app-container  
       - name: Run docker container
-        run: docker run -d -p 80:3000 --name nextjs-app-container sagvekarsahil966/ai-agent:latest
+        run: docker run -d -p 80:3000 --name nextjs-app-container sahilsagvekar/nextjs-app:latest
