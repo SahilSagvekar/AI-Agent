@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
 
 env:
-  DOCKER_USERNAME: sahilswagvekar
+  DOCKER_USERNAME: sahilsagvekar
   DOCKER_PASSWORD: AiX#kA-6-R-_4ve
 
 
