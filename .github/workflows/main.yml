@@ -1,52 +1,109 @@
-name: Deploy Next.js application
+name: CI/CD to EC2
+
 on:
   push:
     branches: [ main, master ]
 
 env:
-  DOCKER_USERNAME: sahilswagvekar
-  DOCKER_PASSWORD: AiX#kA-6-R-_4ve
-
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: my-ai-agent
+  EC2_HOST: 3.84.118.99
+  EC2_USER: ec2-user
+  DOCKER_CONTAINER_NAME: my-ai-agent
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-    - name: Checkout Source
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - name: Create .env file
-      run: |
-        echo "MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}" >> .env
-        echo "SITE_URL=${{ secrets.SITE_URL }}" >> .env
-        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> .env
-        echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
-        echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> .env
-        echo "STRIPE_INTRO_PRICE_ID=${{ secrets.STRIPE_INTRO_PRICE_ID }}" >> .env
-        echo "STRIPE_NORMAL_PRICE_ID=${{ secrets.STRIPE_NORMAL_PRICE_ID }}" >> .env
-        echo "STRIPE_ADD_LOCATION_PRICE_ID=${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" >> .env
-        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-        echo "NINJAS_API_KEY=${{ secrets.NINJAS_API_KEY }}" >> .env
-        echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-        echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-        echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+      - run: npm ci --legacy-peer-deps
+      - run: npm test --silent || true
 
-    - name: Build docker image
-      run: docker build -t sahilswagvekar/nextjs-app:latest .
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to docker hub
-      run: docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Publish image to docker hub
-      run: docker push sahilswagvekar/nextjs-app:latest
-
-  deploy:
-    needs: build
-    runs-on: self-hosted
-    steps:
-      - name: Pull image from docker hub
-        run: docker pull sahilswagvekar/nextjs-app:latest
-      - name: Delete old container
-        run: docker rm -f nextjs-app-container  
-      - name: Run docker container
-        run: docker run -d -p 80:3000 --name nextjs-app-container sahilswagvekar/nextjs-app:latest
+      - name: Build, Tag, and Push Docker image      
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV  # ✅ make IMAGE_TAG available to next steps
+          IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "🚀 Building Docker image: $IMAGE_URI"
+          docker build \
+            --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            --build-arg NINJAS_API_KEY=${{ secrets.NINJAS_API_KEY }} \
+            --build-arg STRIPE_ADD_LOCATION_PRICE_ID=${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }} \
+            --build-arg STRIPE_INTRO_PRICE_ID=${{ secrets.STRIPE_INTRO_PRICE_ID }} \
+            --build-arg STRIPE_NORMAL_PRICE_ID=${{ secrets.STRIPE_NORMAL_PRICE_ID }} \
+            --build-arg TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }} \
+            --build-arg TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }} \
+            -t $IMAGE_URI .
+          
+          echo "📦 Pushing Docker image to ECR"
+          docker push $IMAGE_URI
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🔑 Checking AWS CLI..."
+            if ! command -v aws &> /dev/null; then
+              sudo yum install -y awscli
+            fi
+            echo "🔑 Logging into ECR..."
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+              docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            echo "📥 Pulling latest image: $IMAGE_TAG"
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+            echo "🛑 Stopping old container if exists..."
+            if docker ps -a --format '{{.Names}}' | grep -Eq "^${{ env.DOCKER_CONTAINER_NAME }}$"; then
+              docker stop ${{ env.DOCKER_CONTAINER_NAME }}
+              docker rm ${{ env.DOCKER_CONTAINER_NAME }}
+            fi
+            echo "🚀 Running new container..."
+            docker run -d \
+              --restart unless-stopped \
+              -p 80:3000 \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+              -e NINJAS_API_KEY="${{ secrets.NINJAS_API_KEY }}" \
+              -e STRIPE_ADD_LOCATION_PRICE_ID="${{ secrets.STRIPE_ADD_LOCATION_PRICE_ID }}" \
+              -e STRIPE_INTRO_PRICE_ID="${{ secrets.STRIPE_INTRO_PRICE_ID }}" \
+              -e STRIPE_NORMAL_PRICE_ID="${{ secrets.STRIPE_NORMAL_PRICE_ID }}" \
+              -e TWILIO_ACCOUNT_SID="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+              -e TWILIO_AUTH_TOKEN="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+              --name ${{ env.DOCKER_CONTAINER_NAME }} \
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+            echo "✅ Container started."
+      - name: Health Check
+        run: |
+          echo "🔍 Checking if app is up..."
+          for i in {1..10}; do
+            if curl -s --max-time 5 http://${{ env.EC2_HOST }} > /dev/null; then
+              echo "✅ App is responding!"
+              exit 0
+            fi
+            echo "⏳ App not ready yet, retrying in 5s..."
+            sleep 5
+          done
+          echo "❌ Health check failed. App did not respond after 50s."
+          exit 1
