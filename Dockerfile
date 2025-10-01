@@ -33,11 +33,11 @@ COPY package*.json ./
 RUN npm install  --legacy-peer-deps
 
 # Copy built output and Prisma client from builder
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/.env ./.env
+COPY --from=builder /.next /.next
+# COPY --from=builder /public /public
+COPY --from=builder /node_modules /node_modules
+COPY --from=builder /prisma /prisma
+COPY --from=builder /.env /.env
 
 # Expose port your app runs on
 EXPOSE 3000
