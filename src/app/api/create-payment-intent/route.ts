@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUser();
+      const user = await getUser();
     const userId = user?.userId;
     if (!userId) throw new Error("User not authenticated");
 
