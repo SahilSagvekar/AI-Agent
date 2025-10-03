@@ -65,13 +65,17 @@ export async function provisionTwilioNumber(userId: number) {
 
 
   // 4️⃣ Save number in DB
-  await prisma.laundromatLocation.updateMany({
-    where: { userId },
-    data: { twilioPhone: purchasedNumber.phoneNumber },
-  });
+  // await prisma.laundromatLocation.updateMany({
+  //   where: { userId },
+  //   data: { twilioPhone: purchasedNumber.phoneNumber },
+  // });
+
+  const cleanNumber = purchasedNumber.phoneNumber.startsWith("+1")
+  ? purchasedNumber.phoneNumber.slice(2) // remove "+1"
+  : purchasedNumber.phoneNumber;
 
   return {
-    phoneNumber: purchasedNumber.phoneNumber,
+    phoneNumber: cleanNumber,
   };
 }
 
@@ -164,7 +168,7 @@ export async function POST(req: NextRequest) {
           });
           if (laundromat) {
             // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
-            await prisma.laundromatLocation.update({
+            await prisma.laundromatLocation.updateMany({
               where: { id: laundromat.id },
               data: { twilioPhone: String(twilioNumber), isPaid: true },
             });
@@ -220,9 +224,9 @@ export async function POST(req: NextRequest) {
         locationId = Number(laundromat?.id);
         await duplicateLocation(Number(locationId), locationCount );
         if (laundromat) {
-          await prisma.laundromatLocation.update({
+          await prisma.laundromatLocation.updateMany({
             where: { id: laundromat.id },
-            data: { twilioPhone: "test", isPaid: true },
+            data: { twilioPhone: String(twilioNumber), isPaid: true },
           });
         }
         await prisma.user.update({
