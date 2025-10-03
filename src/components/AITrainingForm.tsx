@@ -750,11 +750,18 @@ export function AITrainingForm({
         body: JSON.stringify(formData),
       });
 
+      let amount = 0;
+
       if (response.ok) {
         const flowType =
           searchParams.get("flowType") || "NEW_ACCOUNT_SUBSCRIPTION";
         const result = await response.json();
         onComplete(formData);
+
+        if(flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
+          amount = 30;
+        }
+
         if (flowType) {
           router.push(`/payment?flowType=${encodeURIComponent(flowType)}`);
         } else {

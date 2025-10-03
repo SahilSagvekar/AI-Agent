@@ -1,37 +1,24 @@
-// // at the very top of the file where you import twilio
-// // @ts-ignore
-// import twilio from "twilio";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import twilio from "twilio";
+import Twilio from "twilio";
 import Stripe from "stripe";
-// import * as zipcodes from "zipcodes";
-// import { use } from "react";
+import { duplicateLocation } from "@/app/api/form/route";
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const twilioClient = twilio(
+const twilioClient = Twilio(
   process.env.TWILIO_ACCOUNT_SID!,
   process.env.TWILIO_AUTH_TOKEN!
-);
+);    
 
-// async function getAreaCodeForZip(zip: string): Promise<string[]> {
-//   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
-//     headers: { "X-Api-Key": process.env.NINJAS_API_KEY! }
-//   });
-//   const data = await res.json();
+const SHARED_TWIML_BIN_SID = process.env.TWILIO_SHARED_TWIML_BIN_SID!;
 
-//   return data[0].area_codes[0];
-// }
 async function getAreaCodeForZip(zip: string): Promise<string> {
   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
     headers: { "X-Api-Key": process.env.NINJAS_API_KEY! },
   });
-
   const data = await res.json();
-
-  // Check if we got valid data and area_codes
   if (
     Array.isArray(data) &&
     data.length > 0 &&
@@ -40,53 +27,56 @@ async function getAreaCodeForZip(zip: string): Promise<string> {
   ) {
     return data[0].area_codes[0];
   }
-
-  // Fallback area code if no data or empty result
-  const backupAreaCode = "212"; // <-- change this to a meaningful default
-  return backupAreaCode;
+  return "212";
 }
 
-async function provisionTwilioNumber(userId: any) {
+export async function provisionTwilioNumber(userId: number) {
+  // 1️⃣ Get user's zip code
   const location = await prisma.laundromatLocation.findFirst({
-    where: { userId: userId },
-    select: {
-      zipCode: true,
-    },
+    where: { userId },
+    select: { zipCode: true },
   });
-
-  if (!location?.zipCode) {
-    throw new Error("No zip code found for user");
-  }
+  if (!location?.zipCode) throw new Error("No zip code found for user");
 
   const areaCodes = await getAreaCodeForZip(location.zipCode);
 
-  // TEMPORARILY DISABLED COZ REQUIRES MONEY ✅
-  // --------------------------------------------------------------------
-  // const availableNumbers = await twilioClient
-  //   .availablePhoneNumbers("US")
-  //   .local.list({
-  //     areaCode: Number(areaCodes),
-  //     smsEnabled: true,
-  //     voiceEnabled: true,
-  //     limit: 1,
-  //   });
+  // 2️⃣ Find available Twilio numbers
+  const availableNumbers = await twilioClient.availablePhoneNumbers("US").local.list({
+    areaCode: Number(areaCodes),
+    smsEnabled: true,
+    voiceEnabled: true,
+    limit: 1,
+  });
 
-  // if (availableNumbers.length === 0) {
-  //   throw new Error(
-  //     `No available Twilio numbers found for area code ${areaCodes}`
-  //   );
-  // }
+  if (availableNumbers.length === 0) {
+    throw new Error(`No available Twilio numbers for area code ${areaCodes}`);
+  }
 
-  // const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+  const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
 
-  // const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-  //   phoneNumber: phoneNumberToPurchase,
+  // 3️⃣ Purchase number with shared TwiML Bin
+  const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+  phoneNumber: phoneNumberToPurchase,
+  voiceUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
+  smsUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
+  voiceMethod: "POST",
+  smsMethod: "POST",
+});
+
+
+  // 4️⃣ Save number in DB
+  // await prisma.laundromatLocation.updateMany({
+  //   where: { userId },
+  //   data: { twilioPhone: purchasedNumber.phoneNumber },
   // });
 
-  // return purchasedNumber.phoneNumber;
-  // --------------------------------------------------------------------
+  const cleanNumber = purchasedNumber.phoneNumber.startsWith("+1")
+  ? purchasedNumber.phoneNumber.slice(2) // remove "+1"
+  : purchasedNumber.phoneNumber;
 
-  return "8282696969";
+  return {
+    phoneNumber: cleanNumber,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -95,9 +85,7 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature")!;
 
   let paymentId = null;
-
   let event: Stripe.Event;
-
   try {
     event = stripe.webhooks.constructEvent(
       rawBody,
@@ -111,261 +99,485 @@ export async function POST(req: NextRequest) {
 
   console.log("Received Stripe event:", event.type);
 
-  // ✅ Handle Subscription Payments (first 3 months intro pricing)
-  if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice;
-    // console.log("invoice.payment_succeeded", invoice.parent?.subscription_details.metadata);
-    // console.log("invoice.payment_succeeded-2", invoice.parent?.subscription_details.metadata.flowType);
-
-    if (invoice) {
-      // const subscriptionId = invoice.parent?.subscription_details.subscription as string;
-      const subscriptionId = invoice.parent!.subscription_details!.subscription as string;
-
+  try {
+    // -------------------------------
+    // Handle Invoice Payments (subscription-based)
+    // -------------------------------
+    if (event.type === "invoice.paid") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subscriptionId = invoice.parent?.subscription_details
+        ?.subscription as string;
 
       const payment = await prisma.payment.findFirst({
         where: { stripeSubscriptionId: subscriptionId },
       });
 
       if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id, stripeSubscriptionId: subscriptionId },
-          data: { paymentStatus: "succeeded" },
+        if (payment.paymentStatus !== "succeeded") {
+          await prisma.payment.update({
+            where: { id: payment.id },
+            data: { paymentStatus: "succeeded" },
+          });
+        }
+
+        // Mark user as paid and set planType
+        await prisma.user.update({
+          where: { id: payment.userId },
+          data: {
+            isPaid: true,
+            planType:
+              payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION"
+                ? "newCustomer"
+                : "regular",
+          },
         });
 
-        console.log(
-          `Subscription payment succeeded for user ${payment.userId}`
-        );
-
-        // Check if user has paid 3 invoices already → switch to normal plan
+        // Check for upgrade after trial (3 paid invoices)
         const invoices = await stripe.invoices.list({
           subscription: subscriptionId,
           limit: 10,
         });
-
         const paidInvoices = invoices.data.filter(
           (inv) => inv.status === "paid"
         );
-
-        console.log(
-          "Total paid invoices for this subscription:",
-          paidInvoices.length
-        );
-
         if (paidInvoices.length >= 3) {
-          console.log(
-            "3 payments done, switching to normal pricing plan automatically"
+          const subscription = await stripe.subscriptions.retrieve(
+            subscriptionId
           );
           await stripe.subscriptions.update(subscriptionId, {
             items: [
               {
-                id: (
-                  await stripe.subscriptions.retrieve(subscriptionId)
-                ).items.data[0].id,
-                price: process.env.STRIPE_NORMAL_PRICE_ID!, // $175 + $45/location
+                id: subscription.items.data[0].id,
+                price: process.env.STRIPE_NORMAL_PRICE_ID!,
               },
             ],
             proration_behavior: "create_prorations",
           });
+          await prisma.user.update({
+            where: { id: payment.userId },
+            data: { planType: "regular" },
+          });
         }
 
-        // if (paidInvoices.length >= 3) {
-        //   console.log(
-        //     "3 payments done, switching to normal pricing plan automatically"
-        //   );
-
-        //   // Retrieve subscription and find items
-        //   const subscription = await stripe.subscriptions.retrieve(
-        //     subscriptionId
-        //   );
-
-        //   // Find base plan item and addon locations item if already exists
-        //   const basePlanItem = subscription.items.data.find(
-        //     (item) =>
-        //       item.price.id === process.env.STRIPE_INTRO_PRICE_ID ||
-        //       item.price.id === process.env.STRIPE_NORMAL_PRICE_ID
-        //   );
-
-        //   const addonItem = subscription.items.data.find(
-        //     (item) => item.price.id === process.env.STRIPE_ADD_LOCATION_PRICE_ID
-        //   );
-
-        //   const subscriptionItems = [];
-
-        //   // Update or add base plan item with normal price
-        //   if (basePlanItem) {
-        //     subscriptionItems.push({
-        //       id: basePlanItem.id,
-        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
-        //     });
-        //   } else {
-        //     // base plan item missing? Add it freshly
-        //     subscriptionItems.push({
-        //       price: process.env.STRIPE_NORMAL_PRICE_ID!,
-        //       quantity: 1,
-        //     });
-        //   }
-
-        //   // Update or add addon location item with correct quantity
-        //   if (locationsCount > 1) {
-        //     if (addonItem) {
-        //       subscriptionItems.push({
-        //         id: addonItem.id,
-        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //         quantity: locationsCount - 1,
-        //       });
-        //     } else {
-        //       subscriptionItems.push({
-        //         price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //         quantity: locationsCount - 1,
-        //       });
-        //     }
-        //   }
-
-        //   await stripe.subscriptions.update(subscriptionId, {
-        //     items: subscriptionItems,
-        //     proration_behavior: "create_prorations",
-        //   });
-        // } else {
-        //   // initial subscription create flow with intro price + addon locations
-        //   const subscription = await stripe.subscriptions.create({
-        //     customer: stripeCustomerId,
-        //     items: [
-        //       {
-        //         price: process.env.STRIPE_INTRO_PRICE_ID!,
-        //         quantity: 1,
-        //       },
-        //       ...(locationsCount > 1
-        //         ? [
-        //             {
-        //               price: process.env.STRIPE_ADD_LOCATION_PRICE_ID!,
-        //               quantity: locationsCount - 1,
-        //             },
-        //           ]
-        //         : []),
-        //     ],
-        //     payment_behavior: "default_incomplete",
-        //     proration_behavior: "create_prorations",
-        //     metadata: {
-        //       userId: userId.toString(),
-        //       flowType: data.flowType,
-        //     },
-        //     expand: ["latest_invoice.payment_intent"],
-        //   });
-
-        //   // Save payment info etc
-        // }
-
-        const userId = payment.userId;
-        const flowType = payment.paymentType;
-
-        if (userId) {
-          try {
-            // let userIdInt = parseInt(userId, 10);
-            let userIdInt = userId;
-
-            if (flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
-              const twilioNumber = await provisionTwilioNumber(userIdInt);
-
-              const laundromat = await prisma.laundromatLocation.findFirst({
-                where: { userId: Number(userId) },
-                select: { id: true },
-              });
-
-              if (!laundromat) {
-                throw new Error("Laundromat location not found for user");
-              }
-
-              await prisma.laundromatLocation.update({
-                where: { id: laundromat.id },
-                data: { twilioPhone: twilioNumber },
-              });
-            }
-          } catch (error) {
-            console.error(
-              "Failed to provision Twilio number or handle flow:",
-              error
-            );
-            return NextResponse.json(
-              { error: "Failed post-payment processing" },
-              { status: 500 }
-            );
-          }
-        }
-      }
-    }
-  }
-
-  //   // ✅ Handle One-Time Payment (Add location / Buy second number)
-  if (event.type === "payment_intent.succeeded") {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    const userId = paymentIntent.metadata.userId;
-    const flowType = paymentIntent.metadata.flowType;
-
-    if (userId) {
-      try {
-        let userIdInt = parseInt(userId, 10);
-          // let userIdInt = userId;
-
-        if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
-          console.log("NEW_NUMBER");
-          const twilioNumber = await provisionTwilioNumber(userIdInt);
-
+        // Provision Twilio number for new account
+        if (payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION") {
+          const twilioNumber = await provisionTwilioNumber(payment.userId);
           const laundromat = await prisma.laundromatLocation.findFirst({
-            where: { userId: Number(userId) },
+            where: { userId: payment.userId },
             select: { id: true },
           });
-
-          if (!laundromat) {
-            throw new Error("Laundromat location not found for user");
-          }
-
-          await prisma.laundromatLocation.update({
-            where: { id: laundromat.id },
-            data: { twilioPhone: twilioNumber },
-          });
-
-          const payment = await prisma.payment.findFirst({
-            where: { stripeSubscriptionId: paymentIntent.id },
-          });
-
-          if (payment) {
-            await prisma.payment.update({
-              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
-              data: { paymentStatus: "succeeded" },
+          if (laundromat) {
+            // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+            await prisma.laundromatLocation.updateMany({
+              where: { id: laundromat.id },
+              data: { twilioPhone: String(twilioNumber), isPaid: true },
             });
           }
+
+          let locationId = laundromat?.id
+
+          let locationCount = parseInt(payment.locationCount);
+
+          console.log("Number(locationId), locationCount" , Number(locationId), locationCount);
+          await duplicateLocation(Number(locationId), locationCount );
         }
-
-        if (flowType === "ADD_LOCATION") {
-          console.log(
-            "User paid for additional locations — add them to DB here."
-          );
-
-          const payment = await prisma.payment.findFirst({
-            where: { stripeSubscriptionId: paymentIntent.id },
-          });
-          paymentId = payment?.id || null;
-
-          if (payment) {
-            await prisma.payment.update({
-              where: { id: payment.id, stripeSubscriptionId: paymentIntent.id },
-              data: { paymentStatus: "succeeded" },
-            });
-          }
-          // Retrieve formData from Payment table if needed and insert new LaundromatLocation
-        }
-      } catch (error) {
-        console.error(
-          "Failed to provision Twilio number or handle flow:",
-          error
-        );
-        return NextResponse.json(
-          { error: "Failed post-payment processing" },
-          { status: 500 }
-        );
       }
     }
+
+    // -------------------------------
+    // Handle One-Time Payments (add-ons)
+    // -------------------------------
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const userId = parseInt(paymentIntent.metadata.userId!, 10);
+      const flowType = paymentIntent.metadata.flowType;
+      let locationId = 0;
+      // const locationCount = parseInt(
+      //   paymentIntent.metadata.locationCount || "1",
+      //   10
+      // );
+
+      // console.log();
+
+      // Mark as paid in payment log
+      const payment = await prisma.payment.findFirst({
+        where: { stripePaymentId: paymentIntent.id },
+      });
+
+      const locationCount = payment?.locationNum ?? 0
+
+      if (payment && payment.paymentStatus !== "succeeded") {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { paymentStatus: "succeeded" },
+        });
+      }
+      
+
+      if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
+        // Provision and mark as paid
+        const twilioNumber = await provisionTwilioNumber(userId);
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        locationId = Number(laundromat?.id);
+        await duplicateLocation(Number(locationId), locationCount );
+        if (laundromat) {
+          await prisma.laundromatLocation.updateMany({
+            where: { id: laundromat.id },
+            data: { twilioPhone: String(twilioNumber), isPaid: true },
+          });
+        }
+        await prisma.user.update({
+          where: { id: userId },
+          data: { isPaid: true },
+        });
+
+        
+      }
+
+      if (flowType === "ADD_LOCATION") {
+        // const locationId = paymentIntent.metadata.locationId;
+        console.log("ADD_LOCATION ");
+
+        const laundromat = await prisma.laundromatLocation.findFirst({
+          where: { userId },
+          select: { id: true },
+        });
+        locationId = Number(laundromat?.id);
+        console.log("locationId" + locationId);
+        if (laundromat) {
+          // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
+          await prisma.laundromatLocation.update({
+            where: { id: laundromat.id },
+            data: { isPaid: true },
+          });
+        }
+        
+        await duplicateLocation(Number(locationId), locationCount );
+      }
+
+      if (flowType === "ADD_PHONE") {
+        // Mark the additional phone number as paid (requires phoneNumberId in metadata)
+        const phoneId = paymentIntent.metadata.phoneNumberId;
+        if (phoneId) {
+          await prisma.phoneNumber.update({
+            where: { id: parseInt(phoneId) },
+            data: { userId: userId, isPaid: true },
+          });
+        }
+      }
+
+      // if (locationId && locationCount > 1) {
+      //   try {
+      //     console.log("insisde deplicate "  , locationId , locationCount);
+      //     await duplicateLocation(Number(locationId), locationCount);
+      //     console.log(`📍 Created duplicate locations`);
+      //   } catch (err) {
+      //     console.error("❌ Failed to duplicate locations:", err);
+      //   }
+      // }
+    }
+
+    // -------------------------------
+    // Handle Subscription Deletion
+    // -------------------------------
+    // if (event.type === "customer.subscription.deleted") {
+    //   const subscription = event.data.object as Stripe.Subscription;
+    //   const subscriptionId = subscription.id;
+    //   const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
+    //   if (payment && payment.paymentStatus !== "cancelled") {
+    //     await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "cancelled" } });
+    //     await prisma.user.update({ where: { id: payment.userId }, data: { isPaid: false } });
+    //   }
+    // }
+  } catch (error) {
+    console.error("Error processing Stripe webhook:", error);
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ paymentId: paymentId });
+  return NextResponse.json({ paymentId });
 }
+
+// // // at the very top of the file where you import twilio
+// // // @ts-ignore
+// // import twilio from "twilio";
+// import { NextRequest, NextResponse } from "next/server";
+// import { PrismaClient } from "@prisma/client";
+// import twilio from "twilio";
+// import Stripe from "stripe";
+// // import * as zipcodes from "zipcodes";
+// // import { use } from "react";
+
+// const prisma = new PrismaClient();
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+// const twilioClient = twilio(
+//   process.env.TWILIO_ACCOUNT_SID!,
+//   process.env.TWILIO_AUTH_TOKEN!
+// );
+
+// // async function getAreaCodeForZip(zip: string): Promise<string[]> {
+// //   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
+// //     headers: { "X-Api-Key": process.env.NINJAS_API_KEY! }
+// //   });
+// //   const data = await res.json();
+
+// //   return data[0].area_codes[0];
+// // }
+// async function getAreaCodeForZip(zip: string): Promise<string> {
+//   const res = await fetch(`https://api.api-ninjas.com/v1/zipcode?zip=${zip}`, {
+//     headers: { "X-Api-Key": process.env.NINJAS_API_KEY! },
+//   });
+
+//   const data = await res.json();
+
+//   // Check if we got valid data and area_codes
+//   if (
+//     Array.isArray(data) &&
+//     data.length > 0 &&
+//     Array.isArray(data[0].area_codes) &&
+//     data[0].area_codes.length > 0
+//   ) {
+//     return data[0].area_codes[0];
+//   }
+
+//   // Fallback area code if no data or empty result
+//   const backupAreaCode = "212"; // <-- change this to a meaningful default
+//   return backupAreaCode;
+// }
+
+// // async function provisionTwilioNumber(userId: any) {
+// //   const location = await prisma.laundromatLocation.findFirst({
+// //     where: { userId: userId },
+// //     select: {
+// //       zipCode: true,
+// //     },
+// //   });
+
+// //   if (!location?.zipCode) {
+// //     throw new Error("No zip code found for user");
+// //   }
+
+// //   const areaCodes = await getAreaCodeForZip(location.zipCode);
+
+// //   // TEMPORARILY DISABLED COZ REQUIRES MONEY ✅
+// //   // --------------------------------------------------------------------
+// //   const availableNumbers = await twilioClient
+// //     .availablePhoneNumbers("US")
+// //     .local.list({
+// //       areaCode: Number(areaCodes),
+// //       smsEnabled: true,
+// //       voiceEnabled: true,
+// //       limit: 1,
+// //     });
+
+// //   if (availableNumbers.length === 0) {
+// //     throw new Error(
+// //       `No available Twilio numbers found for area code ${areaCodes}`
+// //     );
+// //   }
+
+// //   const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+
+// //   const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+// //     phoneNumber: phoneNumberToPurchase,
+// //   });
+
+// //   return purchasedNumber.phoneNumber;
+// //   // --------------------------------------------------------------------
+
+// //   return "8282696969";
+// // }
+
+// export async function provisionTwilioNumber(userId: number) {
+//   // 1. Get user's location/zip code
+//   const location = await prisma.laundromatLocation.findFirst({
+//     where: { userId },
+//     select: { zipCode: true },
+//   });
+
+//   if (!location?.zipCode) throw new Error("No zip code found for user");
+
+//   const areaCodes = await getAreaCodeForZip(location.zipCode);
+
+//   // 2. Search available numbers
+//   const availableNumbers = await twilioClient
+//     .availablePhoneNumbers("US")
+//     .local.list({
+//       areaCode: Number(areaCodes),
+//       smsEnabled: true,
+//       voiceEnabled: true,
+//       limit: 1,
+//     });
+
+//   if (availableNumbers.length === 0) {
+//     throw new Error(`No available Twilio numbers for area code ${areaCodes}`);
+//   }
+
+//   const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+
+//   // 3. Create Voice TwiML Bin
+//   const voiceTwimlBin = await twilioClient.twimlBins.create({
+//     friendlyName: `User-${userId}-VoiceBin`,
+//     twiml: `
+//       <Response>
+//         <Say>Thanks for calling. This call is being recorded.</Say>
+//         <Record transcribe="true"
+//                 transcribeCallback="${process.env.NEXT_PUBLIC_BASE_URL}/api/twilio/transcription"
+//                 maxLength="3600"
+//                 playBeep="true"/>
+//       </Response>
+//     `,
+//   });
+
+//   // 4. Create Messaging TwiML Bin
+//   const messageTwimlBin = await twilioClient.twimlBins.create({
+//     friendlyName: `User-${userId}-MessageBin`,
+//     twiml: `
+//       <Response>
+//         <Message>Thanks for texting us! We will get back to you shortly.</Message>
+//       </Response>
+//     `,
+//   });
+
+//   // 5. Purchase the number and link to both bins
+//   const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+//     phoneNumber: phoneNumberToPurchase,
+
+//     // ✅ Link Voice to TwiML Bin
+//     voiceApplicationSid: voiceTwimlBin.sid,
+//     voiceMethod: "POST",
+
+//     // ✅ Link Messaging to TwiML Bin
+//     smsApplicationSid: messageTwimlBin.sid,
+//     smsMethod: "POST",
+//   });
+
+//   // 6. Save purchased number to DB
+//   await prisma.laundromatLocation.updateMany({
+//     where: { userId },
+//     data: { twilioPhone: purchasedNumber.phoneNumber },
+//   });
+
+//   return {
+//     phoneNumber: purchasedNumber.phoneNumber,
+//     voiceBin: voiceTwimlBin.sid,
+//     messageBin: messageTwimlBin.sid,
+//   };
+// }
+
+// export async function POST(req: NextRequest) {
+//   const buf = await req.arrayBuffer();
+//   const rawBody = Buffer.from(buf);
+//   const signature = req.headers.get("stripe-signature")!;
+
+//   let paymentId = null;
+
+//   let event: Stripe.Event;
+//   try {
+//     event = stripe.webhooks.constructEvent(rawBody, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+//   } catch (err: any) {
+//     console.error("Webhook signature verification failed.", err.message);
+//     return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
+//   }
+
+//   console.log("Received Stripe event:", event.type);
+
+//   try {
+//     // -------------------------------
+//     // Handle Invoice Payments
+//     // -------------------------------
+//     if (event.type === "invoice.paid") {
+//       const invoice = event.data.object as Stripe.Invoice;
+//       const subscriptionId = invoice.parent!.subscription_details!.subscription as string;
+
+//       const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
+//       if (payment) {
+//         // Idempotent update: only mark succeeded if not already
+//         if (payment.paymentStatus !== "succeeded") {
+//           await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+//         }
+
+//         // Check if 3 paid invoices → upgrade plan
+//         const invoices = await stripe.invoices.list({ subscription: subscriptionId, limit: 10 });
+//         const paidInvoices = invoices.data.filter(inv => inv.status === "paid");
+//         if (paidInvoices.length >= 3) {
+//           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+//           await stripe.subscriptions.update(subscriptionId, {
+//             items: [{ id: subscription.items.data[0].id, price: process.env.STRIPE_NORMAL_PRICE_ID! }],
+//             proration_behavior: "create_prorations",
+//           });
+//         }
+
+//         // Provision Twilio if new account subscription
+//         if (payment.paymentType === "NEW_ACCOUNT_SUBSCRIPTION") {
+//           const twilioNumber = await provisionTwilioNumber(payment.userId);
+//           const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId }, select: { id: true } });
+//           if (laundromat) {
+//             await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber  } });
+//           }
+//         }
+//       }
+//     }
+
+//     // -------------------------------
+//     // Handle One-Time Payments
+//     // -------------------------------
+//     if (event.type === "payment_intent.succeeded") {
+//       const paymentIntent = event.data.object as Stripe.PaymentIntent;
+//       const userId = parseInt(paymentIntent.metadata.userId!, 10);
+//       const flowType = paymentIntent.metadata.flowType;
+
+//       const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: paymentIntent.id } });
+//       if (payment && payment.paymentStatus !== "succeeded") {
+//         await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "succeeded" } });
+//       }
+
+//       if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
+//         const twilioNumber = await provisionTwilioNumber(userId);
+//         const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId }, select: { id: true } });
+//         if (laundromat) {
+//           await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber } });
+//         }
+//       }
+
+//       if (flowType === "ADD_LOCATION") {
+//         console.log("User paid for additional locations — handle DB update here");
+//       }
+//     }
+
+//     // -------------------------------
+//     // Handle Subscription Deletion
+//     // -------------------------------
+//     // if (event.type === "customer.subscription.deleted") {
+//     //   const subscription = event.data.object as Stripe.Subscription;
+//     //   const subscriptionId = subscription.id;
+
+//     //   const payment = await prisma.payment.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
+//     //   if (payment) {
+//     //     // Idempotent cancellation: only update if not already cancelled
+//     //     if (payment.paymentStatus !== "cancelled") {
+//     //       await prisma.payment.update({ where: { id: payment.id }, data: { paymentStatus: "cancelled" } });
+//     //     }
+
+//     //     // Optional: release Twilio numbers
+//     //     const laundromat = await prisma.laundromatLocation.findFirst({ where: { userId: payment.userId } });
+//     //     if (laundromat?.twilioPhone) {
+//     //       console.log(`Twilio number ${laundromat.twilioPhone} can be released here`);
+//     //       // await twilioClient.incomingPhoneNumbers(laundromat.twilioPhone).remove();
+//     //     }
+//     //   }
+//     // }
+
+//   } catch (error) {
+//     console.error("Error processing Stripe webhook:", error);
+//     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+//   }
+
+//   return NextResponse.json({ paymentId });
+// }

@@ -1,0 +1,6 @@
+#AWs EC2 run commands after chnages
+
+git pull origin main
+npm install --legacy-peer-deps
+npm run build
+pm2 restart ai-agent

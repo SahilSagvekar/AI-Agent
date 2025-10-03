@@ -19,9 +19,12 @@ model User {
   phone               String?
   website             String?
   firstPayment        Boolean?
+  isPaid              Boolean              @default(false)         // <-- Add: overall payment status
+  planType            String?                                        // <-- Add: "newCustomer", "regular" etc
   laundromatLocations LaundromatLocation[]
   payments            Payment[]
   phoneNumbers        PhoneNumber[]
+  createdAt  DateTime @default(now())
 }
 
 enum Role {
@@ -58,6 +61,7 @@ model LaundromatLocation {
   callHandling      CallHandling?
   languageSettings  LanguageSettings?
   machineInfo       MachineInfo?
+  isPaid            Boolean              @default(false)
   operatingHours    OperatingHours?
   payments          Payment[]
   policies          Policies?
@@ -69,16 +73,19 @@ model LaundromatLocation {
   dryers            Dryer[]
   PhoneNumber       PhoneNumber[]          @relation("PhoneNumberToLocation")
   user              User                   @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model PhoneNumber {
   id                  Int                   @id @default(autoincrement())
   userId              Int
-  number              String                @unique
-  assignedDate        DateTime              @default(now())
-  status              String
-  user                User                  @relation(fields: [userId], references: [id])
+  number              String?                @unique
+  assignedDate        DateTime?              @default(now())
+  isPaid              Boolean?                 @default(false)
+  status              String?
+  user                User?                  @relation(fields: [userId], references: [id])
   LaundromatLocation  LaundromatLocation[]  @relation("PhoneNumberToLocation")
+  createdAt  DateTime @default(now())
 }
 
 model OperatingHours {
@@ -103,6 +110,7 @@ model OperatingHours {
   lastWashTime      String?
   timeZone          String    @default("UTC")
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model HolidayHours {
@@ -112,6 +120,7 @@ model HolidayHours {
   open              String
   close             String
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id], name: "HolidayHoursToLocation")
+  createdAt  DateTime @default(now())
 }
 
 
@@ -124,6 +133,7 @@ model Washer {
   system        String
   payments      Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Dryer {
@@ -135,6 +145,7 @@ model Dryer {
   system        String
   payments      Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Services {
@@ -142,6 +153,7 @@ model Services {
   locationId        Int       @unique
   services          Json
   laundromatLocation LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Pricing {
@@ -155,6 +167,7 @@ model Pricing {
   minimumCharges       String?
   paymentMethods       Json
   laundromatLocation   LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model MachineInfo {
@@ -166,6 +179,7 @@ model MachineInfo {
   machinesModern      Boolean
   largeMachines       Boolean
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Amenities {
@@ -173,6 +187,7 @@ model Amenities {
   locationId          Int       @unique
   amenities           Json
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Questions {
@@ -181,6 +196,7 @@ model Questions {
   commonQuestions     Json
   customQuestions     Json
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model CallHandling {
@@ -191,6 +207,7 @@ model CallHandling {
   forwardingNumber    String?
   forwardingHours     String?
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model LanguageSettings {
@@ -199,6 +216,7 @@ model LanguageSettings {
   languages            Json
   autoDetectLanguage   Boolean
   laundromatLocation   LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model BusinessTone {
@@ -208,6 +226,7 @@ model BusinessTone {
   customPhrases       String?
   businessIntro       String?
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Policies {
@@ -220,6 +239,7 @@ model Policies {
   unattendedPolicy    String?
   additionalPolicies  String?
   laundromatLocation  LaundromatLocation @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model Payment {
@@ -232,9 +252,12 @@ model Payment {
   stripePaymentId          String?   @unique
   stripeSubscriptionId     String?   @unique
   paymentStatus            String
+  locationCount            String
+  locationNum              Int?
   paymentDate              DateTime  @default(now())
   laundromatLocation       LaundromatLocation? @relation(fields: [locationId], references: [id])
   user                     User      @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
 }
 
 model appointments {
@@ -257,3 +280,22 @@ model EmailOtp {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
 }
+
+model Transcription {
+  id        Int      @id @default(autoincrement())
+  callSid   String   @unique
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model CallLog {
+  id           Int      @id @default(autoincrement())
+  callSid      String   @unique
+  fromNumber   String?
+  toNumber     String?
+  recordingUrl String?
+  transcriptionText String?
+  createdAt    DateTime @default(now())
+}
+
+  

@@ -1,130 +1,81 @@
 import { NextResponse } from "next/server";
-import Twilio from "twilio";
-// import { CallInstance } from 'twilio/lib/rest/api/v2010/account/call';
-// import { MessageInstance } from 'twilio/lib/rest/api/v2010/account/message';
+import twilio from "twilio";
+import { getUser } from "@/lib/auth";
+import { PrismaClient } from "@prisma/client";
 
+const prisma = new PrismaClient();
 
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID!,
+  process.env.TWILIO_AUTH_TOKEN!
+);
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
-
-const client = Twilio(accountSid, authToken);
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    // Accept multiple query params named number, collect into array
-    const numbers = searchParams.getAll("number"); // array of numbers, e.g. ['+1234', '+5678']
+    const user = await getUser();
 
-    // Function to create a filter object for Twilio API calls/messages
-    // Twilio API doesn't support OR filters across 'from' and 'to' together,
-    // so here for simplicity, we fetch data filtered either by 'to' or by 'from' individually,
-    // then merge results. This can be optimized later.
-
-    async function fetchCallsForNumbers(nums: string[]) {
-      // const callsSet = new Map<string, CallInstance>();
-        
-      // for (const num of nums) {
-      //   // Fetch calls where 'to' is this number
-      //   const toCalls = await client.calls.list({ to: num, limit: 20 });
-      //   toCalls.forEach(call => callsSet.set(call.sid, call));
-
-      //   // Fetch calls where 'from' is this number
-      //   const fromCalls = await client.calls.list({ from: num, limit: 20 });
-      //   fromCalls.forEach(call => callsSet.set(call.sid, call));
-      // }
-      // return Array.from(callsSet.values());
+    if (!user) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    async function fetchMessagesForNumbers(nums: string[]) {
-      // const messagesSet = new Map<string, MessageInstance>();
-      // for (const num of nums) {
-      //   const toMessages = await client.messages.list({ to: num, limit: 20 });
-      //   toMessages.forEach(msg => messagesSet.set(msg.sid, msg));
-      //   const fromMessages = await client.messages.list({ from: num, limit: 20 });
-      //   fromMessages.forEach(msg => messagesSet.set(msg.sid, msg));
-      // }
-      // return Array.from(messagesSet.values());
+    // ✅ Get twilioPhone numbers from DB
+    const dbNumbers = await prisma.laundromatLocation.findMany({
+      where: { userId: user.userId },
+      select: { twilioPhone: true },
+    });
+
+    if (!dbNumbers || dbNumbers.length === 0) {
+      return NextResponse.json({ success: false, error: "No Twilio numbers found in DB" }, { status: 404 });
     }
 
-    // Fetch calls & messages filtered by numbers or fallback to unfiltered (latest 20)
-    const calls = numbers.length > 0 ? await fetchCallsForNumbers(numbers) : await client.calls.list({ limit: 20 });
-    const messages = numbers.length > 0 ? await fetchMessagesForNumbers(numbers) : await client.messages.list({ limit: 20 });
+    // Extract just the numbers as plain array
+    const dbNumberList = dbNumbers.map((item) => item.twilioPhone);
 
-    // Usage records are account wide, so no number filter
-    const usageRecords = await client.usage.records.list({ limit: 20 });
+    // ✅ Fetch all numbers from Twilio
+    const twilioNumbers = await twilioClient.incomingPhoneNumbers.list({ limit: 50 });
 
-    // Fetch recordings and transcriptions unfiltered, or optionally you can filter recordings by callSid present in filtered calls
+    console.log('twilioNumbers' + twilioNumbers)
 
-    // Map calls by sid for filtering recordings and transcriptions
-    // const callSidSet = new Set(calls.map(c => c.sid));
+    // ✅ Filter only the ones present in our DB
+    const filteredNumbers = twilioNumbers.filter((num: { phoneNumber: string }) =>
+      dbNumberList.includes(num.phoneNumber)
+    );
 
-    // const recordingsAll = await client.recordings.list({ limit: 50 });
-    // const recordings = recordingsAll.filter(rec => callSidSet.has(rec.callSid));
+    // ✅ Fetch and filter calls
+    const calls = await twilioClient.calls.list({ limit: 100 }); // Increase limit if you need more
+    const filteredCalls = calls.filter(
+      (call: {to: string; from: string}) =>
+        dbNumberList.includes(call.to) || dbNumberList.includes(call.from)
+    );
 
-    // // Map recordings by sid for joining with transcriptions
-    // const recordingsMap = new Map(recordings.map((r) => [r.sid, r]));
+    // ✅ Count total calls
+    const totalCalls = filteredCalls.length;
 
-    // const transcriptionsAll = await client.transcriptions.list({ limit: 50 });
-    // const transcriptions = transcriptionsAll.filter(tr => recordingsMap.has(tr.recordingSid));
+    // ✅ Count today's calls
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // start of today
 
-    // // Format data
+    const todaysCalls = filteredCalls.filter((call: {startTime: string}) => {
+      const callDate = new Date(call.startTime);
+      return callDate >= today;
+    });
 
-    // const callsData = calls.map((call) => ({
-    //   sid: call.sid,
-    //   from: call.from,
-    //   to: call.to,
-    //   status: call.status,
-    //   startTime: call.startTime,
-    //   duration: call.duration,
-    // }));
-
-    // const messagesData = messages.map((msg) => ({
-    //   sid: msg.sid,
-    //   from: msg.from,
-    //   to: msg.to,
-    //   status: msg.status,
-    //   body: msg.body,
-    //   dateSent: msg.dateSent,
-    //   direction: msg.direction,
-    // }));
-
-    // const usageData = usageRecords.map((record) => ({
-    //   category: record.category,
-    //   usage: record.usage,
-    //   price: record.price,
-    //   startDate: record.startDate,
-    //   endDate: record.endDate,
-    // }));
-
-    // const recordingsData = recordings.map((rec) => ({
-    //   sid: rec.sid,
-    //   callSid: rec.callSid,
-    //   dateCreated: rec.dateCreated,
-    //   duration: rec.duration,
-    // }));
-
-    // const transcriptionsData = transcriptions.map((trans) => {
-    //   const recording = recordingsMap.get(trans.recordingSid);
-    //   return {
-    //     sid: trans.sid,
-    //     recordingSid: trans.recordingSid,
-    //     callSid: recording?.callSid ?? null,
-    //     transcriptionText: trans.transcriptionText,
-    //     status: trans.status,
-    //     dateCreated: trans.dateCreated,
-    //   };
-    // });
+    const callsToday = todaysCalls.length;
 
     return NextResponse.json({
-      // calls: callsData,
-      // messages: messagesData,
-      // usage: usageData,
-      // recordings: recordingsData,
-      // transcriptions: transcriptionsData,
+      success: true,
+      numbers: filteredNumbers,
+      calls: filteredCalls,
+      stats: {
+        totalCalls,
+        callsToday,
+      },
     });
   } catch (error) {
-    console.error("Twilio API fetch error:", error);
-    return NextResponse.json({ error: "Failed to fetch Twilio data" }, { status: 500 });
+    console.error("Error fetching Twilio data:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch Twilio data" },
+      { status: 500 }
+    );
   }
 }

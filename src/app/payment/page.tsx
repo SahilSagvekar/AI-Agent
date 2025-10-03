@@ -39,7 +39,30 @@ function PaymentContent({ businessName, onComplete, onBack }: PaymentScreenProps
   const stripe = useStripe();
   const elements = useElements();
 
-  const basePrice = 175;
+  let amount = searchParams.get("amount");
+  const flowType = searchParams.get("flowType")
+
+  let basePrice = 0;
+
+switch (flowType) {
+  case "NEW_ACCOUNT_SUBSCRIPTION":
+    basePrice = 30;
+    break;
+
+  case "ADD_LOCATION":
+    basePrice = 45;
+    break;
+
+  case "NEW_NUMBER":
+    basePrice = 85;
+    break;
+
+  default:
+    basePrice = 0;
+}
+
+
+  // const basePrice = Number(amount) ?? 0;
   const additionalLocationPrice = 45;
   const locationCount = parseInt(locations) || 1;
   const totalPrice = basePrice + (locationCount - 1) * additionalLocationPrice;
@@ -63,6 +86,8 @@ function PaymentContent({ businessName, onComplete, onBack }: PaymentScreenProps
       async function createPaymentIntent() {
         try {
           const flowType = searchParams.get("flowType");
+          let amount = searchParams.get("amount");
+
           const response = await fetch("/api/create-payment-intent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -260,7 +285,7 @@ function PaymentContent({ businessName, onComplete, onBack }: PaymentScreenProps
                   disabled={isProcessing || !isFormValid || !stripe}
                   size="lg"
                 >
-                  {isProcessing ? "Processing..." : "Start Free Trial"}
+                  {isProcessing ? "Processing..." : "Pay"}
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground mt-4 leading-relaxed">
