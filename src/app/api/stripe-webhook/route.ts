@@ -65,10 +65,10 @@ export async function provisionTwilioNumber(userId: number) {
 
 
   // 4️⃣ Save number in DB
-  await prisma.laundromatLocation.updateMany({
-    where: { userId },
-    data: { twilioPhone: purchasedNumber.phoneNumber },
-  });
+  // await prisma.laundromatLocation.updateMany({
+  //   where: { userId },
+  //   data: { twilioPhone: purchasedNumber.phoneNumber },
+  // });
 
   // const cleanNumber = purchasedNumber.phoneNumber.startsWith("+1")
   // ? purchasedNumber.phoneNumber.slice(2) // remove "+1"
