@@ -32,20 +32,25 @@ async function getAreaCodeForZip(zip: string): Promise<string> {
 
 export async function provisionTwilioNumber(userId: number) {
   // 1️⃣ Get user's zip code
+  // const ZipCode = '90210'
   const location = await prisma.laundromatLocation.findFirst({
     where: { userId },
+    orderBy: { createdAt: "desc" },
     select: { zipCode: true },
   });
+  console.log("location " + JSON.stringify(location?.zipCode));
   if (!location?.zipCode) throw new Error("No zip code found for user");
 
-  const areaCodes = await getAreaCodeForZip(location.zipCode);
+
+  const areaCodes = await getAreaCodeForZip(location.zipCode);  
+  console.log("areaCodes " + areaCodes)
 
   // 2️⃣ Find available Twilio numbers
   const availableNumbers = await twilioClient.availablePhoneNumbers("US").local.list({
     areaCode: Number(areaCodes),
     smsEnabled: true,
     voiceEnabled: true,
-    limit: 1,
+    limit: 5,
   });
 
   if (availableNumbers.length === 0) {
@@ -53,6 +58,8 @@ export async function provisionTwilioNumber(userId: number) {
   }
 
   const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+
+  console.log("phoneNumberToPurchase " + phoneNumberToPurchase);
 
   // 3️⃣ Purchase number with shared TwiML Bin
   const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
@@ -70,13 +77,17 @@ export async function provisionTwilioNumber(userId: number) {
   //   data: { twilioPhone: purchasedNumber.phoneNumber },
   // });
 
+  console.log("purchasedNumber.phoneNumber " + purchasedNumber.phoneNumber);
+
   // const cleanNumber = purchasedNumber.phoneNumber.startsWith("+1")
   // ? purchasedNumber.phoneNumber.slice(2) // remove "+1"
   // : purchasedNumber.phoneNumber;
 
-  return {
-    phoneNumber: purchasedNumber.phoneNumber,
-  };
+  // return {
+  //   phoneNumber: purchasedNumber.phoneNumber,
+  // };
+  return purchasedNumber.phoneNumber;
+
 }
 
 export async function POST(req: NextRequest) {
@@ -164,13 +175,19 @@ export async function POST(req: NextRequest) {
           const twilioNumber = await provisionTwilioNumber(payment.userId);
           const laundromat = await prisma.laundromatLocation.findFirst({
             where: { userId: payment.userId },
+            orderBy: { createdAt: "desc" },
             select: { id: true },
           });
           if (laundromat) {
             // await prisma.laundromatLocation.update({ where: { id: laundromat.id }, data: { twilioPhone: twilioNumber.phoneNumber, isPaid: true } });
-            await prisma.laundromatLocation.updateMany({
+            // await prisma.laundromatLocation.updateMany({
+            //   where: { id: laundromat.id },
+            //   data: { twilioPhone: String(twilioNumber), isPaid: true },
+            // });
+
+             await prisma.laundromatLocation.updateMany({
               where: { id: laundromat.id },
-              data: { twilioPhone: String(twilioNumber), isPaid: true },
+              data: {  isPaid: true },
             });
           }
 
@@ -217,18 +234,23 @@ export async function POST(req: NextRequest) {
       if (flowType === "NEW_NUMBER" || flowType === "NEW_ACCOUNT") {
         // Provision and mark as paid
         const twilioNumber = await provisionTwilioNumber(userId);
+        console.log("twilioNumber" + JSON.stringify(twilioNumber[0]))
         const laundromat = await prisma.laundromatLocation.findFirst({
           where: { userId },
+          orderBy: { createdAt: "desc" },
           select: { id: true },
         });
         locationId = Number(laundromat?.id);
+        console.log("locationId " + locationId);
         await duplicateLocation(Number(locationId), locationCount );
         if (laundromat) {
-          await prisma.laundromatLocation.updateMany({
+          console.log("update laundromat");
+          await prisma.laundromatLocation.update({
             where: { id: laundromat.id },
-            data: { twilioPhone: String(twilioNumber), isPaid: true },
+            data: { twilioPhone: JSON.stringify(twilioNumber), isPaid: true },
           });
         }
+        console.log("update user");
         await prisma.user.update({
           where: { id: userId },
           data: { isPaid: true },
@@ -243,6 +265,7 @@ export async function POST(req: NextRequest) {
 
         const laundromat = await prisma.laundromatLocation.findFirst({
           where: { userId },
+          orderBy: { createdAt: "desc" },
           select: { id: true },
         });
         locationId = Number(laundromat?.id);
