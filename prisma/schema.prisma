@@ -45,6 +45,7 @@ model LaundromatLocation {
   googleMapsUrl     String?
   twilioPhone       String?
   notableLandmarks  String?
+  attendantType    String?
   attendingOpen    String?   // "09:00 AM"
   attendingClose   String?   // "06:00 PM"
   is24Hours        Boolean   @default(false)

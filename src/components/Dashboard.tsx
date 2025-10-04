@@ -156,18 +156,24 @@ export function Dashboard({
       }
     }
 
-    async function fetchSubData() {
-      try {
-        const res = await fetch("/api/monthly-payments");
-        const data = await res.json();
-        if (data.success) {
-          setCurrentSub(data.stats);
-          // console.log('twilio-data' + JSON.stringify(twilioData))
-        }
-      } catch (e) {
-        console.error("Failed to fetch Twilio data", e);
-      }
-    }
+    // async function fetchSubData() {
+    //   try {
+    //     const res = await fetch("/api/monthly-payments");
+    //     const text = await res.text();
+    //     if (!text) {
+    //       console.warn("Empty response from /api/monthly-payments");
+    //       return;
+    //     }
+
+    //     const data = JSON.parse(text);
+    //     if (data.success) {
+    //       setCurrentSub(data.stats);
+    //       // console.log('twilio-data' + JSON.stringify(twilioData))
+    //     }
+    //   } catch (e) {
+    //     console.error("Failed to fetch Twilio data", e);
+    //   }
+    // }
 
     async function fetchTwilioData() {
       try {
@@ -183,7 +189,7 @@ export function Dashboard({
     fetchLocations();
     fetchPayments();
     fetchTwilioData();
-    fetchSubData()
+    // fetchSubData()
   }, []);
 
 

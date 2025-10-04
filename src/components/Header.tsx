@@ -37,7 +37,7 @@ export function Header({ onLogin }: { onLogin: () => void }) {
               onClick={redirectDemo} 
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              DemoS
+              Demo
             </button>
             <button 
               onClick={redirectContact} 

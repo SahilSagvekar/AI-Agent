@@ -171,24 +171,27 @@ export default function TrainingPageClient() {
 
   const searchParams = useSearchParams();
   const locationId = searchParams.get("locationId");
-
-  const router = useRouter();
   const [trainingData, setTrainingData] = useState(null);
 
-  useEffect(() => {
+  const router = useRouter();
+
+   useEffect(() => {
     async function fetchTrainingData() {
       if (!locationId) {
         router.push("/dashboard");
         return;
       }
+
       const res = await fetch(`/api/form?id=${locationId}`);
       if (res.ok) {
         const apiData = await res.json();
         const flatData = flattenTrainingData(apiData, locationId);
         setInitialData(flatData);
       }
+
       setLoading(false);
     }
+
     fetchTrainingData();
   }, [locationId, router]);
 

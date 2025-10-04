@@ -19,6 +19,7 @@ export async function POST(request: Request) {
     const flatData = await request.json();
 
     // ✅ Extract UI fields for attendant hours
+    const attendantType = flatData.attendantType || "";
     const attendingOpen = flatData.attendingOpen || "";
     const attendingClose = flatData.attendingClose || "";
     const is24Hours = !!flatData.is24Hours;
@@ -42,7 +43,9 @@ export async function POST(request: Request) {
       googleMapsUrl: flatData.googleMapsUrl || "",
       notableLandmarks: flatData.notableLandmarks || "",
 
+      
       // ✅ Save attendant hours in structured fields
+      attendantType,
       attendingOpen,
       attendingClose,
       is24Hours,
@@ -232,6 +235,8 @@ export async function PUT(request: Request) {
 
   try {
     const flatData = await request.json();
+
+    console.log("flatData" + JSON.stringify(flatData))
     const id = parseInt(flatData.id, 10);
 
     // Find existing laundromat location for this user
@@ -247,6 +252,7 @@ export async function PUT(request: Request) {
     }
 
     // Extract UI fields for attendant hours
+    const attendantType = flatData.attendantType || "";
     const attendingOpen = flatData.attendingOpen || "";
     const attendingClose = flatData.attendingClose || "";
     const is24Hours = !!flatData.is24Hours;
@@ -268,6 +274,7 @@ export async function PUT(request: Request) {
         notableLandmarks: flatData.notableLandmarks || "",
 
         // ✅ store attendant hours properly
+        attendantType,
         attendingOpen,
         attendingClose,
         is24Hours,
@@ -299,10 +306,16 @@ export async function PUT(request: Request) {
         },
 
         // If you want to replace holiday hours, you might want to delete + recreate them:
-        // holidayHours: {
-        //   deleteMany: {}, // clear existing
-        //   create: holidayHours.map(hh => ({ name: hh.name, open: hh.open, close: hh.close }))
-        // },
+        holidayHours: {
+          deleteMany: {}, // clear existing
+           create: holidayHours.map(
+          (hh: { name: string; open: string; close: string }) => ({
+            name: hh.name,
+            open: hh.open,
+            close: hh.close,
+          })
+        ),
+        },
 
         washers: {
           deleteMany: {}, // clear old washers first (avoids duplicates)

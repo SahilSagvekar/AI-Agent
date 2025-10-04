@@ -174,6 +174,23 @@ export function AITrainingForm({
   const [activeTab, setActiveTab] = useState<string>("business");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const DEFAULT_HOURS = {
+    Monday: { open: "08:00", close: "20:00", is247: false },
+    Tuesday: { open: "08:00", close: "20:00", is247: false },
+    Wednesday: { open: "08:00", close: "20:00", is247: false },
+    Thursday: { open: "08:00", close: "20:00", is247: false },
+    Friday: { open: "08:00", close: "20:00", is247: false },
+    Saturday: { open: "08:00", close: "20:00", is247: false },
+    Sunday: { open: "08:00", close: "20:00", is247: false },
+  };
+
+  const DEFAULT_HOLIDAYS = [
+  { name: "Christmas", open: "Closed", close: "Closed" },
+  { name: "Good Friday", open: "8:00 AM", close: "5:00 PM" },
+  { name: "Easter Sunday", open: "Closed", close: "Closed" },
+];
+
+
   const [formData, setFormData] = useState<FormData>({
     businessName: initialData?.businessName ?? "",
     address: initialData?.address ?? "",
@@ -188,19 +205,20 @@ export function AITrainingForm({
     locationName: initialData?.locationName ?? "",
     timeZone: initialData?.timeZone ?? "",
     attendantType: initialData?.attendantType ?? "",
-    attendingOpen: initialData?.attendingOpen ?? "",
-    is24Hours: initialData?.is24Hours ?? false,
-    attendingClose: initialData?.attendingClose ?? "",
-    // washers: initialData?.washers ?? [],
-    washers: [
-      {
-        size: "",
-        price: "",
-        quantity: 0,
-        system: "",
-        payments: [{ system: "", notes: "" }], // <-- array of objects
-      },
-    ],
+     attendingOpen: initialData?.attendingOpen ?? "",
+  attendingClose: initialData?.attendingClose ?? "",
+  is24Hours: initialData?.is24Hours ?? false,
+  // attendantType: initialData?.attendantType ?? "attendant",
+    washers: initialData?.washers ?? [],
+    // washers: [
+    //   {
+    //     size: "",
+    //     price: "",
+    //     quantity: 0,
+    //     system: "",
+    //     payments: [{ system: "", notes: "" }], // <-- array of objects
+    //   },
+    // ],
     // dryers: initialData?.dryers ?? [],
     dryers: [
       {
@@ -211,24 +229,26 @@ export function AITrainingForm({
         payments: [{ system: "", notes: "" }], // <-- array of objects
       },
     ],
-    holidayHours: initialData?.holidayHours ?? [],
-
+    // holidayHours: initialData?.holidayHours ?? [],
+    holidayHours: DEFAULT_HOLIDAYS,
+    
     // weekdayHours: initialData?.weekdayHours ?? "6:00 AM - 10:00 PM",
     // weekendHours: initialData?.weekendHours ?? "7:00 AM - 9:00 PM",
     openOnHolidays: initialData?.openOnHolidays ?? false,
     holidayNote: initialData?.holidayNote ?? "",
     lastWashTime: initialData?.lastWashTime ?? "1 hour before closing",
 
-    hours: {
-      Monday: { open: "08:00", close: "20:00" },
-      Tuesday: { open: "08:00", close: "20:00" },
-      Wednesday: { open: "08:00", close: "20:00" },
-      Thursday: { open: "08:00", close: "20:00" },
-      Friday: { open: "08:00", close: "20:00" },
-      Saturday: { open: "09:00", close: "20:00" },
-      Sunday: { open: "09:00", close: "20:00" },
-    },
+    // hours: {
+    //   Monday: { open: "08:00", close: "20:00" },
+    //   Tuesday: { open: "08:00", close: "20:00" },
+    //   Wednesday: { open: "08:00", close: "20:00" },
+    //   Thursday: { open: "08:00", close: "20:00" },
+    //   Friday: { open: "08:00", close: "20:00" },
+    //   Saturday: { open: "09:00", close: "20:00" },
+    //   Sunday: { open: "09:00", close: "20:00" },
+    // },
 
+    hours: DEFAULT_HOURS,
     services: Array.isArray(initialData?.services) ? initialData.services : [],
 
     washerPrices: initialData?.washerPrices ?? "",
@@ -293,10 +313,25 @@ export function AITrainingForm({
       setFormData((prev) => ({
         ...prev,
         ...initialData,
+        attendantType: initialData.attendantType || "",
+        attendingOpen: initialData.attendingOpen || "",
+      attendingClose: initialData.attendingClose || "",
+      is24Hours: initialData.is24Hours || false,
         holidayHours: initialData.holidayHours || [],
       }));
     }
   }, [initialData]);
+
+//   useEffect(() => {
+//   if (!formData.hours) {
+//     setFormData((prev) => ({ ...prev, hours: DEFAULT_HOURS }));
+//   } else {
+//     // Fill in missing days if any
+//     const updatedHours = { ...DEFAULT_HOURS, ...formData.hours };
+//     setFormData((prev) => ({ ...prev, hours: updatedHours }));
+//   }
+// }, [formData.hours]);
+
 
   const calculateProgress = () => {
     const requiredFields = [
@@ -733,6 +768,9 @@ export function AITrainingForm({
     },
   ];
 
+
+
+
   const currentTabIndex = TAB_ORDER.indexOf(activeTab);
   const isLastStep = currentTabIndex === TAB_ORDER.length - 1;
 
@@ -791,7 +829,9 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
 
 
   const handleTypeChange = (type: "attendant" | "nonAttendant" | "partial") => {
+    // console.log('type' + type)
     setAttendantType(type);
+    // console.log('type' + type)
     setFormData((prev) => ({
       ...prev,
       attendantType: type,
@@ -1015,40 +1055,6 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                   />
                 </div>
 
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="notableLandmarks">Attending Hours</Label>
-                    <Input
-                      id="attendingHours"
-                      value={formData.attendingHours || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          attendingHours: e.target.value,
-                        }))
-                      }
-                      placeholder="Attending Hours"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notableLandmarks">
-                      Non Attending Hours
-                    </Label>
-                    <Input
-                      id="nonAttendingHours"
-                      value={formData.nonAttendingHours || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          nonAttendingHours: e.target.value,
-                        }))
-                      }
-                      placeholder="Non Attending Hours"
-                    />
-                  </div>
-                </div> */}
-
                 <div className="space-y-4">
                   {/* Tickboxes */}
                   <div className="flex gap-4">
@@ -1056,6 +1062,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                       <input
                         type="checkbox"
                         checked={attendantType === "attendant"}
+                        value={formData.attendantType || ""}
                         onChange={() => handleTypeChange("attendant")}
                       />
                       Attendant
@@ -1282,7 +1289,8 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                               <label className="flex items-center gap-3 text-sm">
                                 <input
                                   type="checkbox"
-                                  checked={is247}
+                                  // checked={is247}
+                                  checked={formData.hours?.[day]?.is247 || false}
                                   onChange={(e) =>
                                     setFormData((prev) => ({
                                       ...prev,
