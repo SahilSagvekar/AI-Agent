@@ -19,8 +19,8 @@ model User {
   phone               String?
   website             String?
   firstPayment        Boolean?
-  isPaid              Boolean              @default(false)         // <-- Add: overall payment status
-  planType            String?                                        // <-- Add: "newCustomer", "regular" etc
+  isPaid              Boolean              @default(false) 
+  planType            String?                                  
   laundromatLocations LaundromatLocation[]
   payments            Payment[]
   phoneNumbers        PhoneNumber[]
@@ -46,8 +46,8 @@ model LaundromatLocation {
   twilioPhone       String?
   notableLandmarks  String?
   attendantType    String?
-  attendingOpen    String?   // "09:00 AM"
-  attendingClose   String?   // "06:00 PM"
+  attendingOpen    String?   
+  attendingClose   String?   
   is24Hours        Boolean   @default(false)
   nonAttendingHours String?
   timeZone          String?               @default("UTC")
@@ -248,7 +248,7 @@ model Payment {
   userId                   Int
   locationId               Int?
   amount                   Float
-  paymentType              String    // "NEW_ACCOUNT_SUBSCRIPTION", "ADD_LOCATION", "NEW_NUMBER"
+  paymentType              String    
   formData                 Json?
   stripePaymentId          String?   @unique
   stripeSubscriptionId     String?   @unique
