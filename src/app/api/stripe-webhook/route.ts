@@ -31,64 +31,71 @@ async function getAreaCodeForZip(zip: string): Promise<string> {
 }
 
 export async function provisionTwilioNumber(userId: number) {
-  // 1️⃣ Get user's zip code
-  // const ZipCode = '90210'
-  const location = await prisma.laundromatLocation.findFirst({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    select: { zipCode: true },
-  });
-  console.log("location " + JSON.stringify(location?.zipCode));
-  if (!location?.zipCode) throw new Error("No zip code found for user");
+  try {
+    // 1️⃣ Get user's most recent zip code
+    const location = await prisma.laundromatLocation.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: { zipCode: true },
+    });
 
+    console.log("📍 User Zip Code:", location?.zipCode);
+    if (!location?.zipCode) throw new Error("No zip code found for user");
 
-  const areaCodes = await getAreaCodeForZip(location.zipCode);  
-  console.log("areaCodes " + areaCodes)
+    // 2️⃣ Get area code for user's zip code
+    const areaCodes = await getAreaCodeForZip(location.zipCode);
+    console.log("📞 Area Code:", areaCodes);
 
-  // 2️⃣ Find available Twilio numbers
-  const availableNumbers = await twilioClient.availablePhoneNumbers("US").local.list({
-    areaCode: Number(areaCodes),
-    smsEnabled: true,
-    voiceEnabled: true,
-    limit: 5,
-  });
+    // 3️⃣ Try to find available Twilio numbers for that area code
+    let availableNumbers = await twilioClient.availablePhoneNumbers("US").local.list({
+      areaCode: Number(areaCodes),
+      smsEnabled: true,
+      voiceEnabled: true,
+      limit: 5,
+    });
 
-  if (availableNumbers.length === 0) {
-    throw new Error(`No available Twilio numbers for area code ${areaCodes}`);
+    // 4️⃣ Fallback: If no numbers available, get random available numbers
+    if (!availableNumbers || availableNumbers.length === 0) {
+      console.warn(`⚠️ No numbers found for area code ${areaCodes}. Fetching random numbers...`);
+      availableNumbers = await twilioClient.availablePhoneNumbers("US").local.list({
+        smsEnabled: true,
+        voiceEnabled: true,
+        limit: 5,
+      });
+    }
+
+    if (!availableNumbers || availableNumbers.length === 0) {
+      throw new Error("❌ No Twilio numbers available at all.");
+    }
+
+    const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
+    console.log("📲 Phone Number To Purchase:", phoneNumberToPurchase);
+
+    // 5️⃣ Purchase number with shared TwiML Bin
+    const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+      phoneNumber: phoneNumberToPurchase,
+      voiceUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
+      smsUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
+      voiceMethod: "POST",
+      smsMethod: "POST",
+    });
+
+    console.log("✅ Purchased Twilio Number:", purchasedNumber.phoneNumber);
+
+    // 6️⃣ Optionally save to DB
+    // await prisma.laundromatLocation.updateMany({
+    //   where: { userId },
+    //   data: { twilioPhone: purchasedNumber.phoneNumber },
+    // });
+
+    return purchasedNumber.phoneNumber;
+
+  } catch (error) {
+    console.error("❌ Error provisioning Twilio number:", error);
+    throw new Error(`Failed to provision Twilio number`);
   }
-
-  const phoneNumberToPurchase = availableNumbers[0].phoneNumber;
-
-  console.log("phoneNumberToPurchase " + phoneNumberToPurchase);
-
-  // 3️⃣ Purchase number with shared TwiML Bin
-  const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-  phoneNumber: phoneNumberToPurchase,
-  voiceUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
-  smsUrl: `https://handler.twilio.com/twiml/EHdcfee3dc1dd317384105f0390421895d`,
-  voiceMethod: "POST",
-  smsMethod: "POST",
-});
-
-
-  // 4️⃣ Save number in DB
-  // await prisma.laundromatLocation.updateMany({
-  //   where: { userId },
-  //   data: { twilioPhone: purchasedNumber.phoneNumber },
-  // });
-
-  console.log("purchasedNumber.phoneNumber " + purchasedNumber.phoneNumber);
-
-  // const cleanNumber = purchasedNumber.phoneNumber.startsWith("+1")
-  // ? purchasedNumber.phoneNumber.slice(2) // remove "+1"
-  // : purchasedNumber.phoneNumber;
-
-  // return {
-  //   phoneNumber: purchasedNumber.phoneNumber,
-  // };
-  return purchasedNumber.phoneNumber;
-
 }
+
 
 export async function POST(req: NextRequest) {
   const buf = await req.arrayBuffer();
