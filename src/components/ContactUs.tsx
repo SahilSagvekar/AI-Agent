@@ -54,9 +54,9 @@ export function ContactUs({ onBack }: ContactUsProps) {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-[#7851A9] rounded-lg flex items-center justify-center shadow-lg">
+                {/* <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-[#7851A9] rounded-lg flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-sm">AI</span>
-                </div>
+                </div> */}
                 <span className="font-semibold text-lg text-gray-900">ConnectAI</span>
               </div>
             </div>

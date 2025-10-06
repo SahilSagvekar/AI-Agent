@@ -9,9 +9,9 @@ export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onCon
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-primary to-[#7851A9] rounded flex items-center justify-center">
+              {/* <div className="w-6 h-6 bg-gradient-to-r from-primary to-[#7851A9] rounded flex items-center justify-center">
                 <span className="text-primary-foreground text-xs">AI</span>
-              </div>
+              </div> */}
               <span className="font-semibold">ConnectAI</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">

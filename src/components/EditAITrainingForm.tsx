@@ -425,7 +425,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
     "Dry Cleaning",
     "Pickup & Delivery",
     "Commercial Laundry",
-    "Detergent/Vending Machines",
+    // "Detergent/Vending Machines",
     "Soap/Detergent Vending Machines",
     "Utility Sink",
     "UHaul / Penske Rentals",
