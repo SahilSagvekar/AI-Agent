@@ -627,6 +627,7 @@ export async function duplicateLocation(firstLocationId: number, count: number) 
       is24Hours: original.is24Hours,
       nonAttendingHours: original.nonAttendingHours,
       timeZone: original.timeZone,
+      twilioPhone: original.twilioPhone,
       escalateForwardCall: original.escalateForwardCall,
       escalationNumber: original.escalationNumber,
       escalateSendMessage: original.escalateSendMessage,

@@ -195,7 +195,9 @@ export async function POST(req: NextRequest) {
 
              await prisma.laundromatLocation.updateMany({
               where: { id: laundromat.id },
-              data: {  isPaid: true },
+              // data: {  isPaid: true },
+              // data: { twilioPhone: twilioNumber, isPaid: true },
+              data: { twilioPhone: JSON.stringify(twilioNumber), isPaid: true },
             });
           }
 
@@ -249,9 +251,6 @@ export async function POST(req: NextRequest) {
           orderBy: { createdAt: "desc" },
           select: { id: true },
         });
-        locationId = Number(laundromat?.id);
-        console.log("locationId " + locationId);
-        await duplicateLocation(Number(locationId), locationCount );
         if (laundromat) {
           console.log("update laundromat");
           await prisma.laundromatLocation.update({
@@ -259,6 +258,16 @@ export async function POST(req: NextRequest) {
             data: { twilioPhone: JSON.stringify(twilioNumber), isPaid: true },
           });
         }
+        locationId = Number(laundromat?.id);
+        console.log("locationId " + locationId);
+        await duplicateLocation(Number(locationId), locationCount );
+        // if (laundromat) {
+        //   console.log("update laundromat");
+        //   await prisma.laundromatLocation.update({
+        //     where: { id: laundromat.id },
+        //     data: { twilioPhone: JSON.stringify(twilioNumber), isPaid: true },
+        //   });
+        // }
         console.log("update user");
         await prisma.user.update({
           where: { id: userId },
