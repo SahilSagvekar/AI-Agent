@@ -2690,7 +2690,7 @@ const washerOptions = [
                           petPolicies: e.target.value,
                         }))
                       }
-                      placeholder="Masks optional, sanitizer stations available"
+                      placeholder="Pets welcome, rules may apply"
                       rows={3}
                     />
                   </div>
