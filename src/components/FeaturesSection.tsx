@@ -15,7 +15,7 @@ export function FeaturesSection() {
     {
       icon: <MessageSquare className="h-6 w-6" />,
       title: "Smart Responses",
-      description: "Trained on laundromat-specific knowledge to provide accurate, helpful responses."
+      description: "Trained on your laundromat-specific knowledge to provide accurate, helpful responses."
     },
     {
       icon: <BarChart3 className="h-6 w-6" />,
@@ -25,7 +25,7 @@ export function FeaturesSection() {
     {
       icon: <Settings className="h-6 w-6" />,
       title: "Custom Training",
-      description: "Easily train the AI with your location-specific information and policies."
+      description: "Easily train the ConnectAI with your location-specific information and policies."
     },
     {
       icon: <Shield className="h-6 w-6" />,
