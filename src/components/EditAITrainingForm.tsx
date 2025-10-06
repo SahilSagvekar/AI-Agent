@@ -1274,7 +1274,7 @@ const washerOptions = [
 
                         return (
                           <tr key={day}>
-                             {/* <td className="p-1">{day}</td> */}
+                            {/* <td className="p-1">{day}</td> */}
                             <td className="p-1">
                               <div className="border border-gray-300 rounded px-2 py-1 text-center">
                                 {day}
@@ -1600,7 +1600,7 @@ const washerOptions = [
                       placeholder="UTC -8:00 / -7:00 (PST/PDT)"
                     />
                   </div>
-                </div>  
+                </div>
               </CardContent>
             </Card>
             <div className="flex justify-between mt-6">
@@ -2147,7 +2147,7 @@ const washerOptions = [
                             onClick={() =>
                               setFormData((prev) => ({
                                 ...prev,
-                                 dryers: prev.dryers.map((w, i) =>
+                                dryers: prev.dryers.map((w, i) =>
                                   i === index
                                     ? {
                                         ...w,

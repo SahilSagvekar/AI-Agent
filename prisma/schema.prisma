@@ -253,7 +253,7 @@ model Payment {
   stripePaymentId          String?   @unique
   stripeSubscriptionId     String?   @unique
   paymentStatus            String
-  locationCount            String?   @default("0")
+  locationCount            String?
   locationNum              Int?
   paymentDate              DateTime  @default(now())
   laundromatLocation       LaundromatLocation? @relation(fields: [locationId], references: [id])
