@@ -1361,7 +1361,9 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                                 <input
                                   type="checkbox"
                                   // checked={is247}
-                                  checked={formData.hours?.[day]?.is247 || false}
+                                  checked={
+                                    formData.hours?.[day]?.is247 || false
+                                  }
                                   onChange={(e) =>
                                     setFormData((prev) => ({
                                       ...prev,

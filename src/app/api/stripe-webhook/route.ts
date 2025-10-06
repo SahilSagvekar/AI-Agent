@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature")!;
 
   let paymentId = null;
+  // let locationCount = 0;
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(
@@ -200,7 +201,8 @@ export async function POST(req: NextRequest) {
 
           let locationId = laundromat?.id
 
-          let locationCount = parseInt(payment.locationCount);
+          // let locationCount = parseInt(payment?.locationCount) ?? 0;
+          let locationCount = parseInt(payment?.locationCount || "0") || 0;
 
           console.log("Number(locationId), locationCount" , Number(locationId), locationCount);
           await duplicateLocation(Number(locationId), locationCount );
