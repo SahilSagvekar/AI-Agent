@@ -896,7 +896,7 @@ export function Dashboard({
                       </Button>
                       {/* Biling add location */}
                       <Button
-                        // onClick={handleAddNumber}
+                        onClick={() => handleAddLocation(locationIdAdd)}
                         variant="outline"
                         className="w-full"
                       >
