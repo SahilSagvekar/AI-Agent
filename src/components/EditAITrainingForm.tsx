@@ -448,7 +448,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
     "Cash",
     "Credit/Debit",
     "App-based (Apple Pay, Google Pay, etc.)",
-    "Loyalty card/token system",
+    "Loyalty Card/Token System",
   ];
 
   const amenityOptions = [

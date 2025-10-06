@@ -435,7 +435,7 @@ export function AITrainingForm({
     "Cash",
     "Credit/Debit",
     "App-based (Apple Pay, Google Pay, etc.)",
-    "Loyalty card/token system",
+    "Loyalty Card/Token System",
   ];
 
   const amenityOptions = [
