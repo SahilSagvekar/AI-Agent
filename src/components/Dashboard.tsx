@@ -286,7 +286,7 @@ export function Dashboard({
                 <h1 className="text-xl font-semibold">{locationName}</h1>
                 {/* <h1 className="text-xl font-semibold">{businessName}</h1> */}
                 <p className="text-sm text-muted-foreground">
-                  AI Assistant Dashboard
+                  ConnectAI Dashboard
                 </p>
               </div>
             </div>

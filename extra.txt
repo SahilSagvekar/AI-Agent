@@ -4,3 +4,7 @@ git pull origin main
 npm install --legacy-peer-deps
 npm run build
 pm2 restart ai-agent
+
+
+
+curl -X VERB [-d "parameters"] --user {email}:{password} https://support.connectai.com/admin/mail/users[action]
