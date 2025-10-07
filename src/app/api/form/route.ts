@@ -236,7 +236,7 @@ export async function PUT(request: Request) {
   try {
     const flatData = await request.json();
 
-    console.log("flatData" + JSON.stringify(flatData))
+    // console.log("flatData" + JSON.stringify(flatData))
     const id = parseInt(flatData.id, 10);
 
     // Find existing laundromat location for this user

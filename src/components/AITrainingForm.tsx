@@ -1949,6 +1949,31 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                           </Button>
                         </div>
 
+                        {/* Quantity */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`washer-quantity-${index}`}>
+                            Quantity
+                          </Label>
+                          <Input
+                            id={`washer-quantity-${index}`}
+                            type="number"
+                            min="1"
+                            placeholder="Enter quantity"
+                            value={washer.quantity === 0 ? "" : washer.quantity}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                washers: prev.washers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, quantity: Number(e.target.value) }
+                                    : w
+                                ),
+                              }))
+                            }
+                            required
+                          />
+                        </div>
+
                         {/* Remove Washer */}
                         <Button
                           type="button"
@@ -2139,7 +2164,32 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                           </Button>
                         </div>
 
-                        {/* Remove Washer */}
+                        {/* Quantity */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`dryer-quantity-${index}`}>
+                            Quantity
+                          </Label>
+                          <Input
+                            id={`dryer-quantity-${index}`}
+                            type="number"
+                            min="1"
+                            placeholder="Enter quantity"
+                            value={dryer.quantity === 0 ? "" : dryer.quantity}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                dryers: prev.dryers.map((d, i) =>
+                                  i === index
+                                    ? { ...d, quantity: Number(e.target.value) }
+                                    : d
+                                ),
+                              }))
+                            }
+                            required
+                          />
+                        </div>
+
+                        {/* Remove Dryer */}
                         <Button
                           type="button"
                           variant="destructive"
@@ -2151,12 +2201,12 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             }))
                           }
                         >
-                          Remove Washer
+                          Remove Dryer
                         </Button>
                       </div>
                     ))}
 
-                    {/* Add Washer */}
+                    {/* Add Dryer */}
                     <Button
                       type="button"
                       variant="outline"
