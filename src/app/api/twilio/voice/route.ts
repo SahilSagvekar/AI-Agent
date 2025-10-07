@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   const twiml = new twilio.twiml.VoiceResponse();
 
-  twiml.say("This call is being recorded.");
+  // twiml.say("This call is being recorded."); 
 
   twiml.record({
     transcribe: true,
