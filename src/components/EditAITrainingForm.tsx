@@ -2690,7 +2690,7 @@ const washerOptions = [
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="lostFoundPolicy">Lost & found policy</Label>
+                    <Label htmlFor="lostFoundPolicy">Lost & Found Policy</Label>
                     <Textarea
                       id="lostFoundPolicy"
                       value={formData.lostFoundPolicy}
@@ -2705,7 +2705,7 @@ const washerOptions = [
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="refundPolicy">Refund policy</Label>
+                    <Label htmlFor="refundPolicy">Refund Policy</Label>
                     <Textarea
                       id="refundPolicy"
                       value={formData.refundPolicy}
@@ -2723,7 +2723,7 @@ const washerOptions = [
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="petPolicies">Pet policies</Label>
+                    <Label htmlFor="petPolicies">Pet Policies</Label>
                     <Textarea
                       id="petPolicies"
                       value={formData.petPolicies}
@@ -2758,7 +2758,7 @@ const washerOptions = [
 
                 <div className="space-y-2">
                   <Label htmlFor="unattendedPolicy">
-                    No unattended laundry rules
+                    Unattended Laundry Rules
                   </Label>
                   <Textarea
                     id="unattendedPolicy"
@@ -2776,7 +2776,7 @@ const washerOptions = [
 
                 <div className="space-y-2">
                   <Label htmlFor="additionalPolicies">
-                    Any other important information
+                    Any Other Important Information
                   </Label>
                   <Textarea
                     id="additionalPolicies"
