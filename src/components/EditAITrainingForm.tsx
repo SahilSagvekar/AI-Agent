@@ -1751,7 +1751,7 @@ const washerOptions = [
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="totalWashers">Total # of washers *</Label>
+                    <Label htmlFor="totalWashers">Total # of Washers *</Label>
                     <Input
                       id="totalWashers"
                       value={formData.totalWashers}
@@ -1766,7 +1766,7 @@ const washerOptions = [
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="totalDryers">Total # of dryers</Label>
+                    <Label htmlFor="totalDryers">Total # of Dryers</Label>
                     <Input
                       id="totalDryers"
                       value={formData.totalDryers}
