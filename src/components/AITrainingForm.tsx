@@ -915,7 +915,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div className="space-y-4 text-center">
         <h1 className="text-3xl font-semibold">
-          AI Laundromat Assistant — Train Your AI Laundromat Assistant
+          Train Your AI Laundromat Assistant
         </h1>
         <p className="text-muted-foreground">
           Fill out this comprehensive form to train your voice-based AI
@@ -1767,7 +1767,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="totalWashers">Total # of washers *</Label>
+                    <Label htmlFor="totalWashers">Total # of Washers *</Label>
                     <Input
                       id="totalWashers"
                       value={formData.totalWashers}
@@ -1782,7 +1782,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="totalDryers">Total # of dryers</Label>
+                    <Label htmlFor="totalDryers">Total # of Dryers</Label>
                     <Input
                       id="totalDryers"
                       value={formData.totalDryers}

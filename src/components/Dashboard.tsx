@@ -279,15 +279,15 @@ export function Dashboard({
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Bot className="h-6 w-6 text-primary-foreground" />
-              </div>
+              {/* <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center"> */}
+                {/* <Bot className="h-6 w-6 text-primary-foreground" /> */}
+              {/* </div> */}
               <div>
-                <h1 className="text-xl font-semibold">{locationName}</h1>
-                {/* <h1 className="text-xl font-semibold">{businessName}</h1> */}
-                <p className="text-sm text-muted-foreground">
+                {/* <h1 className="text-xl font-semibold">{locationName}</h1> */}
+                <h1 className="text-xl font-semibold">ConnectAI Dashboard</h1>
+                {/* <p className="text-sm text-muted-foreground">
                   ConnectAI Dashboard
-                </p>
+                </p> */}
               </div>
             </div>
 
