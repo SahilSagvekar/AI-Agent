@@ -41,7 +41,7 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
         // Map data to PhoneNumberAssignment[] if needed
         const mapped = data.map((loc: any) => ({
           id: loc.id.toString(),
-          phoneNumber: loc.twilioPhone || '', // adjust as needed
+          phoneNumber: (loc.twilioPhone?.replace(/[^\d+]/g, '')) || '', // adjust as needed
           location: loc.locationName || loc.location || '',
           address: loc.address || '',
           status: 'active' as const, // or map real status from data

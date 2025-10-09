@@ -590,7 +590,8 @@ export function Dashboard({
                           {location.address}
                         </p>
                         <p className="text-sm text-muted-foreground font-mono">
-                          {location.twilioPhone}
+                          {/* {location.twilioPhone} */}
+                          {location.twilioPhone?.replace(/[^\d+]/g, '')}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Last updated:{" "}
