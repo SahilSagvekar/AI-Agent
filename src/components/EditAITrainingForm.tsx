@@ -1007,6 +1007,7 @@ const washerOptions = [
                     <Input
                       id="zipCode"
                       value={formData.zipCode}
+                      disabled
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
