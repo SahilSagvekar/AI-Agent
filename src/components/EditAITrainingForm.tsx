@@ -1015,7 +1015,7 @@ const dryerOptions = [
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      {/* <div className="space-y-4 text-center">
+      <div className="space-y-4 text-center">
         <h1 className="text-3xl font-semibold">
           Train Your AI Laundromat Assistant
         </h1>
@@ -1030,53 +1030,9 @@ const dryerOptions = [
           </div>
           <Progress value={progress} className="w-full" />
         </div>
-      </div> */}
+      </div> 
 
-      <div className="flex items-start justify-between gap-6">
-        {/* Left: Page title + progress */}
-        <div className="space-y-4">
-          <h1 className="text-3xl font-semibold">
-            Train Your AI Laundromat Assistant
-          </h1>
-          <p className="text-muted-foreground">
-            Fill out this comprehensive form to train your voice-based AI
-            assistant with location-specific information
-          </p>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Form Progress</span>
-              <span>{progress}% Complete</span>
-            </div>
-            <Progress value={progress} className="w-full" />
-          </div>
-        </div>
-
-        {/* Right: Back-to-dashboard button (top-right) */}
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              if (isSubmitting) return;
-              const unsaved =
-                JSON.stringify(formData) !== JSON.stringify(initialData ?? {});
-              if (
-                !unsaved ||
-                confirm(
-                  "You have unsaved changes. Leave and return to dashboard?"
-                )
-              ) {
-                router.push("/dashboard");
-              }
-            }}
-            disabled={isSubmitting}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Button>
-        </div>
-      </div>
+     
 
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
