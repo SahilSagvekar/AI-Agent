@@ -130,7 +130,7 @@ export default function ContactUs({ onBack }: ContactUsProps) {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Email us at</p>
-                  <p className="text-gray-900 font-medium text-lg">support@connectai.com</p>
+                  <p className="text-gray-900 font-medium text-lg">support@tryconnect.ai</p>
                   <p className="text-sm text-gray-500 mt-1">We'd love to hear from you</p>
                 </div>
               </div>
