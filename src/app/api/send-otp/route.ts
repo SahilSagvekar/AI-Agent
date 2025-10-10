@@ -10,15 +10,26 @@ function generateOtp() {
 
 async function sendEmail(to: string, otp: string) {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
+
+    // service: "gmail",
+    // auth: {
+    //   user: process.env.EMAIL_USER,
+    //   pass: process.env.EMAIL_PASS,
+    // },
+    host: process.env.SMTP_HOST || "mail.tryconnect.ai", // your MIAB host
+      port: 587, // STARTTLS
+      secure: false, // must be false for port 587
+      auth: {
+        user: "otp@tryconnect.ai", // full email address
+        pass: "otp@tryconnect.ai", // password or app password you set in MIAB
+      },
+      tls: {
+        rejectUnauthorized: false, // sometimes needed if using self-signed certs
+      },
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: "otp@tryconnect.ai",
     to,
     subject: "Your OTP Code",
     text: `Your OTP code is ${otp}. It will expire in 10 minutes.`,
