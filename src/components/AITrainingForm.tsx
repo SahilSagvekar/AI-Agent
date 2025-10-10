@@ -42,15 +42,15 @@ interface PaymentSystem {
 
 interface Washer {
   size: string;
-  price: string; // keep as string for form input
+  price: string; 
   quantity: number;
   system: string;
-  payments: PaymentSystem[]; // ✅ changed from string[] to object[]
+  payments: PaymentSystem[]; 
 }
 
 interface Dryers {
   size: string;
-  price: string; // if you're using input fields, keep this string until submission
+  price: string; 
   quantity: number;
   system: string;
   payments: PaymentSystem[];
@@ -77,9 +77,7 @@ interface FormData {
   is24Hours: boolean;
   attendingClose: string;
 
-  // Operating Hours
-  // weekdayHours: string;
-  // weekendHours: string;
+  // Operating Hour
   openOnHolidays: boolean;
   holidayHours: Array<{
     name: string;
@@ -320,16 +318,6 @@ export function AITrainingForm({
       }));
     }
   }, [initialData]);
-
-  //   useEffect(() => {
-  //   if (!formData.hours) {
-  //     setFormData((prev) => ({ ...prev, hours: DEFAULT_HOURS }));
-  //   } else {
-  //     // Fill in missing days if any
-  //     const updatedHours = { ...DEFAULT_HOURS, ...formData.hours };
-  //     setFormData((prev) => ({ ...prev, hours: updatedHours }));
-  //   }
-  // }, [formData.hours]);
 
   const calculateProgress = () => {
     const requiredFields = [
@@ -635,136 +623,6 @@ export function AITrainingForm({
     { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
   ];
 
-  // const dryerOptions = [
-  //   { manufacturer: "Speed Queen", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Speed Queen", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Speed Queen", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Speed Queen", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Speed Queen", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Speed Queen", capacity: 100, loads: "10 loads" },
-
-  //   { manufacturer: "Huebsch", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Huebsch", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Huebsch", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Huebsch", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Huebsch", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Huebsch", capacity: 100, loads: "10 loads" },
-
-  //   { manufacturer: "Dexter Laundry", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 90, loads: "9 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "Dexter Laundry", capacity: 120, loads: "12 loads" },
-
-  //   { manufacturer: "Maytag", capacity: 15, loads: "2 loads" },
-  //   { manufacturer: "Maytag", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Maytag", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Maytag", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Maytag", capacity: 55, loads: "6 loads" },
-  //   { manufacturer: "Maytag", capacity: 65, loads: "6 loads" },
-
-  //   { manufacturer: "Whirlpool", capacity: 15, loads: "2 loads" },
-  //   { manufacturer: "Whirlpool", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Whirlpool", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Whirlpool", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Whirlpool", capacity: 55, loads: "6 loads" },
-  //   { manufacturer: "Whirlpool", capacity: 65, loads: "6 loads" },
-
-  //   { manufacturer: "Electrolux", capacity: 18, loads: "2 loads" },
-  //   { manufacturer: "Electrolux", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Electrolux", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Electrolux", capacity: 45, loads: "4 loads" },
-  //   { manufacturer: "Electrolux", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Electrolux", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Electrolux", capacity: 135, loads: "14 loads" },
-
-  //   { manufacturer: "Wascomat", capacity: 18, loads: "2 loads" },
-  //   { manufacturer: "Wascomat", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Wascomat", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Wascomat", capacity: 45, loads: "4 loads" },
-  //   { manufacturer: "Wascomat", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Wascomat", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Wascomat", capacity: 135, loads: "14 loads" },
-
-  //   { manufacturer: "Continental Girbau", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 55, loads: "6 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 70, loads: "7 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 90, loads: "9 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 130, loads: "13 loads" },
-  //   { manufacturer: "Continental Girbau", capacity: 255, loads: "26 loads" },
-  //   { manufacturer: "Unimac", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Unimac", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Unimac", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Unimac", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Unimac", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Unimac", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "Unimac", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "Unimac", capacity: 400, loads: "40 loads" },
-  //   { manufacturer: "Milnor", capacity: 25, loads: "2 loads" },
-  //   { manufacturer: "Milnor", capacity: 50, loads: "5 loads" },
-  //   { manufacturer: "Milnor", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "Milnor", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "Milnor", capacity: 400, loads: "40 loads" },
-  //   { manufacturer: "Milnor", capacity: 700, loads: "70 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 25, loads: "2 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 125, loads: "12 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "B&C Technologies", capacity: 475, loads: "48 loads" },
-
-  //   { manufacturer: "IPSO", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "IPSO", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "IPSO", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "IPSO", capacity: 55, loads: "6 loads" },
-  //   { manufacturer: "IPSO", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "IPSO", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "IPSO", capacity: 135, loads: "14 loads" },
-
-  //   { manufacturer: "Primus", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Primus", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Primus", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Primus", capacity: 55, loads: "6 loads" },
-  //   { manufacturer: "Primus", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Primus", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "Primus", capacity: 135, loads: "14 loads" },
-
-  //   { manufacturer: "Fagor Industrial", capacity: 25, loads: "2 loads" },
-  //   { manufacturer: "Fagor Industrial", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Fagor Industrial", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Fagor Industrial", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Fagor Industrial", capacity: 135, loads: "14 loads" },
-  //   { manufacturer: "Fagor Industrial", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "Domus", capacity: 22, loads: "2 loads" },
-  //   { manufacturer: "Domus", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Domus", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Domus", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Domus", capacity: 80, loads: "8 loads" },
-  //   { manufacturer: "Domus", capacity: 135, loads: "14 loads" },
-  //   { manufacturer: "Stahl", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Stahl", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Stahl", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Stahl", capacity: 100, loads: "10 loads" },
-  //   { manufacturer: "Stahl", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "Lavatec", capacity: 30, loads: "3 loads" },
-  //   { manufacturer: "Lavatec", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Lavatec", capacity: 110, loads: "11 loads" },
-  //   { manufacturer: "Lavatec", capacity: 200, loads: "20 loads" },
-  //   { manufacturer: "Lavatec", capacity: 400, loads: "40 loads" },
-  //   { manufacturer: "Tolkar", capacity: 20, loads: "2 loads" },
-  //   { manufacturer: "Tolkar", capacity: 40, loads: "4 loads" },
-  //   { manufacturer: "Tolkar", capacity: 60, loads: "6 loads" },
-  //   { manufacturer: "Tolkar", capacity: 110, loads: "11 loads" },
-  //   { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
-  // ];
-
   const dryerOptions = [
     // Speed Queen
     { manufacturer: "Speed Queen", capacity: 18, loads: "2 loads" },
@@ -793,8 +651,8 @@ export function AITrainingForm({
     { manufacturer: "Dexter", capacity: 50, loads: "5 loads" },
     { manufacturer: "Dexter", capacity: 80, loads: "8 loads" },
     { manufacturer: "Dexter", capacity: 120, loads: "12 loads" },
-    { manufacturer: "Dexter", capacity: 2 * 30, loads: "6 loads" }, // stacked
-    { manufacturer: "Dexter", capacity: 2 * 50, loads: "10 loads" }, // stacked
+    { manufacturer: "Dexter", capacity: 2 * 30, loads: "6 loads" }, 
+    { manufacturer: "Dexter", capacity: 2 * 50, loads: "10 loads" },
 
     // Maytag (residential & light commercial common capacities)
     { manufacturer: "Maytag", capacity: 18, loads: "2 loads" }, // ~7.0 cu ft
@@ -1304,29 +1162,10 @@ export function AITrainingForm({
                     attendantType === "partial") && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        {/* <label>Shift Start Time</label> */}
                         <label className="font-medium text-center block w-full text-center">
                           Shift Start Time
                         </label>
 
-                        {/* <select
-                          value={formData.attendingOpen || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              attendingOpen: e.target.value,
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
-                        >
-                          <option value="">Select Start Time</option>
-                          {TIME_OPTIONS.map((t) => (
-                            <option key={t.value} value={t.value}>
-                              {t.label}
-                            </option>
-                          ))}
-                        </select> */}
                         <div className="relative">
                           <select
                             value={formData.attendingOpen || ""}
@@ -1447,76 +1286,7 @@ export function AITrainingForm({
                       </div>
                     </div>
 
-                    // -------------------------------------------------------------------------
-                    // <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center items-center text-center">
-                    //   <div className="space-y-2 flex flex-col items-center">
-                    //     <label className="font-medium text-center">
-                    //       Shift Start Time
-                    //     </label>
-                    //     <select
-                    //       value={formData.attendingOpen || ""}
-                    //       onChange={(e) =>
-                    //         setFormData((prev) => ({
-                    //           ...prev,
-                    //           attendingOpen: e.target.value,
-                    //         }))
-                    //       }
-                    //       className="border rounded px-3 py-2 w-3/4" // 👈 narrower width to center nicely
-                    //       disabled={formData.is24Hours}
-                    //     >
-                    //       <option value="">Select Start Time</option>
-                    //       {TIME_OPTIONS.map((t) => (
-                    //         <option key={t.value} value={t.value}>
-                    //           {t.label}
-                    //         </option>
-                    //       ))}
-                    //     </select>
-                    //   </div>
-
-                    //   <div className="space-y-2 flex flex-col items-center">
-                    //     <label className="font-medium text-center">
-                    //       Shift End Time
-                    //     </label>
-                    //     <select
-                    //       value={formData.attendingClose || ""}
-                    //       onChange={(e) =>
-                    //         setFormData((prev) => ({
-                    //           ...prev,
-                    //           attendingClose: e.target.value,
-                    //         }))
-                    //       }
-                    //       className="border rounded px-3 py-2 w-3/4"
-                    //       disabled={formData.is24Hours}
-                    //     >
-                    //       <option value="">Select End Time</option>
-                    //       {TIME_OPTIONS.map((t) => (
-                    //         <option key={t.value} value={t.value}>
-                    //           {t.label}
-                    //         </option>
-                    //       ))}
-                    //     </select>
-                    //   </div>
-
-                    //   <div className="flex items-center gap-2 col-span-2 justify-center mt-2">
-                    //     <input
-                    //       type="checkbox"
-                    //       checked={formData.is24Hours || false}
-                    //       onChange={(e) =>
-                    //         setFormData((prev) => ({
-                    //           ...prev,
-                    //           is24Hours: e.target.checked,
-                    //           attendingOpen: e.target.checked
-                    //             ? ""
-                    //             : prev.attendingOpen,
-                    //           attendingClose: e.target.checked
-                    //             ? ""
-                    //             : prev.attendingClose,
-                    //         }))
-                    //       }
-                    //     />
-                    //     <span>Attended 24/7</span>
-                    //   </div>
-                    // </div>
+                 
                   )}
 
                   {/* Non-Attendant only shows checkbox (no times) */}
@@ -1586,36 +1356,7 @@ export function AITrainingForm({
                             </td>
 
                             {/* Open Time */}
-                            {/* <td className="p-1">
-              <select
-                className={`border rounded px-2 py-1 w-full ${
-                  is247
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-black"
-                }`}
-                value={formData.hours?.[day]?.open || "08:00"}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    hours: {
-                      ...prev.hours,
-                      [day]: {
-                        open: e.target.value,
-                        close: prev.hours?.[day]?.close ?? "",
-                      },
-                    },
-                  }))
-                }
-                disabled={is247}
-              >
-                {TIME_OPTIONS.map((time) => (
-                  <option value={time.value} key={time.value}>
-                    {time.label}
-                  </option>
-                ))}
-              </select>
-            </td> */}
-
+                           
                             <td className="p-1 text-center align-middle">
                               <div className="flex justify-center items-center">
                                 <select
@@ -1737,18 +1478,7 @@ export function AITrainingForm({
                 {/* //Open on Holidays */}
                 <div className="space-y-4">
                   {/* ✅ Removed checkbox functionality */}
-                  {/* <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="openOnHolidays"
-                            onCheckedChange={(checked) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                openOnHolidays: !!checked,
-                              }))
-                            }
-                          />
-                          <Label htmlFor="openOnHolidays">Open on holidays</Label>
-                        </div> */}
+                 
 
                   {/* ✅ Holiday Hours always visible */}
                   <div className="space-y-4">
@@ -1840,44 +1570,7 @@ export function AITrainingForm({
                         </select>
 
                         {/* Close Time Dropdown */}
-                        {/* <select
-                          value={holiday.close}
-                          onChange={(e) => {
-                            const updated = [...formData.holidayHours];
-                            updated[index].close = e.target.value;
-                            setFormData((prev) => ({
-                              ...prev,
-                              holidayHours: updated,
-                            }));
-                          }}
-                          className="border rounded-lg p-2 w-full lg:w-1/4"
-                        >
-                          <option value="">Close Time</option>
-                          {[
-                            "Closed",
-                            "12:00 PM",
-                            "12:30 PM",
-                            "1:00 PM",
-                            "1:30 PM",
-                            "2:00 PM",
-                            "2:30 PM",
-                            "3:00 PM",
-                            "3:30 PM",
-                            "4:00 PM",
-                            "4:30 PM",
-                            "5:00 PM",
-                            "5:30 PM",
-                            "6:00 PM",
-                            "6:30 PM",
-                            "7:00 PM",
-                            "7:30 PM",
-                            "8:00 PM",
-                          ].map((time) => (
-                            <option key={time} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select> */}
+                  
 
                         <select
                           value={holiday.close}
@@ -1967,38 +1660,7 @@ export function AITrainingForm({
                   </div>
 
                   {/* Last Wash Time */}
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="lastWashTime">
-                      Last Wash Time
-                    </Label>
-                    <Input
-                      id="lastWashTime"
-                      value={formData.lastWashTime}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          lastWashTime: e.target.value,
-                        }))
-                      }
-                      placeholder="1 hour before closing"
-                    />
-                  </div> */}
-
-                  {/* Time Zone */}
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="timeZone">Time Zone</Label>
-                    <Input
-                      id="timeZone"
-                      value={formData.timeZone}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          timeZone: e.target.value,
-                        }))
-                      }
-                      placeholder="UTC -8:00 / -7:00 (PST/PDT)"
-                    />
-                  </div> */}
+                
 
                   {/* Time Zone + Last Wash Time (side by side) */}
                   <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4 w-full">
@@ -2254,31 +1916,7 @@ export function AITrainingForm({
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        {/* <select
-                          value={washer.size}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              washers: prev.washers.map((w, i) =>
-                                i === index ? { ...w, size: e.target.value } : w
-                              ),
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          required
-                        >
-                          <option value="" disabled>
-                            Select washer size
-                          </option>
-                          {washerOptions.map((w, i) => (
-                            <option
-                              key={i}
-                              value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
-                            >
-                              {w.manufacturer} - {w.capacity} lbs - {w.loads}
-                            </option>
-                          ))}
-                        </select> */}
+                       
 
                         <div className="relative">
                           <select
@@ -2826,8 +2464,6 @@ export function AITrainingForm({
                     </Button>
                   </div>
                 </div>
-
-                {/* ############################################################################################################################ */}
 
                 <Separator />
 

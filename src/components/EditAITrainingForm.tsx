@@ -80,8 +80,7 @@ interface FormData {
   attendingClose: string;
 
   // Operating Hours
-  // weekdayHours: string;
-  // weekendHours: string;
+
   openOnHolidays: boolean;
   holidayHours: Array<{ name: string; open: string; close: string, is247?: boolean; }>;
   holidayNote: string;
@@ -354,10 +353,6 @@ export function EditAITrainingForm({
     }
     setIsSubmitting(false);
   };
-
-  // const [attendantType, setAttendantType] = useState<
-  //     "attendant" | "nonAttendant" | "partial" | ""
-  //   >(formData.attendantType || "");
 
   type AttendantType = "attendant" | "nonAttendant" | "partial" | "";
 
@@ -660,135 +655,6 @@ const washerOptions = [
     { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
   ];
 
-//  const dryerOptions = [
-//     { manufacturer: "Speed Queen", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Speed Queen", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Speed Queen", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Speed Queen", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Speed Queen", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Speed Queen", capacity: 100, loads: "10 loads" },
-
-//     { manufacturer: "Huebsch", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Huebsch", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Huebsch", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Huebsch", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Huebsch", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Huebsch", capacity: 100, loads: "10 loads" },
-
-//     { manufacturer: "Dexter Laundry", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 90, loads: "9 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "Dexter Laundry", capacity: 120, loads: "12 loads" },
-
-//     { manufacturer: "Maytag", capacity: 15, loads: "2 loads" },
-//     { manufacturer: "Maytag", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Maytag", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Maytag", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Maytag", capacity: 55, loads: "6 loads" },
-//     { manufacturer: "Maytag", capacity: 65, loads: "6 loads" },
-
-//     { manufacturer: "Whirlpool", capacity: 15, loads: "2 loads" },
-//     { manufacturer: "Whirlpool", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Whirlpool", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Whirlpool", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Whirlpool", capacity: 55, loads: "6 loads" },
-//     { manufacturer: "Whirlpool", capacity: 65, loads: "6 loads" },
-
-//     { manufacturer: "Electrolux", capacity: 18, loads: "2 loads" },
-//     { manufacturer: "Electrolux", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Electrolux", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Electrolux", capacity: 45, loads: "4 loads" },
-//     { manufacturer: "Electrolux", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Electrolux", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Electrolux", capacity: 135, loads: "14 loads" },
-
-//     { manufacturer: "Wascomat", capacity: 18, loads: "2 loads" },
-//     { manufacturer: "Wascomat", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Wascomat", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Wascomat", capacity: 45, loads: "4 loads" },
-//     { manufacturer: "Wascomat", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Wascomat", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Wascomat", capacity: 135, loads: "14 loads" },
-
-//     { manufacturer: "Continental Girbau", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 55, loads: "6 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 70, loads: "7 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 90, loads: "9 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 130, loads: "13 loads" },
-//     { manufacturer: "Continental Girbau", capacity: 255, loads: "26 loads" },
-//     { manufacturer: "Unimac", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Unimac", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Unimac", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Unimac", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Unimac", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Unimac", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "Unimac", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "Unimac", capacity: 400, loads: "40 loads" },
-//     { manufacturer: "Milnor", capacity: 25, loads: "2 loads" },
-//     { manufacturer: "Milnor", capacity: 50, loads: "5 loads" },
-//     { manufacturer: "Milnor", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "Milnor", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "Milnor", capacity: 400, loads: "40 loads" },
-//     { manufacturer: "Milnor", capacity: 700, loads: "70 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 25, loads: "2 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 125, loads: "12 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "B&C Technologies", capacity: 475, loads: "48 loads" },
-
-//     { manufacturer: "IPSO", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "IPSO", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "IPSO", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "IPSO", capacity: 55, loads: "6 loads" },
-//     { manufacturer: "IPSO", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "IPSO", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "IPSO", capacity: 135, loads: "14 loads" },
-
-//     { manufacturer: "Primus", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Primus", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Primus", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Primus", capacity: 55, loads: "6 loads" },
-//     { manufacturer: "Primus", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Primus", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "Primus", capacity: 135, loads: "14 loads" },
-
-//     { manufacturer: "Fagor Industrial", capacity: 25, loads: "2 loads" },
-//     { manufacturer: "Fagor Industrial", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Fagor Industrial", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Fagor Industrial", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Fagor Industrial", capacity: 135, loads: "14 loads" },
-//     { manufacturer: "Fagor Industrial", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "Domus", capacity: 22, loads: "2 loads" },
-//     { manufacturer: "Domus", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Domus", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Domus", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Domus", capacity: 80, loads: "8 loads" },
-//     { manufacturer: "Domus", capacity: 135, loads: "14 loads" },
-//     { manufacturer: "Stahl", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Stahl", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Stahl", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Stahl", capacity: 100, loads: "10 loads" },
-//     { manufacturer: "Stahl", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "Lavatec", capacity: 30, loads: "3 loads" },
-//     { manufacturer: "Lavatec", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Lavatec", capacity: 110, loads: "11 loads" },
-//     { manufacturer: "Lavatec", capacity: 200, loads: "20 loads" },
-//     { manufacturer: "Lavatec", capacity: 400, loads: "40 loads" },
-//     { manufacturer: "Tolkar", capacity: 20, loads: "2 loads" },
-//     { manufacturer: "Tolkar", capacity: 40, loads: "4 loads" },
-//     { manufacturer: "Tolkar", capacity: 60, loads: "6 loads" },
-//     { manufacturer: "Tolkar", capacity: 110, loads: "11 loads" },
-//     { manufacturer: "Tolkar", capacity: 200, loads: "20 loads" },
-//   ];
 
 
 const dryerOptions = [
@@ -1238,39 +1104,7 @@ const dryerOptions = [
                   />
                 </div>
 
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="notableLandmarks">Attending Hours</Label>
-                    <Input
-                      id="attendingHours"
-                      value={formData.attendingHours || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          attendingHours: e.target.value,
-                        }))
-                      }
-                      placeholder="Attending Hours"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notableLandmarks">
-                      Non Attending Hours
-                    </Label>
-                    <Input
-                      id="nonAttendingHours"
-                      value={formData.nonAttendingHours || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          nonAttendingHours: e.target.value,
-                        }))
-                      }
-                      placeholder="Non Attending Hours"
-                    />
-                  </div>
-                </div> */}
+               
                 <div className="space-y-4">
                   {/* Tickboxes */}
                   <div className="flex gap-4">
@@ -1310,24 +1144,7 @@ const dryerOptions = [
                         <label className="font-medium text-center block w-full text-center">
                           Shift Start Time
                         </label>
-                        {/* <select
-                          value={formData.attendingOpen || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              attendingOpen: e.target.value,
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
-                        >
-                          <option value="">Select open time</option>
-                          {TIME_OPTIONS.map((t) => (
-                            <option key={t.value} value={t.value}>
-                              {t.label}
-                            </option>
-                          ))}
-                        </select> */}
+                      
                         <div className="relative">
                           <select
                             value={formData.attendingOpen || ""}
@@ -1370,24 +1187,6 @@ const dryerOptions = [
                         <label className="font-medium text-center block w-full text-center">
                           Shift End Time
                         </label>
-                        {/* <select
-                          value={formData.attendingClose || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              attendingClose: e.target.value,
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
-                        >
-                          <option value="">Select close time</option>
-                          {TIME_OPTIONS.map((t) => (
-                            <option key={t.value} value={t.value}>
-                              {t.label}
-                            </option>
-                          ))}
-                        </select> */}
 
                         <div className="relative">
                           <select
@@ -1666,19 +1465,6 @@ const dryerOptions = [
 
                 {/* //Open on Holidays */}
                 <div className="space-y-4">
-                  {/* ✅ Removed checkbox functionality */}
-                  {/* <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="openOnHolidays"
-                            onCheckedChange={(checked) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                openOnHolidays: !!checked,
-                              }))
-                            }
-                          />
-                          <Label htmlFor="openOnHolidays">Open on holidays</Label>
-                        </div> */}
 
                   {/* ✅ Holiday Hours always visible */}
                   <div className="space-y-4">
@@ -1895,40 +1681,6 @@ const dryerOptions = [
                       + Add Holiday
                     </button>
                   </div>
-
-                  {/* Last Wash Time */}
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="lastWashTime">
-                      Last Wash Time
-                    </Label>
-                    <Input
-                      id="lastWashTime"
-                      value={formData.lastWashTime}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          lastWashTime: e.target.value,
-                        }))
-                      }
-                      placeholder="1 hour before closing"
-                    />
-                  </div> */}
-
-                  {/* Time Zone */}
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="timeZone">Time Zone</Label>
-                    <Input
-                      id="timeZone"
-                      value={formData.timeZone}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          timeZone: e.target.value,
-                        }))
-                      }
-                      placeholder="UTC -8:00 / -7:00 (PST/PDT)"
-                    />
-                  </div> */}
 
                   {/* Time Zone + Last Wash Time (side by side) */}
                   <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4 w-full">
@@ -2169,7 +1921,6 @@ const dryerOptions = [
                   </div>
                 </div>
 
-                {/* ############################################################################################################################ */}
                 <Separator />
 
                 {/* Main Section */}
@@ -2184,32 +1935,7 @@ const dryerOptions = [
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        {/* <select
-                          value={washer.size}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              washers: prev.washers.map((w, i) =>
-                                i === index ? { ...w, size: e.target.value } : w
-                              ),
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          required
-                        >
-                          <option value="" disabled>
-                            Select washer size
-                          </option>
-                          {washerOptions.map((w, i) => (
-                            <option
-                              key={i}
-                              value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
-                            >
-                              {w.manufacturer} - {w.capacity} lbs - {w.loads}
-                            </option>
-                          ))}
-                        </select> */}
-
+                     
                          <div className="relative">
                           <select
                             value={washer.size}
@@ -2272,39 +1998,7 @@ const dryerOptions = [
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              {/* <select
-                                value={payment.system}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    washers: prev.washers.map((w, i) =>
-                                      i === index
-                                        ? {
-                                            ...w,
-                                            payments: w.payments.map((p, pi) =>
-                                              pi === pIndex
-                                                ? {
-                                                    ...p,
-                                                    system: e.target.value,
-                                                  }
-                                                : p
-                                            ),
-                                          }
-                                        : w
-                                    ),
-                                  }))
-                                }
-                                className="border rounded px-3 py-2 w-full"
-                              >
-                                <option value="" disabled>
-                                  Select payment system
-                                </option>
-                                {paymentSystems.map((p, i) => (
-                                  <option key={i} value={p.paymentSystem}>
-                                    {p.paymentSystem}
-                                  </option>
-                                ))}
-                              </select> */}
+                             
 
                               <div className="relative">
                                 <select
@@ -2475,31 +2169,6 @@ const dryerOptions = [
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        {/* <select
-                          value={dryer.size}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              dryers: prev.dryers.map((w, i) =>
-                                i === index ? { ...w, size: e.target.value } : w
-                              ),
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          required
-                        >
-                          <option value="" disabled>
-                            Select Dryer size
-                          </option>
-                          {dryerOptions.map((w, i) => (
-                            <option
-                              key={i}
-                              value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
-                            >
-                              {w.manufacturer} - {w.capacity} lbs - {w.loads}
-                            </option>
-                          ))}
-                        </select> */}
 
                         <div className="relative">
                           <select
@@ -2564,40 +2233,7 @@ const dryerOptions = [
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              {/* <select
-                                value={payment.system}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    dryers: prev.dryers.map((w, i) =>
-                                      i === index
-                                        ? {
-                                            ...w,
-                                            payments: w.payments.map((p, pi) =>
-                                              pi === pIndex
-                                                ? {
-                                                    ...p,
-                                                    system: e.target.value,
-                                                  }
-                                                : p
-                                            ),
-                                          }
-                                        : w
-                                    ),
-                                  }))
-                                }
-                                className="border rounded px-3 py-2 w-full"
-                              >
-                                <option value="" disabled>
-                                  Select payment system
-                                </option>
-                                {paymentSystems.map((p, i) => (
-                                  <option key={i} value={p.paymentSystem}>
-                                    {p.paymentSystem}
-                                  </option>
-                                ))}
-                              </select> */}
-
+                             
                               <div className="relative">
                                 <select
                                   value={payment.system}
@@ -2755,8 +2391,6 @@ const dryerOptions = [
                     </Button>
                   </div>
                 </div>
-
-                {/* ############################################################################################################################ */}
 
                 <Separator />
 
