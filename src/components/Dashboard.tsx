@@ -296,10 +296,10 @@ export function Dashboard({
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 AI Active
               </Badge>
-              <Badge variant="secondary" className="hidden sm:flex">
-                {/* {subscriptionData.plan}  */}
+              {/* <Badge variant="secondary" className="hidden sm:flex">
+                {subscriptionData.plan} 
                 Plan
-              </Badge>
+              </Badge> */}
               {/* <Button variant="outline" onClick={onEditTraining}>
                 <Settings className="h-4 w-4 mr-2" />
                 Edit Training

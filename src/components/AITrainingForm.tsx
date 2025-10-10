@@ -174,7 +174,7 @@ export function AITrainingForm({
   const [activeTab, setActiveTab] = useState<string>("business");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const DEFAULT_HOURS = {
+  const DEFAULT_HOURS = {
     Monday: { open: "08:00", close: "20:00", is247: false },
     Tuesday: { open: "08:00", close: "20:00", is247: false },
     Wednesday: { open: "08:00", close: "20:00", is247: false },
@@ -185,11 +185,10 @@ export function AITrainingForm({
   };
 
   const DEFAULT_HOLIDAYS = [
-  { name: "Christmas", open: "Closed", close: "Closed" },
-  { name: "Good Friday", open: "8:00 AM", close: "5:00 PM" },
-  { name: "Easter Sunday", open: "Closed", close: "Closed" },
-];
-
+    { name: "Christmas", open: "Closed", close: "Closed" },
+    { name: "Good Friday", open: "8:00 AM", close: "5:00 PM" },
+    { name: "Easter Sunday", open: "Closed", close: "Closed" },
+  ];
 
   const [formData, setFormData] = useState<FormData>({
     businessName: initialData?.businessName ?? "",
@@ -205,10 +204,10 @@ export function AITrainingForm({
     locationName: initialData?.locationName ?? "",
     timeZone: initialData?.timeZone ?? "",
     attendantType: initialData?.attendantType ?? "",
-     attendingOpen: initialData?.attendingOpen ?? "",
-  attendingClose: initialData?.attendingClose ?? "",
-  is24Hours: initialData?.is24Hours ?? false,
-  // attendantType: initialData?.attendantType ?? "attendant",
+    attendingOpen: initialData?.attendingOpen ?? "",
+    attendingClose: initialData?.attendingClose ?? "",
+    is24Hours: initialData?.is24Hours ?? false,
+    // attendantType: initialData?.attendantType ?? "attendant",
     washers: initialData?.washers ?? [],
     // washers: [
     //   {
@@ -231,12 +230,12 @@ export function AITrainingForm({
     ],
     // holidayHours: initialData?.holidayHours ?? [],
     holidayHours: DEFAULT_HOLIDAYS,
-    
+
     // weekdayHours: initialData?.weekdayHours ?? "6:00 AM - 10:00 PM",
     // weekendHours: initialData?.weekendHours ?? "7:00 AM - 9:00 PM",
     openOnHolidays: initialData?.openOnHolidays ?? false,
     holidayNote: initialData?.holidayNote ?? "",
-    lastWashTime: initialData?.lastWashTime ?? "1 hour before closing",
+    lastWashTime: initialData?.lastWashTime ?? "1 Hour Before Closing",
 
     // hours: {
     //   Monday: { open: "08:00", close: "20:00" },
@@ -315,23 +314,22 @@ export function AITrainingForm({
         ...initialData,
         attendantType: initialData.attendantType || "",
         attendingOpen: initialData.attendingOpen || "",
-      attendingClose: initialData.attendingClose || "",
-      is24Hours: initialData.is24Hours || false,
+        attendingClose: initialData.attendingClose || "",
+        is24Hours: initialData.is24Hours || false,
         holidayHours: initialData.holidayHours || [],
       }));
     }
   }, [initialData]);
 
-//   useEffect(() => {
-//   if (!formData.hours) {
-//     setFormData((prev) => ({ ...prev, hours: DEFAULT_HOURS }));
-//   } else {
-//     // Fill in missing days if any
-//     const updatedHours = { ...DEFAULT_HOURS, ...formData.hours };
-//     setFormData((prev) => ({ ...prev, hours: updatedHours }));
-//   }
-// }, [formData.hours]);
-
+  //   useEffect(() => {
+  //   if (!formData.hours) {
+  //     setFormData((prev) => ({ ...prev, hours: DEFAULT_HOURS }));
+  //   } else {
+  //     // Fill in missing days if any
+  //     const updatedHours = { ...DEFAULT_HOURS, ...formData.hours };
+  //     setFormData((prev) => ({ ...prev, hours: updatedHours }));
+  //   }
+  // }, [formData.hours]);
 
   const calculateProgress = () => {
     const requiredFields = [
@@ -507,7 +505,7 @@ export function AITrainingForm({
     { value: "23:00", label: "11:00 PM" },
   ];
 
- const washerOptions = [
+  const washerOptions = [
     { manufacturer: "Speed Queen", capacity: 20, loads: "2 loads" },
     { manufacturer: "Speed Queen", capacity: 30, loads: "3 loads" },
     { manufacturer: "Speed Queen", capacity: 40, loads: "4 loads" },
@@ -914,7 +912,6 @@ export function AITrainingForm({
     { manufacturer: "Tolkar", capacity: 120, loads: "12 loads" },
   ];
 
-
   const paymentSystems = [
     {
       paymentSystem: "Coin Operated (Quarters)",
@@ -987,9 +984,6 @@ export function AITrainingForm({
     },
   ];
 
-
-
-
   const currentTabIndex = TAB_ORDER.indexOf(activeTab);
   const isLastStep = currentTabIndex === TAB_ORDER.length - 1;
 
@@ -1015,7 +1009,7 @@ export function AITrainingForm({
         const result = await response.json();
         onComplete(formData);
 
-        if(flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
+        if (flowType === "NEW_ACCOUNT_SUBSCRIPTION") {
           amount = 30;
         }
 
@@ -1040,12 +1034,11 @@ export function AITrainingForm({
 
   type AttendantType = "attendant" | "nonAttendant" | "partial" | "";
 
-const [attendantType, setAttendantType] = useState<AttendantType>(
-  (["attendant", "nonAttendant", "partial"].includes(formData.attendantType)
-    ? formData.attendantType
-    : "") as AttendantType
-);
-
+  const [attendantType, setAttendantType] = useState<AttendantType>(
+    (["attendant", "nonAttendant", "partial"].includes(formData.attendantType)
+      ? formData.attendantType
+      : "") as AttendantType
+  );
 
   const handleTypeChange = (type: "attendant" | "nonAttendant" | "partial") => {
     // console.log('type' + type)
@@ -1206,7 +1199,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                           zipCode: e.target.value,
                         }))
                       }
-                      placeholder="415"
+                      placeholder="41525"
                       required
                     />
                   </div>
@@ -1270,7 +1263,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                         notableLandmarks: e.target.value,
                       }))
                     }
-                    placeholder="Landmarks"
+                    placeholder="Nearby Landmarks"
                   />
                 </div>
 
@@ -1284,7 +1277,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                         value={formData.attendantType || ""}
                         onChange={() => handleTypeChange("attendant")}
                       />
-                      Attendant
+                      Attended
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -1293,7 +1286,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                         checked={attendantType === "nonAttendant"}
                         onChange={() => handleTypeChange("nonAttendant")}
                       />
-                      Non-Attendant
+                      Unattended
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -1302,7 +1295,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                         checked={attendantType === "partial"}
                         onChange={() => handleTypeChange("partial")}
                       />
-                      Partially Attendant
+                      Partially Attended
                     </label>
                   </div>
 
@@ -1311,8 +1304,12 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                     attendantType === "partial") && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label>Open Time</label>
-                        <select
+                        {/* <label>Shift Start Time</label> */}
+                        <label className="font-medium text-center block w-full text-center">
+                          Shift Start Time
+                        </label>
+
+                        {/* <select
                           value={formData.attendingOpen || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -1323,18 +1320,57 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                           className="border rounded px-3 py-2 w-full"
                           disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
                         >
-                          <option value="">Select open time</option>
+                          <option value="">Select Start Time</option>
                           {TIME_OPTIONS.map((t) => (
                             <option key={t.value} value={t.value}>
                               {t.label}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+                        <div className="relative">
+                          <select
+                            value={formData.attendingOpen || ""}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                attendingOpen: e.target.value,
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            disabled={formData.is24Hours}
+                          >
+                            <option value="">Select Start Time</option>
+                            {TIME_OPTIONS.map((t) => (
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom arrow icon shifted left */}
+                          <svg
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label>Close Time</label>
-                        <select
+                        <label className="font-medium text-center block w-full text-center">
+                          Shift End Time
+                        </label>
+
+                        {/* <select
                           value={formData.attendingClose || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -1342,16 +1378,52 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                               attendingClose: e.target.value,
                             }))
                           }
-                          className="border rounded px-3 py-2 w-full"
-                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
+                          className="border rounded px-3 py-2 w-full pr-8" // 👈 added pr-8
+                          disabled={formData.is24Hours} 
                         >
-                          <option value="">Select close time</option>
+                          <option value="">Select End Time</option>
                           {TIME_OPTIONS.map((t) => (
                             <option key={t.value} value={t.value}>
                               {t.label}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+                        <div className="relative">
+                          <select
+                            value={formData.attendingClose || ""}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                attendingClose: e.target.value,
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            disabled={formData.is24Hours}
+                          >
+                            <option value="">Select End Time</option>
+                            {TIME_OPTIONS.map((t) => (
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* custom arrow shifted slightly left */}
+                          <svg
+                            className="pointer-events-none absolute 2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 col-span-2">
@@ -1371,15 +1443,86 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             }))
                           }
                         />
-                        <span>Open 24/7</span>
+                        <span>Attended 24/7</span>
                       </div>
                     </div>
+
+                    // -------------------------------------------------------------------------
+                    // <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center items-center text-center">
+                    //   <div className="space-y-2 flex flex-col items-center">
+                    //     <label className="font-medium text-center">
+                    //       Shift Start Time
+                    //     </label>
+                    //     <select
+                    //       value={formData.attendingOpen || ""}
+                    //       onChange={(e) =>
+                    //         setFormData((prev) => ({
+                    //           ...prev,
+                    //           attendingOpen: e.target.value,
+                    //         }))
+                    //       }
+                    //       className="border rounded px-3 py-2 w-3/4" // 👈 narrower width to center nicely
+                    //       disabled={formData.is24Hours}
+                    //     >
+                    //       <option value="">Select Start Time</option>
+                    //       {TIME_OPTIONS.map((t) => (
+                    //         <option key={t.value} value={t.value}>
+                    //           {t.label}
+                    //         </option>
+                    //       ))}
+                    //     </select>
+                    //   </div>
+
+                    //   <div className="space-y-2 flex flex-col items-center">
+                    //     <label className="font-medium text-center">
+                    //       Shift End Time
+                    //     </label>
+                    //     <select
+                    //       value={formData.attendingClose || ""}
+                    //       onChange={(e) =>
+                    //         setFormData((prev) => ({
+                    //           ...prev,
+                    //           attendingClose: e.target.value,
+                    //         }))
+                    //       }
+                    //       className="border rounded px-3 py-2 w-3/4"
+                    //       disabled={formData.is24Hours}
+                    //     >
+                    //       <option value="">Select End Time</option>
+                    //       {TIME_OPTIONS.map((t) => (
+                    //         <option key={t.value} value={t.value}>
+                    //           {t.label}
+                    //         </option>
+                    //       ))}
+                    //     </select>
+                    //   </div>
+
+                    //   <div className="flex items-center gap-2 col-span-2 justify-center mt-2">
+                    //     <input
+                    //       type="checkbox"
+                    //       checked={formData.is24Hours || false}
+                    //       onChange={(e) =>
+                    //         setFormData((prev) => ({
+                    //           ...prev,
+                    //           is24Hours: e.target.checked,
+                    //           attendingOpen: e.target.checked
+                    //             ? ""
+                    //             : prev.attendingOpen,
+                    //           attendingClose: e.target.checked
+                    //             ? ""
+                    //             : prev.attendingClose,
+                    //         }))
+                    //       }
+                    //     />
+                    //     <span>Attended 24/7</span>
+                    //   </div>
+                    // </div>
                   )}
 
                   {/* Non-Attendant only shows checkbox (no times) */}
                   {attendantType === "nonAttendant" && (
                     <div className="text-sm text-gray-600">
-                      ✅ This location will be marked as non-attended.
+                      ✅ This location will be marked as un-attended.
                     </div>
                   )}
                 </div>
@@ -1405,22 +1548,22 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                   Operating Hours
                 </CardTitle>
                 <CardDescription>
-                  When your laundromat is open and operational
+                  The hours when the laundromat is open and operational each
+                  day.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead>
-                      <tr>
-                        <th className="text-left font-medium p-1">Day</th>
-                        <th className="text-left font-medium p-1">Open Time</th>
-                        <th className="text-left font-medium p-1">
-                          Close Time
-                        </th>
-                        <th></th>
+                      <tr className="text-center align-middle">
+                        <th className="font-medium p-2">Day</th>
+                        <th className="font-medium p-2">Open Time</th>
+                        <th className="font-medium p-2">Close Time</th>
+                        <th className="font-medium p-2">24/7</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {[
                         "Monday",
@@ -1435,7 +1578,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
 
                         return (
                           <tr key={day}>
-                            {/* <td className="p-1">{day}</td> */}
+                            {/* Day */}
                             <td className="p-1">
                               <div className="border border-gray-300 rounded px-2 py-1 text-center">
                                 {day}
@@ -1443,9 +1586,83 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             </td>
 
                             {/* Open Time */}
+                            {/* <td className="p-1">
+              <select
+                className={`border rounded px-2 py-1 w-full ${
+                  is247
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-black"
+                }`}
+                value={formData.hours?.[day]?.open || "08:00"}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    hours: {
+                      ...prev.hours,
+                      [day]: {
+                        open: e.target.value,
+                        close: prev.hours?.[day]?.close ?? "",
+                      },
+                    },
+                  }))
+                }
+                disabled={is247}
+              >
+                {TIME_OPTIONS.map((time) => (
+                  <option value={time.value} key={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
+            </td> */}
+
+                            <td className="p-1 text-center align-middle">
+                              <div className="flex justify-center items-center">
+                                <select
+                                  className={`border rounded px-2 py-1 w-full text-center appearance-none pr-6 relative bg-white ${
+                                    is247
+                                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      : "bg-white text-black"
+                                  }`}
+                                  value={formData.hours?.[day]?.open || "08:00"}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      hours: {
+                                        ...prev.hours,
+                                        [day]: {
+                                          open: e.target.value,
+                                          close: prev.hours?.[day]?.close ?? "",
+                                        },
+                                      },
+                                    }))
+                                  }
+                                  disabled={is247}
+                                  style={{
+                                    backgroundImage:
+                                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                                    backgroundRepeat: "no-repeat",
+                                    backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                                    backgroundSize: "1rem 1rem",
+                                  }}
+                                >
+                                  {TIME_OPTIONS.map((time) => (
+                                    <option
+                                      value={time.value}
+                                      key={time.value}
+                                      className="text-center"
+                                    >
+                                      {time.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </td>
+
+                            {/* Close Time */}
                             <td className="p-1">
                               <select
-                                className={`border rounded px-2 py-1 w-full ${
+                                className={`border rounded px-2 py-1 w-full text-center appearance-none pr-6 relative bg-white ${
                                   is247
                                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                     : "bg-white text-black"
@@ -1458,108 +1675,58 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                                       ...prev.hours,
                                       [day]: {
                                         open: e.target.value,
-                                        close: prev.hours?.[day]?.close ?? "", // ✅ always a string
+                                        close: prev.hours?.[day]?.close ?? "",
                                       },
                                     },
                                   }))
                                 }
                                 disabled={is247}
+                                style={{
+                                  backgroundImage:
+                                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                                  backgroundRepeat: "no-repeat",
+                                  backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                                  backgroundSize: "1rem 1rem",
+                                }}
                               >
                                 {TIME_OPTIONS.map((time) => (
-                                  <option value={time.value} key={time.value}>
+                                  <option
+                                    value={time.value}
+                                    key={time.value}
+                                    className="text-center"
+                                  >
                                     {time.label}
                                   </option>
                                 ))}
                               </select>
                             </td>
 
-                            {/* Close Time */}
-                            {/* Close Time + 24/7 Checkbox */}
-                            <td className="p-1 flex items-center gap-2">
-                              <select
-                                className={`border rounded px-2 py-1 w-full ${
-                                  is247
-                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    : "bg-white text-black"
-                                }`}
-                                value={formData.hours?.[day]?.close || "20:00"}
+                            {/* ✅ 24/7 Checkbox (under single heading) */}
+                            <td className="p-1 text-center">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-blue-600 cursor-pointer"
+                                checked={formData.hours?.[day]?.is247 || false}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
                                     ...prev,
                                     hours: {
                                       ...prev.hours,
                                       [day]: {
-                                        open: prev.hours?.[day]?.open ?? "", // ✅ always a string
-                                        close: e.target.value,
+                                        ...prev.hours?.[day],
+                                        is247: e.target.checked,
+                                        open: e.target.checked
+                                          ? "00:00"
+                                          : prev.hours?.[day]?.open || "08:00",
+                                        close: e.target.checked
+                                          ? "23:59"
+                                          : prev.hours?.[day]?.close || "20:00",
                                       },
                                     },
                                   }))
                                 }
-                                disabled={is247}
-                              >
-                                {TIME_OPTIONS.map((time) => (
-                                  <option value={time.value} key={time.value}>
-                                    {time.label}
-                                  </option>
-                                ))}
-                              </select>
-
-                              {/* 24/7 Checkbox */}
-                              <label className="flex items-center gap-3 text-sm">
-                                <input
-                                  type="checkbox"
-                                  // checked={is247}
-                                  checked={
-                                    formData.hours?.[day]?.is247 || false
-                                  }
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      hours: {
-                                        ...prev.hours,
-                                        [day]: {
-                                          ...prev.hours?.[day],
-                                          is247: e.target.checked,
-                                          open: e.target.checked
-                                            ? "00:00"
-                                            : prev.hours?.[day]?.open ||
-                                              "08:00",
-                                          close: e.target.checked
-                                            ? "23:59"
-                                            : prev.hours?.[day]?.close ||
-                                              "20:00",
-                                        },
-                                      },
-                                    }))
-                                  }
-                                />
-                                24/7
-                              </label>
+                              />
                             </td>
-
-                            {/* Copy Previous Day */}
-                            {/* <td className="p-1">
-                              {i > 0 && (
-                                <button
-                                  className="text-xs text-blue-600 underline"
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      hours: {
-                                        ...(prev.hours ?? {}),
-                                        [day]: {
-                                          open: prev.hours?.[day]?.open ?? "",
-                                          close: prev.hours?.[day]?.close ?? "",
-                                        },
-                                      },
-                                    }))
-                                  }
-                                >
-                                  Copy Previous Day
-                                </button>
-                              )}
-                            </td> */}
                           </tr>
                         );
                       })}
@@ -1603,7 +1770,14 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                               holidayHours: updated,
                             }));
                           }}
-                          className="border rounded-lg p-2 w-full lg:w-1/3"
+                          className="border rounded-lg p-2 w-full lg:w-1/3 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ moves arrow slightly left
+                            backgroundSize: "1rem 1rem",
+                          }}
                         >
                           <option value="">Select Holiday</option>
                           <option value="Christmas">🎄 Christmas</option>
@@ -1629,7 +1803,14 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                               holidayHours: updated,
                             }));
                           }}
-                          className="border rounded-lg p-2 w-full lg:w-1/4"
+                          className="border rounded-lg p-2 w-full lg:w-1/4 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ slightly left-aligned arrow
+                            backgroundSize: "1rem 1rem",
+                          }}
                         >
                           <option value="">Open Time</option>
                           {[
@@ -1648,14 +1829,18 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             "11:30 AM",
                             "12:00 PM",
                           ].map((time) => (
-                            <option key={time} value={time}>
+                            <option
+                              key={time}
+                              value={time}
+                              className="text-center"
+                            >
                               {time}
                             </option>
                           ))}
                         </select>
 
                         {/* Close Time Dropdown */}
-                        <select
+                        {/* <select
                           value={holiday.close}
                           onChange={(e) => {
                             const updated = [...formData.holidayHours];
@@ -1689,6 +1874,56 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             "8:00 PM",
                           ].map((time) => (
                             <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select> */}
+
+                        <select
+                          value={holiday.close}
+                          onChange={(e) => {
+                            const updated = [...formData.holidayHours];
+                            updated[index].close = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="border rounded-lg p-2 w-full lg:w-1/4 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ controls arrow distance
+                            backgroundSize: "1rem 1rem",
+                          }}
+                        >
+                          <option value="">Close Time</option>
+                          {[
+                            "Closed",
+                            "12:00 PM",
+                            "12:30 PM",
+                            "1:00 PM",
+                            "1:30 PM",
+                            "2:00 PM",
+                            "2:30 PM",
+                            "3:00 PM",
+                            "3:30 PM",
+                            "4:00 PM",
+                            "4:30 PM",
+                            "5:00 PM",
+                            "5:30 PM",
+                            "6:00 PM",
+                            "6:30 PM",
+                            "7:00 PM",
+                            "7:30 PM",
+                            "8:00 PM",
+                          ].map((time) => (
+                            <option
+                              key={time}
+                              value={time}
+                              className="text-center"
+                            >
                               {time}
                             </option>
                           ))}
@@ -1732,9 +1967,9 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                   </div>
 
                   {/* Last Wash Time */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="lastWashTime">
-                      Last wash time / final entry time
+                      Last Wash Time
                     </Label>
                     <Input
                       id="lastWashTime"
@@ -1747,10 +1982,10 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                       }
                       placeholder="1 hour before closing"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Time Zone */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="timeZone">Time Zone</Label>
                     <Input
                       id="timeZone"
@@ -1763,6 +1998,65 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                       }
                       placeholder="UTC -8:00 / -7:00 (PST/PDT)"
                     />
+                  </div> */}
+
+                  {/* Time Zone + Last Wash Time (side by side) */}
+                  <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4 w-full">
+                    <div className="flex-1 space-y-2 w-full">
+                      <Label htmlFor="lastWashTime">Last Wash Time</Label>
+                      <Input
+                        id="lastWashTime"
+                        value={formData.lastWashTime}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            lastWashTime: e.target.value,
+                          }))
+                        }
+                        placeholder="1 Hour Before Closing"
+                      />
+                    </div>
+
+                    {/* Time Zone (Dropdown on Left) */}
+                    <div className="flex-1 space-y-2 w-full">
+                      <Label htmlFor="timeZone">Time Zone</Label>
+                      <select
+                        id="timeZone"
+                        value={formData.timeZone}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            timeZone: e.target.value,
+                          }))
+                        }
+                        className="border rounded-lg p-2 w-full text-center appearance-none pr-6 relative bg-white"
+                        style={{
+                          backgroundImage:
+                            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                          backgroundSize: "1rem 1rem",
+                        }}
+                      >
+                        <option value="">Select Time Zone</option>
+                        <option value="UTC-12:00">Eastern Time (ET)</option>
+                        <option value="UTC-11:00">Central Time (CT)</option>
+                        <option value="UTC-10:00">Mountain Time (MT)</option>
+                        <option value="UTC-9:00">Pacific Time (PT)</option>
+                        <option value="UTC-8:00">Alaska Time (AKT)</option>
+                        <option value="UTC-7:00">
+                          Hawaii–Aleutian Time (HT)
+                        </option>
+                        <option value="UTC-6:00">
+                          Samoa Standard Time (SST)
+                        </option>
+                        <option value="UTC-5:00">
+                          Chamorro Standard Time (CHST)
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Last Wash Time (on Right) */}
                   </div>
                 </div>
               </CardContent>
@@ -1796,7 +2090,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                   Services
                 </CardTitle>
                 <CardDescription>
-                  What services you offer and how much they cost
+                  What services your laundromat provides.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -1852,7 +2146,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                 <Separator />
 
                 <div className="space-y-4">
-                  <Label>Accepted payment methods *</Label>
+                  <Label>Accepted Payment Methods *</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {paymentOptions.map((method) => (
                       <div key={method} className="flex items-center space-x-2">
@@ -2106,7 +2400,7 @@ const [attendantType, setAttendantType] = useState<AttendantType>(
                             id={`washer-quantity-${index}`}
                             type="number"
                             min="1"
-                            placeholder="Enter quantity"
+                            placeholder="Enter Quantity Of Machines"
                             value={washer.quantity === 0 ? "" : washer.quantity}
                             onChange={(e) =>
                               setFormData((prev) => ({

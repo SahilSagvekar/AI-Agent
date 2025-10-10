@@ -20,7 +20,7 @@ import { Separator } from "./ui/separator";
 import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { X } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 
 import {
   Clock,
@@ -212,7 +212,7 @@ export function EditAITrainingForm({
     // weekendHours: initialData?.weekendHours ?? "7:00 AM - 9:00 PM",
     openOnHolidays: initialData?.openOnHolidays ?? false,
     holidayNote: initialData?.holidayNote ?? "",
-    lastWashTime: initialData?.lastWashTime ?? "1 hour before closing",
+    lastWashTime: initialData?.lastWashTime ?? "1 Hour Before Closing",
 
     hours: {
       Monday: { open: "08:00", close: "20:00" },
@@ -1014,8 +1014,8 @@ const dryerOptions = [
   const isLastStep = currentTabIndex === TAB_ORDER.length - 1;
 
   return (
-     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div className="space-y-4 text-center">
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      {/* <div className="space-y-4 text-center">
         <h1 className="text-3xl font-semibold">
           Train Your AI Laundromat Assistant
         </h1>
@@ -1029,6 +1029,52 @@ const dryerOptions = [
             <span>{progress}% Complete</span>
           </div>
           <Progress value={progress} className="w-full" />
+        </div>
+      </div> */}
+
+      <div className="flex items-start justify-between gap-6">
+        {/* Left: Page title + progress */}
+        <div className="space-y-4">
+          <h1 className="text-3xl font-semibold">
+            Train Your AI Laundromat Assistant
+          </h1>
+          <p className="text-muted-foreground">
+            Fill out this comprehensive form to train your voice-based AI
+            assistant with location-specific information
+          </p>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Form Progress</span>
+              <span>{progress}% Complete</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </div>
+        </div>
+
+        {/* Right: Back-to-dashboard button (top-right) */}
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (isSubmitting) return;
+              const unsaved =
+                JSON.stringify(formData) !== JSON.stringify(initialData ?? {});
+              if (
+                !unsaved ||
+                confirm(
+                  "You have unsaved changes. Leave and return to dashboard?"
+                )
+              ) {
+                router.push("/dashboard");
+              }
+            }}
+            disabled={isSubmitting}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Dashboard
+          </Button>
         </div>
       </div>
 
@@ -1161,7 +1207,7 @@ const dryerOptions = [
                           zipCode: e.target.value,
                         }))
                       }
-                      placeholder="415"
+                      placeholder="41525"
                       required
                     />
                   </div>
@@ -1225,7 +1271,7 @@ const dryerOptions = [
                         notableLandmarks: e.target.value,
                       }))
                     }
-                    placeholder="Landmarks"
+                    placeholder="Nearby Landmarks"
                   />
                 </div>
 
@@ -1271,7 +1317,7 @@ const dryerOptions = [
                         checked={attendantType === "attendant"}
                         onChange={() => handleTypeChange("attendant")}
                       />
-                      Attendant
+                      Attended
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -1280,7 +1326,7 @@ const dryerOptions = [
                         checked={attendantType === "nonAttendant"}
                         onChange={() => handleTypeChange("nonAttendant")}
                       />
-                      Non-Attendant
+                      Unattended
                     </label>
 
                     <label className="flex items-center gap-2">
@@ -1289,7 +1335,7 @@ const dryerOptions = [
                         checked={attendantType === "partial"}
                         onChange={() => handleTypeChange("partial")}
                       />
-                      Partially Attendant
+                      Partially Attended
                     </label>
                   </div>
 
@@ -1298,8 +1344,10 @@ const dryerOptions = [
                     attendantType === "partial") && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label>Open Time</label>
-                        <select
+                        <label className="font-medium text-center block w-full text-center">
+                          Shift Start Time
+                        </label>
+                        {/* <select
                           value={formData.attendingOpen || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -1316,12 +1364,50 @@ const dryerOptions = [
                               {t.label}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+                        <div className="relative">
+                          <select
+                            value={formData.attendingOpen || ""}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                attendingOpen: e.target.value,
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            disabled={formData.is24Hours}
+                          >
+                            <option value="">Select Start Time</option>
+                            {TIME_OPTIONS.map((t) => (
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom arrow icon shifted left */}
+                          <svg
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label>Close Time</label>
-                        <select
+                        <label className="font-medium text-center block w-full text-center">
+                          Shift End Time
+                        </label>
+                        {/* <select
                           value={formData.attendingClose || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -1338,7 +1424,44 @@ const dryerOptions = [
                               {t.label}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+
+                                                <div className="relative">
+                          <select
+                            value={formData.attendingClose || ""}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                attendingClose: e.target.value,
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            disabled={formData.is24Hours}
+                          >
+                            <option value="">Select End Time</option>
+                            {TIME_OPTIONS.map((t) => (
+                              <option key={t.value} value={t.value}>
+                                {t.label}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* custom arrow shifted slightly left */}
+                          <svg
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 col-span-2">
@@ -1366,7 +1489,7 @@ const dryerOptions = [
                   {/* Non-Attendant only shows checkbox (no times) */}
                   {attendantType === "nonAttendant" && (
                     <div className="text-sm text-gray-600">
-                      ✅ This location will be marked as non-attended.
+                      ✅ This location will be marked as un-attended.
                     </div>
                   )}
                 </div>
@@ -1392,22 +1515,22 @@ const dryerOptions = [
                   Operating Hours
                 </CardTitle>
                 <CardDescription>
-                  When your laundromat is open and operational
+                  The hours when the laundromat is open and operational each
+                  day.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
                     <thead>
-                      <tr>
-                        <th className="text-left font-medium p-1">Day</th>
-                        <th className="text-left font-medium p-1">Open Time</th>
-                        <th className="text-left font-medium p-1">
-                          Close Time
-                        </th>
-                        <th></th>
+                      <tr className="text-center align-middle">
+                        <th className="font-medium p-2">Day</th>
+                        <th className="font-medium p-2">Open Time</th>
+                        <th className="font-medium p-2">Close Time</th>
+                        <th className="font-medium p-2">24/7</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {[
                         "Monday",
@@ -1422,7 +1545,7 @@ const dryerOptions = [
 
                         return (
                           <tr key={day}>
-                            {/* <td className="p-1">{day}</td> */}
+                            {/* Day */}
                             <td className="p-1">
                               <div className="border border-gray-300 rounded px-2 py-1 text-center">
                                 {day}
@@ -1430,9 +1553,83 @@ const dryerOptions = [
                             </td>
 
                             {/* Open Time */}
-                            <td className="p-1">
+                            {/* <td className="p-1">
+              <select
+                className={`border rounded px-2 py-1 w-full ${
+                  is247
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-black"
+                }`}
+                value={formData.hours?.[day]?.open || "08:00"}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    hours: {
+                      ...prev.hours,
+                      [day]: {
+                        open: e.target.value,
+                        close: prev.hours?.[day]?.close ?? "",
+                      },
+                    },
+                  }))
+                }
+                disabled={is247}
+              >
+                {TIME_OPTIONS.map((time) => (
+                  <option value={time.value} key={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
+            </td> */}
+
+                            <td className="p-1 text-center align-middle">
+                              <div className="flex justify-center items-center">
+                                <select
+                                  className={`border rounded px-2 py-1 w-full text-center appearance-none pr-6 relative bg-white ${
+                                    is247
+                                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      : "bg-white text-black"
+                                  }`}
+                                  value={formData.hours?.[day]?.open || "08:00"}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      hours: {
+                                        ...prev.hours,
+                                        [day]: {
+                                          open: e.target.value,
+                                          close: prev.hours?.[day]?.close ?? "",
+                                        },
+                                      },
+                                    }))
+                                  }
+                                  disabled={is247}
+                                  style={{
+                                    backgroundImage:
+                                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                                    backgroundRepeat: "no-repeat",
+                                    backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                                    backgroundSize: "1rem 1rem",
+                                  }}
+                                >
+                                  {TIME_OPTIONS.map((time) => (
+                                    <option
+                                      value={time.value}
+                                      key={time.value}
+                                      className="text-center"
+                                    >
+                                      {time.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </td>
+
+                            {/* Close Time */}
+                             <td className="p-1">
                               <select
-                                className={`border rounded px-2 py-1 w-full ${
+                                className={`border rounded px-2 py-1 w-full text-center appearance-none pr-6 relative bg-white ${
                                   is247
                                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                     : "bg-white text-black"
@@ -1445,104 +1642,57 @@ const dryerOptions = [
                                       ...prev.hours,
                                       [day]: {
                                         open: e.target.value,
-                                        close: prev.hours?.[day]?.close ?? "", // ✅ always a string
+                                        close: prev.hours?.[day]?.close ?? "",
                                       },
                                     },
                                   }))
                                 }
                                 disabled={is247}
+                                style={{
+                                  backgroundImage:
+                                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                                  backgroundRepeat: "no-repeat",
+                                  backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                                  backgroundSize: "1rem 1rem",
+                                }}
                               >
                                 {TIME_OPTIONS.map((time) => (
-                                  <option value={time.value} key={time.value}>
+                                  <option
+                                    value={time.value}
+                                    key={time.value}
+                                    className="text-center"
+                                  >
                                     {time.label}
                                   </option>
                                 ))}
                               </select>
                             </td>
 
-                            {/* Close Time */}
-                            {/* Close Time + 24/7 Checkbox */}
-                            <td className="p-1 flex items-center gap-2">
-                              <select
-                                className={`border rounded px-2 py-1 w-full ${
-                                  is247
-                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                    : "bg-white text-black"
-                                }`}
-                                value={formData.hours?.[day]?.close || "20:00"}
+                            {/* ✅ 24/7 Checkbox (under single heading) */}
+                            <td className="p-1 text-center">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 accent-blue-600 cursor-pointer"
+                                checked={formData.hours?.[day]?.is247 || false}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
                                     ...prev,
                                     hours: {
                                       ...prev.hours,
                                       [day]: {
-                                        open: prev.hours?.[day]?.open ?? "", // ✅ always a string
-                                        close: e.target.value,
+                                        ...prev.hours?.[day],
+                                        is247: e.target.checked,
+                                        open: e.target.checked
+                                          ? "00:00"
+                                          : prev.hours?.[day]?.open || "08:00",
+                                        close: e.target.checked
+                                          ? "23:59"
+                                          : prev.hours?.[day]?.close || "20:00",
                                       },
                                     },
                                   }))
                                 }
-                                disabled={is247}
-                              >
-                                {TIME_OPTIONS.map((time) => (
-                                  <option value={time.value} key={time.value}>
-                                    {time.label}
-                                  </option>
-                                ))}
-                              </select>
-
-                              {/* 24/7 Checkbox */}
-                              <label className="flex items-center gap-3 text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={is247}
-                                  onChange={(e) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      hours: {
-                                        ...prev.hours,
-                                        [day]: {
-                                          ...prev.hours?.[day],
-                                          is247: e.target.checked,
-                                          open: e.target.checked
-                                            ? "00:00"
-                                            : prev.hours?.[day]?.open ||
-                                              "08:00",
-                                          close: e.target.checked
-                                            ? "23:59"
-                                            : prev.hours?.[day]?.close ||
-                                              "20:00",
-                                        },
-                                      },
-                                    }))
-                                  }
-                                />
-                                24/7
-                              </label>
-                            </td>
-
-                            {/* Copy Previous Day */}
-                            <td className="p-1">
-                              {i > 0 && (
-                                <button
-                                  className="text-xs text-blue-600 underline"
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      hours: {
-                                        ...(prev.hours ?? {}),
-                                        [day]: {
-                                          open: prev.hours?.[day]?.open ?? "",
-                                          close: prev.hours?.[day]?.close ?? "",
-                                        },
-                                      },
-                                    }))
-                                  }
-                                >
-                                  Copy Previous Day
-                                </button>
-                              )}
+                              />
                             </td>
                           </tr>
                         );
@@ -1587,7 +1737,14 @@ const dryerOptions = [
                               holidayHours: updated,
                             }));
                           }}
-                          className="border rounded-lg p-2 w-full lg:w-1/3"
+                          className="border rounded-lg p-2 w-full lg:w-1/3 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ moves arrow slightly left
+                            backgroundSize: "1rem 1rem",
+                          }}
                         >
                           <option value="">Select Holiday</option>
                           <option value="Christmas">🎄 Christmas</option>
@@ -1613,7 +1770,14 @@ const dryerOptions = [
                               holidayHours: updated,
                             }));
                           }}
-                          className="border rounded-lg p-2 w-full lg:w-1/4"
+                          className="border rounded-lg p-2 w-full lg:w-1/4 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ slightly left-aligned arrow
+                            backgroundSize: "1rem 1rem",
+                          }}
                         >
                           <option value="">Open Time</option>
                           {[
@@ -1632,14 +1796,18 @@ const dryerOptions = [
                             "11:30 AM",
                             "12:00 PM",
                           ].map((time) => (
-                            <option key={time} value={time}>
+                            <option
+                              key={time}
+                              value={time}
+                              className="text-center"
+                            >
                               {time}
                             </option>
                           ))}
                         </select>
 
                         {/* Close Time Dropdown */}
-                        <select
+                        {/* <select
                           value={holiday.close}
                           onChange={(e) => {
                             const updated = [...formData.holidayHours];
@@ -1673,6 +1841,56 @@ const dryerOptions = [
                             "8:00 PM",
                           ].map((time) => (
                             <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select> */}
+
+                        <select
+                          value={holiday.close}
+                          onChange={(e) => {
+                            const updated = [...formData.holidayHours];
+                            updated[index].close = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              holidayHours: updated,
+                            }));
+                          }}
+                          className="border rounded-lg p-2 w-full lg:w-1/4 text-center appearance-none pr-6 relative bg-white"
+                          style={{
+                            backgroundImage:
+                              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 0.75rem center", // ✅ controls arrow distance
+                            backgroundSize: "1rem 1rem",
+                          }}
+                        >
+                          <option value="">Close Time</option>
+                          {[
+                            "Closed",
+                            "12:00 PM",
+                            "12:30 PM",
+                            "1:00 PM",
+                            "1:30 PM",
+                            "2:00 PM",
+                            "2:30 PM",
+                            "3:00 PM",
+                            "3:30 PM",
+                            "4:00 PM",
+                            "4:30 PM",
+                            "5:00 PM",
+                            "5:30 PM",
+                            "6:00 PM",
+                            "6:30 PM",
+                            "7:00 PM",
+                            "7:30 PM",
+                            "8:00 PM",
+                          ].map((time) => (
+                            <option
+                              key={time}
+                              value={time}
+                              className="text-center"
+                            >
                               {time}
                             </option>
                           ))}
@@ -1716,9 +1934,9 @@ const dryerOptions = [
                   </div>
 
                   {/* Last Wash Time */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="lastWashTime">
-                      Last wash time / final entry time
+                      Last Wash Time
                     </Label>
                     <Input
                       id="lastWashTime"
@@ -1731,10 +1949,10 @@ const dryerOptions = [
                       }
                       placeholder="1 hour before closing"
                     />
-                  </div>
+                  </div> */}
 
                   {/* Time Zone */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="timeZone">Time Zone</Label>
                     <Input
                       id="timeZone"
@@ -1747,6 +1965,65 @@ const dryerOptions = [
                       }
                       placeholder="UTC -8:00 / -7:00 (PST/PDT)"
                     />
+                  </div> */}
+
+                  {/* Time Zone + Last Wash Time (side by side) */}
+                  <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4 w-full">
+                    <div className="flex-1 space-y-2 w-full">
+                      <Label htmlFor="lastWashTime">Last Wash Time</Label>
+                      <Input
+                        id="lastWashTime"
+                        value={formData.lastWashTime}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            lastWashTime: e.target.value,
+                          }))
+                        }
+                        placeholder="1 Hour Before Closing"
+                      />
+                    </div>
+
+                    {/* Time Zone (Dropdown on Left) */}
+                    <div className="flex-1 space-y-2 w-full">
+                      <Label htmlFor="timeZone">Time Zone</Label>
+                      <select
+                        id="timeZone"
+                        value={formData.timeZone}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            timeZone: e.target.value,
+                          }))
+                        }
+                        className="border rounded-lg p-2 w-full text-center appearance-none pr-6 relative bg-white"
+                        style={{
+                          backgroundImage:
+                            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6' /%3E%3C/svg%3E\")",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "right 0.75rem center", // ✅ arrow slightly left
+                          backgroundSize: "1rem 1rem",
+                        }}
+                      >
+                        <option value="">Select Time Zone</option>
+                        <option value="UTC-12:00">Eastern Time (ET)</option>
+                        <option value="UTC-11:00">Central Time (CT)</option>
+                        <option value="UTC-10:00">Mountain Time (MT)</option>
+                        <option value="UTC-9:00">Pacific Time (PT)</option>
+                        <option value="UTC-8:00">Alaska Time (AKT)</option>
+                        <option value="UTC-7:00">
+                          Hawaii–Aleutian Time (HT)
+                        </option>
+                        <option value="UTC-6:00">
+                          Samoa Standard Time (SST)
+                        </option>
+                        <option value="UTC-5:00">
+                          Chamorro Standard Time (CHST)
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Last Wash Time (on Right) */}
                   </div>
                 </div>
               </CardContent>
@@ -1780,7 +2057,7 @@ const dryerOptions = [
                   Services
                 </CardTitle>
                 <CardDescription>
-                  What services you offer and how much they cost
+                  What services your laundromat provides.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -1836,7 +2113,7 @@ const dryerOptions = [
                 <Separator />
 
                 <div className="space-y-4">
-                  <Label>Accepted payment methods *</Label>
+                  <Label>Accepted Payment Methods *</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {paymentOptions.map((method) => (
                       <div key={method} className="flex items-center space-x-2">
@@ -2082,25 +2359,29 @@ const dryerOptions = [
                         </div>
 
                         {/* Quantity */}
-<div className="space-y-2">
-  <Label htmlFor={`washer-quantity-${index}`}>Quantity</Label>
-  <Input
-    id={`washer-quantity-${index}`}
-    type="number"
-    min="1"
-    placeholder="Enter quantity"
-    value={washer.quantity === 0 ? "" : washer.quantity}
-    onChange={(e) =>
-      setFormData((prev) => ({
-        ...prev,
-        washers: prev.washers.map((w, i) =>
-          i === index ? { ...w, quantity: Number(e.target.value) } : w
-        ),
-      }))
-    }
-    required
-  />
-</div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`washer-quantity-${index}`}>
+                            Quantity
+                          </Label>
+                          <Input
+                            id={`washer-quantity-${index}`}
+                            type="number"
+                            min="1"
+                            placeholder="Enter Quantity Of Machines"
+                            value={washer.quantity === 0 ? "" : washer.quantity}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                washers: prev.washers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, quantity: Number(e.target.value) }
+                                    : w
+                                ),
+                              }))
+                            }
+                            required
+                          />
+                        </div>
 
                         {/* Remove Washer */}
                         <Button
@@ -2336,7 +2617,9 @@ const dryerOptions = [
 
                         {/* Quantity */}
                         <div className="space-y-2">
-                          <Label htmlFor={`dryer-quantity-${index}`}>Quantity</Label>
+                          <Label htmlFor={`dryer-quantity-${index}`}>
+                            Quantity
+                          </Label>
                           <Input
                             id={`dryer-quantity-${index}`}
                             type="number"
@@ -2347,7 +2630,9 @@ const dryerOptions = [
                               setFormData((prev) => ({
                                 ...prev,
                                 dryers: prev.dryers.map((d, i) =>
-                                  i === index ? { ...d, quantity: Number(e.target.value) } : d
+                                  i === index
+                                    ? { ...d, quantity: Number(e.target.value) }
+                                    : d
                                 ),
                               }))
                             }
