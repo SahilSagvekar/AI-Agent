@@ -2184,7 +2184,7 @@ const dryerOptions = [
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        <select
+                        {/* <select
                           value={washer.size}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -2208,8 +2208,42 @@ const dryerOptions = [
                               {w.manufacturer} - {w.capacity} lbs - {w.loads}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
 
+                         <div className="relative">
+                          <select
+                            value={washer.size}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                washers: prev.washers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, size: e.target.value }
+                                    : w
+                                ),
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                            required
+                          >
+                            <option value="" disabled>
+                              Select washer size
+                            </option>
+                            {washerOptions.map((w, i) => (
+                              <option
+                                key={i}
+                                value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
+                              >
+                                {w.manufacturer} - {w.capacity} lbs - {w.loads}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom ˅ arrow — matches your example */}
+                          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-black text-sm">
+                            ˅
+                          </div>
+                        </div>
                         {/* Price */}
                         <Input
                           type="number"
@@ -2238,7 +2272,7 @@ const dryerOptions = [
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              <select
+                              {/* <select
                                 value={payment.system}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -2270,7 +2304,49 @@ const dryerOptions = [
                                     {p.paymentSystem}
                                   </option>
                                 ))}
-                              </select>
+                              </select> */}
+
+                              <div className="relative">
+                                <select
+                                  value={payment.system}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      washers: prev.washers.map((w, i) =>
+                                        i === index
+                                          ? {
+                                              ...w,
+                                              payments: w.payments.map(
+                                                (p, pi) =>
+                                                  pi === pIndex
+                                                    ? {
+                                                        ...p,
+                                                        system: e.target.value,
+                                                      }
+                                                    : p
+                                              ),
+                                            }
+                                          : w
+                                      ),
+                                    }))
+                                  }
+                                  className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                                >
+                                  <option value="" disabled>
+                                    Select payment system
+                                  </option>
+                                  {paymentSystems.map((p, i) => (
+                                    <option key={i} value={p.paymentSystem}>
+                                      {p.paymentSystem}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {/* Custom ˅ arrow */}
+                                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                                  ˅
+                                </div>
+                              </div>
 
                               <Button
                                 type="button"
@@ -2398,8 +2474,8 @@ const dryerOptions = [
                         key={index}
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
-                        {/* Dryer Size */}
-                        <select
+                        {/* Washer Size */}
+                        {/* <select
                           value={dryer.size}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -2413,7 +2489,7 @@ const dryerOptions = [
                           required
                         >
                           <option value="" disabled>
-                            Select dryer size
+                            Select Dryer size
                           </option>
                           {dryerOptions.map((w, i) => (
                             <option
@@ -2423,7 +2499,42 @@ const dryerOptions = [
                               {w.manufacturer} - {w.capacity} lbs - {w.loads}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+
+                        <div className="relative">
+                          <select
+                            value={dryer.size}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                dryers: prev.dryers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, size: e.target.value }
+                                    : w
+                                ),
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                            required
+                          >
+                            <option value="" disabled>
+                              Select Dryer size
+                            </option>
+                            {dryerOptions.map((w, i) => (
+                              <option
+                                key={i}
+                                value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
+                              >
+                                {w.manufacturer} - {w.capacity} lbs - {w.loads}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom ˅ arrow */}
+                          <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                            ˅
+                          </div>
+                        </div>
 
                         {/* Price */}
                         <Input
@@ -2453,7 +2564,7 @@ const dryerOptions = [
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              <select
+                              {/* <select
                                 value={payment.system}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -2485,33 +2596,49 @@ const dryerOptions = [
                                     {p.paymentSystem}
                                   </option>
                                 ))}
-                              </select>
+                              </select> */}
 
-                              {/* <Input
-                                type="text"
-                                placeholder="Optional notes"
-                                value={payment.notes}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    dryers: prev.dryers.map((d, i) =>
-                                      i === index
-                                        ? {
-                                            ...d,
-                                            payments: d.payments.map((p, pi) =>
-                                              pi === pIndex
-                                                ? {
-                                                    ...p,
-                                                    notes: e.target.value,
-                                                  }
-                                                : p
-                                            ),
-                                          }
-                                        : d
-                                    ),
-                                  }))
-                                }
-                              /> */}
+                              <div className="relative">
+                                <select
+                                  value={payment.system}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      dryers: prev.dryers.map((w, i) =>
+                                        i === index
+                                          ? {
+                                              ...w,
+                                              payments: w.payments.map(
+                                                (p, pi) =>
+                                                  pi === pIndex
+                                                    ? {
+                                                        ...p,
+                                                        system: e.target.value,
+                                                      }
+                                                    : p
+                                              ),
+                                            }
+                                          : w
+                                      ),
+                                    }))
+                                  }
+                                  className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                                >
+                                  <option value="" disabled>
+                                    Select payment system
+                                  </option>
+                                  {paymentSystems.map((p, i) => (
+                                    <option key={i} value={p.paymentSystem}>
+                                      {p.paymentSystem}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {/* Custom ˅ arrow */}
+                                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                                  ˅
+                                </div>
+                              </div>
 
                               <Button
                                 type="button"
@@ -2541,22 +2668,6 @@ const dryerOptions = [
                           <Button
                             type="button"
                             variant="outline"
-                            // onClick={() =>
-                            //   setFormData((prev) => ({
-                            //     ...prev,
-                            //     dryers: prev.dryers.map((d, i) =>
-                            //       i === index
-                            //         ? {
-                            //             ...d,
-                            //             payments: [
-                            //               ...(d.payments || []),
-                            //               { system: "", notes: "" },
-                            //             ],
-                            //           }
-                            //         : d
-                            //     ),
-                            //   }))
-                            // }
                             onClick={() =>
                               setFormData((prev) => ({
                                 ...prev,
@@ -2620,7 +2731,7 @@ const dryerOptions = [
                       </div>
                     ))}
 
-                    {/* Add Washer */}
+                    {/* Add Dryer */}
                     <Button
                       type="button"
                       variant="outline"
@@ -2635,7 +2746,7 @@ const dryerOptions = [
                               quantity: 0,
                               system: "",
                               payments: [],
-                            }, // ✅ full object
+                            }, // ✅ now a full Washer object
                           ],
                         }))
                       }

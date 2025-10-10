@@ -1365,11 +1365,10 @@ export function AITrainingForm({
                         </div>
                       </div>
 
-                      <div className="space-y-2">
+                     <div className="space-y-2">
                         <label className="font-medium text-center block w-full text-center">
                           Shift End Time
                         </label>
-
                         {/* <select
                           value={formData.attendingClose || ""}
                           onChange={(e) =>
@@ -1378,16 +1377,17 @@ export function AITrainingForm({
                               attendingClose: e.target.value,
                             }))
                           }
-                          className="border rounded px-3 py-2 w-full pr-8" // 👈 added pr-8
-                          disabled={formData.is24Hours} 
+                          className="border rounded px-3 py-2 w-full"
+                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
                         >
-                          <option value="">Select End Time</option>
+                          <option value="">Select close time</option>
                           {TIME_OPTIONS.map((t) => (
                             <option key={t.value} value={t.value}>
                               {t.label}
                             </option>
                           ))}
                         </select> */}
+
                         <div className="relative">
                           <select
                             value={formData.attendingClose || ""}
@@ -1410,7 +1410,7 @@ export function AITrainingForm({
 
                           {/* custom arrow shifted slightly left */}
                           <svg
-                            className="pointer-events-none absolute 2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+                            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -2254,7 +2254,7 @@ export function AITrainingForm({
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        <select
+                        {/* <select
                           value={washer.size}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -2278,7 +2278,42 @@ export function AITrainingForm({
                               {w.manufacturer} - {w.capacity} lbs - {w.loads}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+
+                        <div className="relative">
+                          <select
+                            value={washer.size}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                washers: prev.washers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, size: e.target.value }
+                                    : w
+                                ),
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                            required
+                          >
+                            <option value="" disabled>
+                              Select washer size
+                            </option>
+                            {washerOptions.map((w, i) => (
+                              <option
+                                key={i}
+                                value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
+                              >
+                                {w.manufacturer} - {w.capacity} lbs - {w.loads}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom ˅ arrow — matches your example */}
+                          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-black text-sm">
+                            ˅
+                          </div>
+                        </div>
 
                         {/* Price */}
                         <Input
@@ -2308,7 +2343,7 @@ export function AITrainingForm({
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              <select
+                              {/* <select
                                 value={payment.system}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -2340,7 +2375,49 @@ export function AITrainingForm({
                                     {p.paymentSystem}
                                   </option>
                                 ))}
-                              </select>
+                              </select> */}
+
+                              <div className="relative">
+                                <select
+                                  value={payment.system}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      washers: prev.washers.map((w, i) =>
+                                        i === index
+                                          ? {
+                                              ...w,
+                                              payments: w.payments.map(
+                                                (p, pi) =>
+                                                  pi === pIndex
+                                                    ? {
+                                                        ...p,
+                                                        system: e.target.value,
+                                                      }
+                                                    : p
+                                              ),
+                                            }
+                                          : w
+                                      ),
+                                    }))
+                                  }
+                                  className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                                >
+                                  <option value="" disabled>
+                                    Select payment system
+                                  </option>
+                                  {paymentSystems.map((p, i) => (
+                                    <option key={i} value={p.paymentSystem}>
+                                      {p.paymentSystem}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {/* Custom ˅ arrow */}
+                                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                                  ˅
+                                </div>
+                              </div>
 
                               <Button
                                 type="button"
@@ -2469,7 +2546,7 @@ export function AITrainingForm({
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                        <select
+                        {/* <select
                           value={dryer.size}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -2493,7 +2570,42 @@ export function AITrainingForm({
                               {w.manufacturer} - {w.capacity} lbs - {w.loads}
                             </option>
                           ))}
-                        </select>
+                        </select> */}
+
+                        <div className="relative">
+                          <select
+                            value={dryer.size}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                dryers: prev.dryers.map((w, i) =>
+                                  i === index
+                                    ? { ...w, size: e.target.value }
+                                    : w
+                                ),
+                              }))
+                            }
+                            className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                            required
+                          >
+                            <option value="" disabled>
+                              Select Dryer size
+                            </option>
+                            {dryerOptions.map((w, i) => (
+                              <option
+                                key={i}
+                                value={`${w.manufacturer}|${w.capacity}|${w.loads}`}
+                              >
+                                {w.manufacturer} - {w.capacity} lbs - {w.loads}
+                              </option>
+                            ))}
+                          </select>
+
+                          {/* Custom ˅ arrow */}
+                          <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                            ˅
+                          </div>
+                        </div>
 
                         {/* Price */}
                         <Input
@@ -2523,7 +2635,7 @@ export function AITrainingForm({
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              <select
+                              {/* <select
                                 value={payment.system}
                                 onChange={(e) =>
                                   setFormData((prev) => ({
@@ -2555,7 +2667,49 @@ export function AITrainingForm({
                                     {p.paymentSystem}
                                   </option>
                                 ))}
-                              </select>
+                              </select> */}
+
+                              <div className="relative">
+                                <select
+                                  value={payment.system}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      dryers: prev.dryers.map((w, i) =>
+                                        i === index
+                                          ? {
+                                              ...w,
+                                              payments: w.payments.map(
+                                                (p, pi) =>
+                                                  pi === pIndex
+                                                    ? {
+                                                        ...p,
+                                                        system: e.target.value,
+                                                      }
+                                                    : p
+                                              ),
+                                            }
+                                          : w
+                                      ),
+                                    }))
+                                  }
+                                  className="border rounded px-3 py-2 w-full appearance-none pr-8"
+                                >
+                                  <option value="" disabled>
+                                    Select payment system
+                                  </option>
+                                  {paymentSystems.map((p, i) => (
+                                    <option key={i} value={p.paymentSystem}>
+                                      {p.paymentSystem}
+                                    </option>
+                                  ))}
+                                </select>
+
+                                {/* Custom ˅ arrow */}
+                                <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-black text-sm">
+                                  ˅
+                                </div>
+                              </div>
 
                               <Button
                                 type="button"
