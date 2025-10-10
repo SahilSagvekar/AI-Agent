@@ -1015,6 +1015,15 @@ const dryerOptions = [
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <Button
+        type="button"
+        onClick={() => router.push("/dashboard")}
+        className="bg-white-600 hover:bg-gray-200 text-black pb-2 mb-0"
+      >
+        <ArrowLeft size={18} />
+        Back to Dashboard
+      </Button>
+
       <div className="space-y-4 text-center">
         <h1 className="text-3xl font-semibold">
           Train Your AI Laundromat Assistant
@@ -1030,9 +1039,7 @@ const dryerOptions = [
           </div>
           <Progress value={progress} className="w-full" />
         </div>
-      </div> 
-
-     
+      </div>
 
       <form onSubmit={handleSubmit}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1078,7 +1085,7 @@ const dryerOptions = [
                   Business Information
                 </CardTitle>
                 <CardDescription>
-                  Basic information about your laundromat location
+                  Basic Information about your Laundromat Location
                 </CardDescription>
               </CardHeader>
 
@@ -1186,7 +1193,7 @@ const dryerOptions = [
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="website">Website (if any)</Label>
+                    <Label htmlFor="website">Website (If Any)</Label>
                     <Input
                       id="website"
                       value={formData.website}
@@ -1382,7 +1389,7 @@ const dryerOptions = [
                           ))}
                         </select> */}
 
-                                                <div className="relative">
+                        <div className="relative">
                           <select
                             value={formData.attendingClose || ""}
                             onChange={(e) =>
@@ -1583,7 +1590,7 @@ const dryerOptions = [
                             </td>
 
                             {/* Close Time */}
-                             <td className="p-1">
+                            <td className="p-1">
                               <select
                                 className={`border rounded px-2 py-1 w-full text-center appearance-none pr-6 relative bg-white ${
                                   is247
@@ -2595,7 +2602,6 @@ const dryerOptions = [
                             required
                           />
                         </div>
-                        
 
                         {/* Remove Dryer */}
                         <Button
