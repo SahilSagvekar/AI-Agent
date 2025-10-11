@@ -16,12 +16,12 @@ async function sendEmail(to: string, otp: string) {
     //   user: process.env.EMAIL_USER,
     //   pass: process.env.EMAIL_PASS,
     // },
-    host: process.env.SMTP_HOST || "mail.tryconnect.ai", // your MIAB host
+    host: process.env.SMTP_HOST, // your MIAB host
       port: 587, // STARTTLS
       secure: false, // must be false for port 587
       auth: {
-        user: "otp@tryconnect.ai", // full email address
-        pass: "otp@tryconnect.ai", // password or app password you set in MIAB
+        user: process.env.OTP_MAIL, // full email address
+        pass: process.env.OTP_MAIL, // password or app password you set in MIAB
       },
       tls: {
         rejectUnauthorized: false, // sometimes needed if using self-signed certs
@@ -29,7 +29,7 @@ async function sendEmail(to: string, otp: string) {
   });
 
   await transporter.sendMail({
-    from: "otp@tryconnect.ai",
+    from: process.env.OTP_MAIL,
     to,
     subject: "Your OTP Code",
     text: `Your OTP code is ${otp}. It will expire in 10 minutes.`,

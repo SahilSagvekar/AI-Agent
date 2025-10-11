@@ -7,11 +7,11 @@ export async function POST(req: Request) {
 
     // --- ✅ 1. Configure SMTP for Mail-in-a-Box ---
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "mail.tryconnect.ai", // your MIAB host
+      host: process.env.SMTP_HOST, // your MIAB host
       port: 587, // STARTTLS
       secure: false, // must be false for port 587
       auth: {
-        user: process.env.EMAIL_USER || "support@tryconnect.ai", // full email address
+        user: process.env.EMAIL_USER, // full email address
         pass: process.env.EMAIL_PASS, // password or app password you set in MIAB
       },
       tls: {
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
 
     // --- ✅ 2. Send email ---
     await transporter.sendMail({
-      from: `"${name}" <${process.env.EMAIL_USER || "support@tryconnect.ai"}>`,
-      to: process.env.EMAIL_TO || "support@tryconnect.ai",
+      from: `"${name}" <${process.env.EMAIL_USER }>`,
+      to: process.env.EMAIL_TO,
       replyTo: email, // so you can reply directly from your inbox
       subject: subject || "New Contact Form Message",
       text: message,
