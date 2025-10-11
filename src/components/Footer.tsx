@@ -1,4 +1,6 @@
 import { useRedirect } from "@/utils/redirect";
+import image2 from "@/assets/Logo files/SVG/Logo_5.svg"
+import Image from "next/image";
 
 export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onContact?: () => void; onPrivacyPolicy?: () => void; onTermsOfService?: () => void }) {
   const { redirectContact, redirectDemo, redirectPrivacy, redirectTerms } = useRedirect();
@@ -7,16 +9,32 @@ export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onCon
     <footer id="contact" className="py-16 px-4 border-t border-border">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              {/* <div className="w-6 h-6 bg-gradient-to-r from-primary to-[#7851A9] rounded flex items-center justify-center">
-                <span className="text-primary-foreground text-xs">AI</span>
-              </div> */}
-              <span className="font-semibold">ConnectAI</span>
+          {/* <div className="space-y-3">
+            <div className="flex items-center">
+             <div className="flex items-center  h-10 mr-0 pr-0">
+              <Image
+                src={image2}
+                alt="ConnectAI Logo"
+                width={90}
+                height={80}
+                className="object-contain bg-transparent mr-0 pr-0"
+              />
+            </div>
+               <span className="font-semibold ml-1">ConnectAI</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Revolutionizing laundromat customer service with AI-powered assistance.
             </p>
+          </div> */}
+          <div className="flex items-center -ml-30">
+            <Image
+              src={image2}
+              alt="ConnectAI Logo"
+              width={300}
+              height={300}
+              className="bg-transparent"
+            />
+            {/* <span className="font-semibold text-lg ml-1">ConnectAI</span> */}
           </div>
 
           <div className="space-y-3">
