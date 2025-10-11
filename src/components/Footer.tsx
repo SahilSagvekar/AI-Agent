@@ -9,7 +9,7 @@ export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onCon
     <footer id="contact" className="py-16 px-4 border-t border-border">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
-          {/* <div className="space-y-3">
+          <div className="space-y-3">
             <div className="flex items-center">
              <div className="flex items-center  h-10 mr-0 pr-0">
               <Image
@@ -25,16 +25,6 @@ export function Footer({ onContact, onPrivacyPolicy, onTermsOfService }: { onCon
             <p className="text-sm text-muted-foreground leading-relaxed">
               Revolutionizing laundromat customer service with AI-powered assistance.
             </p>
-          </div> */}
-          <div className="flex items-center -ml-30">
-            <Image
-              src={image2}
-              alt="ConnectAI Logo"
-              width={300}
-              height={300}
-              className="bg-transparent"
-            />
-            {/* <span className="font-semibold text-lg ml-1">ConnectAI</span> */}
           </div>
 
           <div className="space-y-3">
