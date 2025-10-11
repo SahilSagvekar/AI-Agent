@@ -266,7 +266,7 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
                         <Button
                           size="sm"
                           variant="outline"
-                          className="self-start mt-2"
+                          className="self-start mt-2 w-38"
                           onClick={() => {
                             setEditingId(assignment.id);
                             setEditValues({
@@ -275,7 +275,7 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
                             });
                           }}
                         >
-                          <Edit className="h-4 w-4 mr-1" /> Edit
+                          <Edit className="h-4 w-4 mr-1" /> Edit Training
                         </Button>
                       )}
                     </div>
