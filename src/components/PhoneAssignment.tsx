@@ -270,7 +270,7 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
           <Button
             size="sm"
             variant="outline"
-            className="sm:ml-auto"
+            className="sm:ml-auto w-40"
             onClick={() => {
               setEditingId(assignment.id);
               setEditValues({
@@ -279,7 +279,7 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
               });
             }}
           >
-            <Edit className="h-4 w-4 mr-1" /> Edit Training
+            <Edit className="h-4 mr-1 w-4" /> Edit Training
           </Button>
         )}
       </div>
