@@ -174,114 +174,119 @@ export function PhoneAssignment({ businessName, onComplete }: PhoneAssignmentPro
             </div>
           ) : (
             <div className="space-y-5">
-              {assignments.map((assignment, index) => (
-                <motion.div
-                  key={assignment.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+             {assignments.map((assignment, index) => (
+  <motion.div
+    key={assignment.id}
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.05 }}
+    className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+  >
+    {/* Card Body */}
+    <div className="flex flex-col gap-4">
+      {/* Top Row: Left (title/status/address or edit form) / Right (phone/copy) */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        {/* Left side */}
+        <div className="space-y-1">
+          {editingId === assignment.id ? (
+            <div className="space-y-3">
+              <div>
+                <Label>Location</Label>
+                <Input
+                  value={editValues.location}
+                  onChange={(e) =>
+                    setEditValues((p) => ({
+                      ...p,
+                      location: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={editValues.address}
+                  onChange={(e) =>
+                    setEditValues((p) => ({
+                      ...p,
+                      address: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" onClick={() => handleSave(assignment.id)}>
+                  <Save className="h-4 w-4 mr-1" /> Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingId(null)}
                 >
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="space-y-1">
-                      {editingId === assignment.id ? (
-                        <div className="space-y-3">
-                          <div>
-                            <Label>Location</Label>
-                            <Input
-                              value={editValues.location}
-                              onChange={(e) =>
-                                setEditValues((p) => ({
-                                  ...p,
-                                  location: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label>Address</Label>
-                            <Input
-                              value={editValues.address}
-                              onChange={(e) =>
-                                setEditValues((p) => ({
-                                  ...p,
-                                  address: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div className="flex gap-2 pt-2">
-                            <Button size="sm" onClick={() => handleSave(assignment.id)}>
-                              <Save className="h-4 w-4 mr-1" /> Save
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditingId(null)}
-                            >
-                              <X className="h-4 w-4 mr-1" /> Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            {assignment.location}
-                            <Badge
-                              variant="outline"
-                              className={`border px-2 py-0.5 text-xs rounded-full ${statusColors[assignment.status]}`}
-                            >
-                              {assignment.status.toUpperCase()}
-                            </Badge>
-                          </h3>
-                          <p className="text-sm text-gray-500 flex items-center gap-1">
-                            <MapPin className="h-4 w-4" /> {assignment.address}
-                          </p>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col text-sm text-gray-600 gap-2">
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded-md">
-                          {assignment.phoneNumber}
-                        </code>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() =>
-                            navigator.clipboard.writeText(assignment.phoneNumber)
-                          }
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p>
-                        Assigned on{" "}
-                        <span className="font-medium">
-                          {new Date(assignment.assignedDate).toLocaleDateString()}
-                        </span>
-                      </p>
-                      {editingId !== assignment.id && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="self-start mt-2 w-38"
-                          onClick={() => {
-                            setEditingId(assignment.id);
-                            setEditValues({
-                              location: assignment.location,
-                              address: assignment.address,
-                            });
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-1" /> Edit Training
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                {assignment.location}
+                <Badge
+                  variant="outline"
+                  className={`border px-2 py-0.5 text-xs rounded-full ${statusColors[assignment.status]}`}
+                >
+                  {assignment.status.toUpperCase()}
+                </Badge>
+              </h3>
+              <p className="text-sm text-gray-500 flex items-center gap-1">
+                <MapPin className="h-4 w-4" /> {assignment.address}
+              </p>
+            </>
+          )}
+        </div>
+        {/* Right side: phone & copy */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <code className="bg-gray-100 px-2 py-1 rounded-md text-sm">
+            {assignment.phoneNumber}
+          </code>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => navigator.clipboard.writeText(assignment.phoneNumber)}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      {/* Footer: date bottom-left, edit bottom-right */}
+      <div className="mt-1 pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <p className="text-sm text-gray-600">
+          Assigned on{" "}
+          <span className="font-medium">
+            {new Date(assignment.assignedDate).toLocaleDateString()}
+          </span>
+        </p>
+        {editingId !== assignment.id && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="sm:ml-auto"
+            onClick={() => {
+              setEditingId(assignment.id);
+              setEditValues({
+                location: assignment.location,
+                address: assignment.address,
+              });
+            }}
+          >
+            <Edit className="h-4 w-4 mr-1" /> Edit Training
+          </Button>
+        )}
+      </div>
+    </div>
+  </motion.div>
+))}
+              {/* ))} */}
             </div>
           )}
 
