@@ -21,6 +21,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { X, ArrowLeft } from "lucide-react";
+import { z, ZodError  } from "zod";
+import { businessSchema, hoursSchema, servicesSchema, equipmentSchema, settingsSchema, policiesSchema } from "@/lib/schemas";
 
 import {
   Clock,
@@ -352,6 +354,40 @@ export function EditAITrainingForm({
       alert("Network or server error!");
     }
     setIsSubmitting(false);
+  };
+
+  const validateCurrentTab = () => {
+    try {
+      switch (activeTab) {
+        case "business":
+          businessSchema.parse(formData);
+          break;
+        case "hours":
+          hoursSchema.parse(formData);
+          break;
+        case "services":
+          servicesSchema.parse(formData);
+          break;
+        case "equipment":
+          equipmentSchema.parse(formData);
+          break;
+        case "settings":
+          settingsSchema.parse(formData);
+          break;
+        case "policies":
+          policiesSchema.parse(formData);
+          break;
+        default:
+          break;
+      }
+      return true;
+    }  catch (error) {
+  if (error instanceof ZodError) {
+    console.log(error.message); // ✅ Now TypeScript knows this is a ZodError
+  } else {
+    console.error(error);
+  }
+}
   };
 
   type AttendantType = "attendant" | "nonAttendant" | "partial" | "";
@@ -1269,9 +1305,10 @@ const dryerOptions = [
             <div className="flex justify-end mt-6">
               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -1729,14 +1766,15 @@ const dryerOptions = [
               >
                 Back
               </Button>
-              <Button
-                type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
-              >
-                Next
-              </Button>
+                           <Button
+                             type="button"
+                             onClick={() => {
+                               if (!validateCurrentTab()) return;
+                               setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                             }}
+                           >
+                             Next
+                           </Button>
             </div>
           </TabsContent>
 
@@ -1847,9 +1885,10 @@ const dryerOptions = [
               </Button>
               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -2409,14 +2448,15 @@ const dryerOptions = [
               >
                 Back
               </Button>
-              <Button
-                type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
-              >
-                Next
-              </Button>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              if (!validateCurrentTab()) return;
+                              setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                            }}
+                          >
+                            Next
+                          </Button>
             </div>
           </TabsContent>
 
@@ -2502,14 +2542,15 @@ const dryerOptions = [
               >
                 Back
               </Button>
-              <Button
-                type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
-              >
-                Next
-              </Button>
+                           <Button
+                             type="button"
+                             onClick={() => {
+                               if (!validateCurrentTab()) return;
+                               setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                             }}
+                           >
+                             Next
+                           </Button>
             </div>
           </TabsContent>
 
@@ -2691,7 +2732,54 @@ const dryerOptions = [
                   </div>
 
                   {/* Business Tone */}
-                 <div className="space-y-4"> <Label>Business tone *</Label> <RadioGroup value={formData.businessTone} onValueChange={(value) => setFormData((prev) => ({ ...prev, businessTone: value, })) } > <div className="flex items-center space-x-2"> <RadioGroupItem value="friendly-casual" id="friendly-casual" /> <Label htmlFor="friendly-casual"> Friendly & casual </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="professional-formal" id="professional-formal" /> <Label htmlFor="professional-formal"> Professional & formal </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="bilingual-informal" id="bilingual-informal" /> <Label htmlFor="bilingual-informal"> Bilingual/informal </Label> </div> </RadioGroup> </div>
+                  <div className="space-y-4">
+                    {" "}
+                    <Label>Business tone *</Label>{" "}
+                    <RadioGroup
+                      value={formData.businessTone}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          businessTone: value,
+                        }))
+                      }
+                    >
+                      {" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="friendly-casual"
+                          id="friendly-casual"
+                        />{" "}
+                        <Label htmlFor="friendly-casual">
+                          {" "}
+                          Friendly & casual{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="professional-formal"
+                          id="professional-formal"
+                        />{" "}
+                        <Label htmlFor="professional-formal">
+                          {" "}
+                          Professional & formal{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="bilingual-informal"
+                          id="bilingual-informal"
+                        />{" "}
+                        <Label htmlFor="bilingual-informal">
+                          {" "}
+                          Bilingual/informal{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                    </RadioGroup>{" "}
+                  </div>
 
                   {/* Intro & Custom Phrases */}
                   <div className="space-y-2">
@@ -2739,14 +2827,15 @@ const dryerOptions = [
               >
                 Back
               </Button>
-              <Button
-                type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
-              >
-                Next
-              </Button>
+                           <Button
+                             type="button"
+                             onClick={() => {
+                               if (!validateCurrentTab()) return;
+                               setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                             }}
+                           >
+                             Next
+                           </Button>
             </div>
           </TabsContent>
 

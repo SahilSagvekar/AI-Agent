@@ -21,6 +21,8 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Progress } from "./ui/progress";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { X } from "lucide-react";
+import { z, ZodError  } from "zod";
+import { businessSchema, hoursSchema, servicesSchema, equipmentSchema, settingsSchema, policiesSchema  } from "@/lib/schemas";
 
 import {
   Clock,
@@ -890,6 +892,41 @@ export function AITrainingForm({
   //   "attendant" | "nonAttendant" | "partial" | ""
   // >(formData.attendantType || "");
 
+  const validateCurrentTab = () => {
+  try {
+    switch (activeTab) {
+      case "business":
+        businessSchema.parse(formData);
+        break;
+      case "hours":
+        hoursSchema.parse(formData);
+        break;
+      case "services":
+        servicesSchema.parse(formData);
+        break;
+      case "equipment":
+        equipmentSchema.parse(formData);
+        break;
+      case "settings":
+        settingsSchema.parse(formData);
+        break;
+      case "policies":
+        policiesSchema.parse(formData);
+        break;
+      default:
+        break;
+    }
+    return true;
+  }  catch (error) {
+  if (error instanceof ZodError) {
+    console.log(error.message); // ✅ Now TypeScript knows this is a ZodError
+  } else {
+    console.error(error);
+  }
+}
+};
+
+
   type AttendantType = "attendant" | "nonAttendant" | "partial" | "";
 
   const [attendantType, setAttendantType] = useState<AttendantType>(
@@ -1289,11 +1326,20 @@ export function AITrainingForm({
               </CardContent>
             </Card>
             <div className="flex justify-end mt-6">
-              <Button
+              {/* <Button
                 type="button"
                 onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
                 disabled={isSubmitting}
                 className="flex items-center gap-2"
+              >
+                Next
+              </Button> */}
+              <Button
+                type="button"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -1719,11 +1765,21 @@ export function AITrainingForm({
               >
                 Back
               </Button>
-              <Button
+             {/* <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
+              >
+                Next
+              </Button> */}
+                <Button
+                type="button"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -1734,8 +1790,7 @@ export function AITrainingForm({
           <TabsContent value="services" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
-
-                      <div className="space-y-4 mb-2">
+                <div className="space-y-4 mb-2">
                   <Label>Accepted Payment Methods *</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {paymentOptions.map((method) => (
@@ -1822,7 +1877,6 @@ export function AITrainingForm({
                     />
                   </div>
                 </div>
-
               </CardContent>
             </Card>
             <div className="flex justify-between mt-6">
@@ -1836,9 +1890,10 @@ export function AITrainingForm({
               </Button>
               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -2459,11 +2514,12 @@ export function AITrainingForm({
               >
                 Back
               </Button>
-              <Button
+               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -2554,9 +2610,10 @@ export function AITrainingForm({
               </Button>
               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
@@ -2741,7 +2798,54 @@ export function AITrainingForm({
                   </div>
 
                   {/* Business Tone */}
-                 <div className="space-y-4"> <Label>Business tone *</Label> <RadioGroup value={formData.businessTone} onValueChange={(value) => setFormData((prev) => ({ ...prev, businessTone: value, })) } > <div className="flex items-center space-x-2"> <RadioGroupItem value="friendly-casual" id="friendly-casual" /> <Label htmlFor="friendly-casual"> Friendly & casual </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="professional-formal" id="professional-formal" /> <Label htmlFor="professional-formal"> Professional & formal </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="bilingual-informal" id="bilingual-informal" /> <Label htmlFor="bilingual-informal"> Bilingual/informal </Label> </div> </RadioGroup> </div>
+                  <div className="space-y-4">
+                    {" "}
+                    <Label>Business tone *</Label>{" "}
+                    <RadioGroup
+                      value={formData.businessTone}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          businessTone: value,
+                        }))
+                      }
+                    >
+                      {" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="friendly-casual"
+                          id="friendly-casual"
+                        />{" "}
+                        <Label htmlFor="friendly-casual">
+                          {" "}
+                          Friendly & casual{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="professional-formal"
+                          id="professional-formal"
+                        />{" "}
+                        <Label htmlFor="professional-formal">
+                          {" "}
+                          Professional & formal{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                      <div className="flex items-center space-x-2">
+                        {" "}
+                        <RadioGroupItem
+                          value="bilingual-informal"
+                          id="bilingual-informal"
+                        />{" "}
+                        <Label htmlFor="bilingual-informal">
+                          {" "}
+                          Bilingual/informal{" "}
+                        </Label>{" "}
+                      </div>{" "}
+                    </RadioGroup>{" "}
+                  </div>
 
                   {/* Intro & Custom Phrases */}
                   <div className="space-y-2">
@@ -2789,11 +2893,12 @@ export function AITrainingForm({
               >
                 Back
               </Button>
-              <Button
+               <Button
                 type="button"
-                onClick={() => setActiveTab(TAB_ORDER[currentTabIndex + 1])}
-                disabled={isSubmitting}
-                className="flex items-center gap-2"
+                onClick={() => {
+                  if (!validateCurrentTab()) return;
+                  setActiveTab(TAB_ORDER[currentTabIndex + 1]);
+                }}
               >
                 Next
               </Button>
