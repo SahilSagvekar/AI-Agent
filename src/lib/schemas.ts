@@ -91,12 +91,12 @@ export const settingsSchema = z.object({
 
 /* 📜 Policies Tab */
 export const policiesSchema = z.object({
-  lostFoundPolicy: z.string().optional(),
-  refundPolicy: z.string().optional(),
-  petPolicies: z.string().optional(),
-  timeLimits: z.string().optional(),
-  unattendedPolicy: z.string().optional(),
-  additionalPolicies: z.string().optional(),
+  lostFoundPolicy: z.string(),
+  refundPolicy: z.string(),
+  petPolicies: z.string(),
+  timeLimits: z.string(),
+  unattendedPolicy: z.string(),
+  additionalPolicies: z.string(),
 });
 
 /* ✅ Full Schema (optional for submit) */
