@@ -418,7 +418,7 @@ export function AITrainingForm({
   ];
 
   const paymentOptions = [
-    "Cash",
+    "Cash/Coin",
     "Credit/Debit",
     "App-based (Apple Pay, Google Pay, etc.)",
     "Loyalty Card/Token System",
@@ -922,7 +922,7 @@ export function AITrainingForm({
         </p>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Form Progress</span>
+            <span>ConnectAI Training Progress</span>
             <span>{progress}% Complete</span>
           </div>
           <Progress value={progress} className="w-full" />
@@ -1041,7 +1041,7 @@ export function AITrainingForm({
                           address: e.target.value,
                         }))
                       }
-                      placeholder="123 Main St, City, State 12345"
+                      placeholder="123 Main St, City, State"
                       required
                     />
                   </div>
@@ -1160,12 +1160,12 @@ export function AITrainingForm({
                   {/* Attendant / Partially Attendant UI */}
                   {(attendantType === "attendant" ||
                     attendantType === "partial") && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="font-medium text-center block w-full text-center">
+                    <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+                      {/* Shift Start Time */}
+                      <div className="flex flex-col flex-1">
+                        <label className="font-medium text-center block w-full mb-1">
                           Shift Start Time
                         </label>
-
                         <div className="relative">
                           <select
                             value={formData.attendingOpen || ""}
@@ -1175,7 +1175,11 @@ export function AITrainingForm({
                                 attendingOpen: e.target.value,
                               }))
                             }
-                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            className={`border rounded px-3 py-2 w-full pr-10 appearance-none transition-colors ${
+                              formData.is24Hours
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-white text-black"
+                            }`}
                             disabled={formData.is24Hours}
                           >
                             <option value="">Select Start Time</option>
@@ -1186,7 +1190,6 @@ export function AITrainingForm({
                             ))}
                           </select>
 
-                          {/* Custom arrow icon shifted left */}
                           <svg
                             className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1204,29 +1207,11 @@ export function AITrainingForm({
                         </div>
                       </div>
 
-                     <div className="space-y-2">
-                        <label className="font-medium text-center block w-full text-center">
+                      {/* Shift End Time */}
+                      <div className="flex flex-col flex-1">
+                        <label className="font-medium text-center block w-full mb-1">
                           Shift End Time
                         </label>
-                        {/* <select
-                          value={formData.attendingClose || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              attendingClose: e.target.value,
-                            }))
-                          }
-                          className="border rounded px-3 py-2 w-full"
-                          disabled={formData.is24Hours} // ✅ disables dropdown when 24/7 is ticked
-                        >
-                          <option value="">Select close time</option>
-                          {TIME_OPTIONS.map((t) => (
-                            <option key={t.value} value={t.value}>
-                              {t.label}
-                            </option>
-                          ))}
-                        </select> */}
-
                         <div className="relative">
                           <select
                             value={formData.attendingClose || ""}
@@ -1236,7 +1221,11 @@ export function AITrainingForm({
                                 attendingClose: e.target.value,
                               }))
                             }
-                            className="border rounded px-3 py-2 w-full pr-10 appearance-none"
+                            className={`border rounded px-3 py-2 w-full pr-10 appearance-none transition-colors ${
+                              formData.is24Hours
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-white text-black"
+                            }`}
                             disabled={formData.is24Hours}
                           >
                             <option value="">Select End Time</option>
@@ -1247,7 +1236,6 @@ export function AITrainingForm({
                             ))}
                           </select>
 
-                          {/* custom arrow shifted slightly left */}
                           <svg
                             className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
                             xmlns="http://www.w3.org/2000/svg"
@@ -1265,9 +1253,14 @@ export function AITrainingForm({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 col-span-2">
+                      {/* Open 24/7 */}
+                      <div className="flex flex-col items-center justify-start mt-[2px] mb-3">
+                        <label className="font-medium text-center block w-full mb-3 whitespace-nowrap">
+                          Open 24/7
+                        </label>
                         <input
                           type="checkbox"
+                          className="w-5 h-5 cursor-pointer"
                           checked={formData.is24Hours || false}
                           onChange={(e) =>
                             setFormData((prev) => ({
@@ -1282,11 +1275,8 @@ export function AITrainingForm({
                             }))
                           }
                         />
-                        <span>Attended 24/7</span>
                       </div>
                     </div>
-
-                 
                   )}
 
                   {/* Non-Attendant only shows checkbox (no times) */}
@@ -1356,7 +1346,7 @@ export function AITrainingForm({
                             </td>
 
                             {/* Open Time */}
-                           
+
                             <td className="p-1 text-center align-middle">
                               <div className="flex justify-center items-center">
                                 <select
@@ -1478,7 +1468,6 @@ export function AITrainingForm({
                 {/* //Open on Holidays */}
                 <div className="space-y-4">
                   {/* ✅ Removed checkbox functionality */}
-                 
 
                   {/* ✅ Holiday Hours always visible */}
                   <div className="space-y-4">
@@ -1570,7 +1559,6 @@ export function AITrainingForm({
                         </select>
 
                         {/* Close Time Dropdown */}
-                  
 
                         <select
                           value={holiday.close}
@@ -1660,7 +1648,6 @@ export function AITrainingForm({
                   </div>
 
                   {/* Last Wash Time */}
-                
 
                   {/* Time Zone + Last Wash Time (side by side) */}
                   <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4 w-full">
@@ -1747,6 +1734,37 @@ export function AITrainingForm({
           <TabsContent value="services" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
+
+                      <div className="space-y-4 mb-2">
+                  <Label>Accepted Payment Methods *</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {paymentOptions.map((method) => (
+                      <div key={method} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={method}
+                          checked={formData.paymentMethods.includes(method)}
+                          onCheckedChange={() =>
+                            toggleArrayItem(
+                              formData.paymentMethods,
+                              method,
+                              (items) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  paymentMethods: items,
+                                }))
+                            )
+                          }
+                        />
+                        <Label htmlFor={method} className="text-sm">
+                          {method}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Separator />
+
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5" />
                   Services
@@ -1805,35 +1823,6 @@ export function AITrainingForm({
                   </div>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-4">
-                  <Label>Accepted Payment Methods *</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {paymentOptions.map((method) => (
-                      <div key={method} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={method}
-                          checked={formData.paymentMethods.includes(method)}
-                          onCheckedChange={() =>
-                            toggleArrayItem(
-                              formData.paymentMethods,
-                              method,
-                              (items) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  paymentMethods: items,
-                                }))
-                            )
-                          }
-                        />
-                        <Label htmlFor={method} className="text-sm">
-                          {method}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
             <div className="flex justify-between mt-6">
@@ -1916,7 +1905,6 @@ export function AITrainingForm({
                         className="space-y-3 border p-4 rounded-lg shadow-sm"
                       >
                         {/* Washer Size */}
-                       
 
                         <div className="relative">
                           <select
@@ -1955,21 +1943,19 @@ export function AITrainingForm({
 
                         {/* Price */}
                         <Input
-                          type="number"
-                          step="0.01"
+                          type="text" // 👈 change to text so `$` is allowed
                           placeholder="Enter Price (e.g. $1.25)"
                           value={washer.price}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/[^0-9.]/g, ""); // remove everything except numbers & .
+                            if (val) val = `$${val}`; // add $ if not empty
                             setFormData((prev) => ({
                               ...prev,
-                              washers: prev.washers.map(
-                                (w, i) =>
-                                  i === index
-                                    ? { ...w, price: e.target.value }
-                                    : w // ✅ Keep as string
+                              washers: prev.washers.map((w, i) =>
+                                i === index ? { ...w, price: val } : w
                               ),
-                            }))
-                          }
+                            }));
+                          }}
                           required
                         />
 
@@ -2247,21 +2233,20 @@ export function AITrainingForm({
 
                         {/* Price */}
                         <Input
-                          type="number"
+                          type="text" // 👈 must be text so we can include "$"
                           step="0.01"
                           placeholder="Enter Price (e.g. $1.25)"
                           value={dryer.price}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/[^0-9.]/g, ""); // remove anything not a digit or "."
+                            if (val) val = `$${val}`; // prepend "$" if not empty
                             setFormData((prev) => ({
                               ...prev,
-                              dryers: prev.dryers.map(
-                                (w, i) =>
-                                  i === index
-                                    ? { ...w, price: e.target.value }
-                                    : w // ✅ Keep as string
+                              dryers: prev.dryers.map((w, i) =>
+                                i === index ? { ...w, price: val } : w
                               ),
-                            }))
-                          }
+                            }));
+                          }}
                           required
                         />
 
@@ -2273,40 +2258,6 @@ export function AITrainingForm({
                               key={pIndex}
                               className="flex gap-3 items-center"
                             >
-                              {/* <select
-                                value={payment.system}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    dryers: prev.dryers.map((w, i) =>
-                                      i === index
-                                        ? {
-                                            ...w,
-                                            payments: w.payments.map((p, pi) =>
-                                              pi === pIndex
-                                                ? {
-                                                    ...p,
-                                                    system: e.target.value,
-                                                  }
-                                                : p
-                                            ),
-                                          }
-                                        : w
-                                    ),
-                                  }))
-                                }
-                                className="border rounded px-3 py-2 w-full"
-                              >
-                                <option value="" disabled>
-                                  Select payment system
-                                </option>
-                                {paymentSystems.map((p, i) => (
-                                  <option key={i} value={p.paymentSystem}>
-                                    {p.paymentSystem}
-                                  </option>
-                                ))}
-                              </select> */}
-
                               <div className="relative">
                                 <select
                                   value={payment.system}
@@ -2753,13 +2704,13 @@ export function AITrainingForm({
                     Language & Tone
                   </CardTitle>
                   <CardDescription>
-                    Configure language support and business personality
+                    Configure Language Support and Business Personality
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Language Support */}
                   <div className="space-y-4">
-                    <Label>Language support</Label>
+                    <Label>Language Support</Label>
                     <div className="grid grid-cols-2 gap-2">
                       {languageOptions.map((language) => (
                         <div
@@ -2790,50 +2741,11 @@ export function AITrainingForm({
                   </div>
 
                   {/* Business Tone */}
-                  <div className="space-y-4">
-                    <Label>Business tone *</Label>
-                    <RadioGroup
-                      value={formData.businessTone}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          businessTone: value,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="friendly-casual"
-                          id="friendly-casual"
-                        />
-                        <Label htmlFor="friendly-casual">
-                          Friendly & casual
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="professional-formal"
-                          id="professional-formal"
-                        />
-                        <Label htmlFor="professional-formal">
-                          Professional & formal
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="bilingual-informal"
-                          id="bilingual-informal"
-                        />
-                        <Label htmlFor="bilingual-informal">
-                          Bilingual/informal
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+                 <div className="space-y-4"> <Label>Business tone *</Label> <RadioGroup value={formData.businessTone} onValueChange={(value) => setFormData((prev) => ({ ...prev, businessTone: value, })) } > <div className="flex items-center space-x-2"> <RadioGroupItem value="friendly-casual" id="friendly-casual" /> <Label htmlFor="friendly-casual"> Friendly & casual </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="professional-formal" id="professional-formal" /> <Label htmlFor="professional-formal"> Professional & formal </Label> </div> <div className="flex items-center space-x-2"> <RadioGroupItem value="bilingual-informal" id="bilingual-informal" /> <Label htmlFor="bilingual-informal"> Bilingual/informal </Label> </div> </RadioGroup> </div>
 
                   {/* Intro & Custom Phrases */}
                   <div className="space-y-2">
-                    <Label htmlFor="businessIntro">Business introduction</Label>
+                    <Label htmlFor="businessIntro">Business Introduction</Label>
                     <Input
                       id="businessIntro"
                       value={formData.businessIntro}
@@ -2843,13 +2755,13 @@ export function AITrainingForm({
                           businessIntro: e.target.value,
                         }))
                       }
-                      placeholder="Hi, thanks for calling Fresh Laundry!"
+                      placeholder="ConnectAI's Introduction To Your Customers!"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="customPhrases">
-                      Custom phrases or taglines
+                      Custom Phrases or Taglines
                     </Label>
                     <Textarea
                       id="customPhrases"
@@ -2897,7 +2809,7 @@ export function AITrainingForm({
                   Special Policies & Notes
                 </CardTitle>
                 <CardDescription>
-                  Important policies and information the AI should know
+                  Important policies and information ConnectAI should know
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -2952,7 +2864,7 @@ export function AITrainingForm({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="timeLimits">
-                      Time limits for staying on-site
+                      Time Limits For Staying On-Site
                     </Label>
                     <Textarea
                       id="timeLimits"

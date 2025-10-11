@@ -64,7 +64,7 @@ export function LocationEditor({ isOpen, onClose, locationName, onSave }: Locati
   const [formData, setFormData] = useState<LocationData>({
     id: locationName.toLowerCase().replace(/\s+/g, '-'),
     name: locationName,
-    address: "123 Main St, City, State 12345",
+    address: "123 Main St, City, State",
     phone: "+1 (555) 247-8901",
     hours: {
       monday: "6:00 AM - 11:00 PM",
